@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="content-wrapper">
+  <div class="page-header">
+    <h3 class="page-title">Payments</h3>
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item active" aria-current="page">
+          <a href="{% url 'payments-add' %}" type="button" class="btn btn-gradient-primary btn-rounded btn-fw">Add Payment</a>
+        </li>
+      </ol>
+    </nav>
+  </div>
+  <div class="row">
+    <div class="col-lg-12 grid-margin stretch-card">
+      <div class="card">
+        <div class="card-body">
+          <h4 class="card-title">Payments List</h4>
+          {% if payments %}
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Method</th>
+                <th>Created At</th>
+                <th>Updated At</th>
+                <th>Active</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for payment in payments %}
+              <tr>
+                <td>{{payment.name}}</td>
+                <td>{{payment.method}}</td>
+                <td class="text-danger">
+                  {{payment.created_at}}
+                </td>                
+                <td class="text-danger">
+                  {{payment.updated_at}}
+                </td>
+                <td>
+                  {% if payment.is_active %}
+                  <label class="badge badge-success">Active</label>
+                  {% else %}
+                  <label class="badge badge-danger">Disabled</label>
+                  {% endif %}
+                </td>
+                <td>
+                  <a href="{% url 'payments-edit' payment.id %}" type="button" class="btn btn-gradient-primary btn-rounded btn-fw">Edit</a>
+                </td>
+              </tr>
+              {% endfor %}
+
+            </tbody>
+          </table>
+          {% else %}
+          <p class="card-description">🎉 Yay, Let setup first payment!</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

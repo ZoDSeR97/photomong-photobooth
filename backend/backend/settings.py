@@ -11,6 +11,42 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
+import os
+from dotenv import load_dotenv
+import cloudinary
+
+load_dotenv()
+
+# Test Mode
+TEST_MODE = os.getenv('TEST_MODE')
+
+# Env
+BACKEND_ENV = os.getenv('ENVIRONMENT')
+
+# URI
+DEV_URL = os.getenv('DEVELOPMENT_URL')
+
+# API
+API_CASH_READER = os.getenv('API_CASH_READER')
+API_PRINTER_2 = os.getenv('API_PRINTER_2')
+API_PRINTER_3 = os.getenv('API_PRINTER_3')
+API_PRINTER_4 = os.getenv('API_PRINTER_4')
+API_PRINTER_5 = os.getenv('API_PRINTER_5')
+API_PRINTER_6 = os.getenv('API_PRINTER_6')
+API_PRINTER_CUT = os.getenv('API_PRINTER_CUT')
+
+# Cloudinary
+CLOUDINARY_NAME = os.getenv('CLOUDINARY_NAME')
+CLOUDINARY_API_KEY = os.getenv('CLOUDINARY_API_KEY')
+CLOUDINARY_SECRET_KEY = os.getenv('CLOUDINARY_SECRET_KEY')
+CLOUDINARY_URL = os.getenv('CLOUDINARY_URL')
+
+# Start Cloudinary
+cloudinary.config(
+    cloud_name=CLOUDINARY_NAME,
+    api_key=CLOUDINARY_API_KEY,
+    api_secret=CLOUDINARY_SECRET_KEY,    
+)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -25,7 +61,7 @@ SECRET_KEY = 'django-insecure-$nfh=f^b24f-(gtbwr=2r9g+3+x_*lyk1rzqk$5nl9k(u$@1y=
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['139.180.209.110', '127.0.0.1', 'localhost']
 
 
 # Application definition
@@ -37,6 +73,22 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.humanize',
+    'rest_framework',
+    'corsheaders',
+    'dashboard',
+    'store',
+    'device',
+    'frame',
+    'layout',
+    'background',
+    'filter',
+    'payment',
+    'revenue',
+    'sticker',
+    'account',
+    'zalopay',
+    'redeem',
 ]
 
 MIDDLEWARE = [
@@ -47,6 +99,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
 
 ROOT_URLCONF = 'backend.urls'
@@ -54,7 +107,7 @@ ROOT_URLCONF = 'backend.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -78,6 +131,17 @@ DATABASES = {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
+    # 'default': {
+    #     'ENGINE': 'django.db.backends.mysql',
+    #     'NAME': 'photomong_main',
+    #     'USER': 'root',
+    #     'PASSWORD': '',
+    #     'HOST': 'localhost',
+    #     'PORT': '3306',    
+    #     'OPTIONS': {
+    #         'sql_mode': 'traditional',
+    #     }
+    # }
 }
 
 
@@ -116,8 +180,20 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = 'static/'
+if not DEBUG:
+    STATIC_ROOT=os.path.join(BASE_DIR, 'static/')
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static/'),
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+LOGIN_URL = '/account/login'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+CORS_ALLOW_ALL_ORIGINS = True

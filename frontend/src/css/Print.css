@@ -1,0 +1,46 @@
+.print-container {
+     position: relative;
+     width: 100vw;
+     /* Full width of the viewport */
+     height: 100vh;
+     /* Full height of the viewport */
+     /* Specify the path to your background image */
+     background-size: contain;
+     background-repeat: no-repeat;
+     /* Cover the entire container */
+     background-position: center;
+     /* Center the background image */
+     display: flex;
+     justify-content: center;
+     align-items: center;
+     /* Add additional styles for your payment content if needed */
+}
+
+.go-back {
+     position: absolute;
+     top: 4.4%;
+     left: 10%;
+     width: 9%;
+     height: 10%;
+     /* Set height of the div */
+     background-image: url('../assets/Common/goback.png');
+     /* Specify the path to your initial background image */
+     background-size: contain;
+     background-repeat: no-repeat;
+     /* Cover the entire div */
+     transition: background-image 0.3s;
+     /* Add transition for smooth effect */
+}
+
+.go-back:hover {
+     background-image: url('../assets/Common/gobackhover.png');
+     /* Specify the path to your hover background image */
+     cursor: pointer;
+     /* Change cursor on hover */
+}
+
+.qr-code-container {
+     position: absolute;
+     bottom: 2%;
+     right: 2%;
+}

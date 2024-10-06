@@ -1,0 +1,292 @@
+.payment-container {
+     position: relative;
+     width: 100vw;
+     /* Full width of the viewport */
+     height: 100vh;
+     /* Full height of the viewport */
+     /* Specify the path to your background image */
+     background-size: contain;
+     background-repeat: no-repeat;
+     /* Cover the entire container */
+     background-position: center;
+     /* Center the background image */
+     display: flex;
+     justify-content: center;
+     align-items: center;
+     /* Add additional styles for your payment content if needed */
+}
+
+.go-back {
+     position: absolute;
+     top: 4.1%;
+     left: 11.6%;
+     width: 9%;
+     height: 10%;
+     /* Set height of the div */
+     background-image: url('../assets/Common/goback.png');
+     /* Specify the path to your initial background image */
+     background-size: contain;
+     background-repeat: no-repeat;
+     /* Cover the entire div */
+     transition: background-image 0.3s;
+     /* Add transition for smooth effect */
+}
+
+.go-back:hover {
+     background-image: url('../assets/Common/gobackhover.png');
+     /* Specify the path to your hover background image */
+     cursor: pointer;
+     /* Change cursor on hover */
+}
+
+.payment-line {
+     position: absolute;
+     top: 100;
+     left: 11%;
+     width: 77%;
+     height: 250px;
+     display: flex;
+     justify-content: center;
+}
+
+.payment-method {
+     width: 50%;
+     height: 160%;
+     background-size: contain;
+     background-repeat: no-repeat;
+     background-position: center;
+     transition: background-image 0.3s ease;
+}
+
+.payment-method.hovered {
+     cursor: pointer;
+}
+
+/** Cash **/
+.cash-container {
+     position: relative;
+     width: 100vw;
+     /* Full width of the viewport */
+     height: 100vh;
+     /* Full height of the viewport */
+     /* Specify the path to your background image */
+     background-size: contain;
+     background-repeat: no-repeat;
+     /* Cover the entire container */
+     background-position: center;
+     /* Center the background image */
+     display: flex;
+     justify-content: center;
+     align-items: center;
+     /* Add additional styles for your payment content if needed */
+}
+
+.paid-cash {
+     position: absolute;
+     top: 29%;
+     left: 11%;
+     width: 30%;
+     height: 30%;
+     background-size: contain;
+     background-repeat: no-repeat;
+     background-position: center;
+}
+
+.paid-cash-text {
+     position: absolute;
+     top: 39%;
+     left: 51%;
+     width: 55%;
+     height: calc(100% - 20px);
+     font-size: 51px;
+     font-family: fantasy;
+}
+
+.insert-cash {
+     position: absolute;
+     top: calc(29% + 115px);
+     left: 11%;
+     width: 30%;
+     height: 30%;
+     background-size: contain;
+     background-repeat: no-repeat;
+     background-position: center;
+}
+
+.insert-cash-text {
+     position: absolute;
+     top: 39%;
+     left: 51%;
+     width: 55%;
+     height: calc(100% - 20px);
+     font-size: 51px;
+     font-family: fantasy;
+}
+
+.done-button {
+     position: absolute;
+     bottom: 0px;
+     left: 16%;
+     width: 22%;
+     height: 35%;
+     background-size: contain;
+     background-repeat: no-repeat;
+     background-position: center;     
+}
+
+.done-result-button {
+     position: absolute;
+     bottom: 0px;
+     left: 38%;
+     width: 22%;
+     height: 35%;
+     background-size: contain;
+     background-repeat: no-repeat;
+     background-position: center;     
+}
+
+/** Cash **/
+
+/** QR **/
+.qr-container {
+     position: relative;
+     width: 100vw;
+     /* Full width of the viewport */
+     height: 100vh;
+     /* Full height of the viewport */
+     /* Specify the path to your background image */
+     background-size: contain;
+     background-repeat: no-repeat;
+     /* Cover the entire container */
+     background-position: center;
+     /* Center the background image */
+     display: flex;
+     justify-content: center;
+     align-items: center;
+     /* Add additional styles for your payment content if needed */
+}
+
+.qr-code {
+     bottom: 8%;
+     position: relative;
+     margin-right: 3%;
+     width: 55%;
+     text-align: right;
+     right: 1%;
+}
+
+/** QR **/
+
+
+/** Promo **/
+.promo-container {
+     position: relative;
+     width: 100vw;
+     /* Full width of the viewport */
+     height: 100vh;
+     /* Full height of the viewport */
+     /* Specify the path to your background image */
+     background-size: contain;
+     background-repeat: no-repeat;
+     /* Cover the entire container */
+     background-position: center;
+     /* Center the background image */
+     display: flex;
+     justify-content: center;
+     align-items: center;
+     /* Add additional styles for your payment content if needed */
+}
+
+.promo-form {
+     position: absolute;
+     top: 100px;
+     right: 0;
+     width: 50%;
+     height: 100%;
+     background-size: contain;
+     background-repeat: no-repeat;
+     background-position: center;
+}
+
+.code-input {
+     position: absolute;
+     top: 26%;
+     left: 52%;
+     transform: translate(-50%, -50%);
+     width: 55%;
+     height: calc(100% - 20px);
+     background-size: contain;
+     background-repeat: no-repeat;
+     background-position: center;
+}
+
+.code-input-code {
+     position: absolute;
+     top: 22%;
+     left: 32%;
+     width: 55%;
+     height: calc(100% - 20px);
+     font-size: 80px;
+     font-family: fantasy;
+}
+
+.redeem-button {
+     position: absolute;
+     top: 25%;
+     width: 39%;
+     height: 30%;
+     background-size: contain;
+     background-repeat: no-repeat;
+     background-position: center;
+     left: 30%;
+}
+
+.form-buttons {
+     display: flex;
+     flex-direction: column;
+     width: 55%;
+     height: 71%;
+     position: absolute;
+     top: 55%;
+     left: 26%;
+}
+
+.form-button-container {
+     display: flex;
+     justify-content: center;
+     width: 88%;
+     height: 10%;
+}
+
+.form-button-container .form-button {
+     position: relative;
+     width: 31%;
+     height: 100%;
+     background-size: contain;
+     background-repeat: no-repeat;
+     background-position: center;
+     margin: 3px;
+}
+
+/** QR **/
+
+/** Result **/
+.payment-result-container {
+     position: relative;
+     width: 100vw;
+     /* Full width of the viewport */
+     height: 100vh;
+     /* Full height of the viewport */
+     /* Specify the path to your background image */
+     background-size: contain;
+     background-repeat: no-repeat;
+     /* Cover the entire container */
+     background-position: center;
+     /* Center the background image */
+     display: flex;
+     justify-content: center;
+     align-items: center;
+     /* Add additional styles for your payment content if needed */
+}
+
+/** Result **/

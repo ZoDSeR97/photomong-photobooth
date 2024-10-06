@@ -1,0 +1,167 @@
+html,
+body {
+     height: 100%;
+     /* Ensure the html and body take up full viewport height */
+     margin: 0;
+     padding: 0;
+     display: flex;
+     flex-direction: column;
+}
+
+body {
+     font-family: Arial, sans-serif;
+     margin: 0;
+     padding: 0;
+     display: flex;
+     flex-direction: column;
+     align-items: center;
+     text-align: center;
+     flex: 1;
+}
+
+.content {
+     display: flex;
+     flex-direction: column;
+     flex: 1;
+     /* Flex-grow to take available space, making content fill the rest of the viewport */
+     justify-content: space-between;
+     /* Distribute space between menu, body, and footer */
+}
+
+.slider {
+     display: flex;
+     /* Arrange slides in a row */
+     gap: 20px;
+     /* Space between slides */
+     margin: 20px;
+     overflow-x: auto;
+     /* Allows scrolling horizontally if slides exceed screen width */
+}
+
+.slide {
+     flex: 0 0 auto;
+     /* Do not grow or shrink, but allow basis to be auto */
+     width: 300px;
+     /* Slide width */
+     height: 300px;
+     /* Slide height, making it square */
+     position: relative;
+     border-radius: 20px;
+     /* Rounded corners */
+     background-color: #f0f0f0;
+     /* Light background color */
+     display: flex;
+     justify-content: center;
+     align-items: center;
+     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+     /* Optional: Adds shadow for depth */
+}
+
+.slide img {
+     max-width: 80%;
+     /* Adjust image size within the slide */
+     max-height: 80%;
+     border-radius: 20px;
+     /* Rounded corners for the image as well */
+}
+
+.menu {
+     display: flex;
+     justify-content: space-between;
+     flex-wrap: nowrap;
+     width: 100%;
+     box-sizing: border-box;
+     margin: 0;
+     padding: 10px 20px;
+     background: lightgray;
+}
+
+.content {
+     display: flex;
+     flex-direction: column;
+     flex: 1;
+     /* Flex-grow to take available space, making content fill the rest of the viewport */
+     justify-content: space-between;
+     /* Distribute space between menu, body, and footer */
+}
+
+.menu button {
+     flex-grow: 1;
+     border: none;
+     padding: 10px;
+     margin: 0 5px;
+     border-radius: 20px;
+     cursor: pointer;
+}
+
+.go-back {
+     background-color: pink;
+}
+
+.body {
+     display: flex;
+     width: 100%;
+     box-sizing: border-box;
+     padding: 10px;
+}
+
+.column {
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     height: 600px;
+     /* Adjusted height for extra long columns */
+     border-radius: 20px;
+     box-sizing: border-box;
+}
+
+.col1,
+.col3 {
+     width: 20%;
+     /* Width set to 20% of the browser width */
+     background: #f0f0f0;
+}
+
+.col2 {
+     width: 60%;
+     /* Width set to 60% of the browser width */
+     background: black;
+}
+
+.footer {
+     display: flex;
+     flex-wrap: wrap;
+     justify-content: center;
+     gap: 20px;
+     width: 100%;
+     padding: 20px;
+}
+
+.effect {
+     width: 100px;
+     height: 100px;
+     border-radius: 20px;
+     background-size: cover;
+     margin: auto;
+}
+
+@media (max-width: 768px) {
+     .menu {
+          flex-direction: column;
+          padding: 0;
+     }
+
+     .menu button {
+          width: 100%;
+          margin: 5px 0;
+     }
+
+     .body {
+          flex-direction: column;
+     }
+
+     .column {
+          width: 90%;
+          margin: 10px 0;
+     }
+}

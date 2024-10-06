@@ -1,0 +1,112 @@
+{% load static %}
+
+<nav class="sidebar sidebar-offcanvas" id="sidebar">
+  <ul class="nav">
+    <li class="nav-item nav-profile">
+      <a href="#" class="nav-link">
+        <div class="nav-profile-image">
+          <img src="{% static 'images/faces/face1.jpg' %}" alt="profile" />
+          <span class="login-status online"></span>
+          <!-- change to offline or busy as needed -->
+        </div>
+        <div class="nav-profile-text d-flex flex-column">
+          <span class="font-weight-bold mb-2">{{ request.user }}</span>
+          <span class="text-secondary text-small">Admin</span>
+        </div>
+        <i class="mdi mdi-bookmark-check text-success nav-profile-badge"></i>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'dashboard' %}">
+        <span class="menu-title">Dashboard</span>
+        <i class="mdi mdi-home menu-icon"></i>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'redeems' %}">
+        <span class="menu-title">Redeems</span>
+        <i class="mdi mdi-star menu-icon"></i>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" data-bs-toggle="collapse" href="#stores" aria-expanded="true" aria-controls="ui-basic">
+        <span class="menu-title">Stores</span>
+        <i class="menu-arrow"></i>
+        <i class="mdi mdi-projector-screen"></i>
+      </a>
+      <div class="collapse show" id="stores" style="">
+        <ul class="nav flex-column sub-menu">
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'stores' %}">All Stores</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'stores-add' %}">Add new Store</a>
+          </li>
+        </ul>
+      </div>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" data-bs-toggle="collapse" href="#devices" aria-expanded="true" aria-controls="ui-basic">
+        <span class="menu-title">Devices</span>
+        <i class="menu-arrow"></i>
+        <i class="mdi mdi-projector-screen"></i>
+      </a>
+      <div class="collapse show" id="devices" style="">
+        <ul class="nav flex-column sub-menu">
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'devices' %}">All Devices</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'devices-add' %}">Add new Device</a>
+          </li>
+        </ul>
+      </div>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" data-bs-toggle="collapse" href="#settings" aria-expanded="true" aria-controls="ui-basic">
+        <span class="menu-title">Setup Photomong</span>
+        <i class="menu-arrow"></i>
+        <i class="mdi mdi-cloud-check"></i>
+      </a>
+      <div class="collapse show" id="settings" style="">
+        <ul class="nav flex-column sub-menu">
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'frames' %}">Frames</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'backgrounds' %}">Backgrounds</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'layouts' %}">Layouts</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'payments' %}">Payments</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'filters' %}">Filters</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'stickers' %}">Stickers</a>
+          </li>
+        </ul>
+      </div>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" data-bs-toggle="collapse" href="#my-account" aria-expanded="true" aria-controls="ui-basic">
+        <span class="menu-title">My Account</span>
+        <i class="menu-arrow"></i>
+        <i class="mdi mdi-account"></i>
+      </a>
+      <div class="collapse show" id="my-account" style="">
+        <ul class="nav flex-column sub-menu">
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'account-password' %}">Password</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+          </li>
+        </ul>
+      </div>
+    </li>
+  </ul>
+</nav>

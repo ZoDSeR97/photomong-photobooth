@@ -1,0 +1,53 @@
+.column-container {
+    position: relative;
+    width: 50px;
+    height: 300px;
+    background-color: #f0f0f0;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-top: 2px;
+}
+
+.pink-section {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: #ff77a9;
+    border-radius: 0 0 10px 10px;
+    transition: height 0.5s ease-in-out;
+}
+
+.controls {
+    position: absolute;
+    top: 2px;
+    left: 50%;
+    transform: translateX(-50%);
+    cursor: pointer;
+}
+
+.controls-down {
+    position: relative;
+    top: 176px;
+    right: 8%;
+    cursor: pointer;
+}
+
+.controls-top {
+    position: relative;
+    bottom: 172px;
+    left: 8%;
+    cursor: pointer;
+}
+
+.controls-down button,
+.controls-top button {
+    font-size: 18px;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    margin: 0 5px;
+    cursor: pointer;
+}

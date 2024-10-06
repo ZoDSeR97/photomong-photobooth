@@ -2,11 +2,13 @@
 A Full-Stack photobooth project
 
 ## :white_check_mark: Requirements
-- python -m django --version
-5.0.6
+```bash
+$ python -m django --version
+5.1.1
 
-- node --version
+$ node --version
 v22.9.0
+```
 
 ## :checkered_flag: How to run ##
 

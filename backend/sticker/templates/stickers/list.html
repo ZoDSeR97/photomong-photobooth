@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="content-wrapper">
+  <div class="page-header">
+    <h3 class="page-title">Stickers</h3>
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item active" aria-current="page">
+          <a href="{% url 'stickers-add' %}" type="button" class="btn btn-gradient-primary btn-rounded btn-fw">Add Sticker</a>
+        </li>
+      </ol>
+    </nav>
+  </div>
+  <div class="row">
+    <div class="col-lg-12 grid-margin stretch-card">
+      <div class="card">
+        <div class="card-body">
+          <h4 class="card-title">Stickers List</h4>
+
+          {% if stickers %}
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>Category</th>
+                <th>Title</th>
+                <th>Photo</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for sticker in stickers %}
+              <tr>
+                <td>{{sticker.category}}</td>
+                <td>{{sticker.title}}</td>
+                <td class="text-danger">
+                  <img src="{{sticker.photo.url}}" width="100px" height="100px" />
+                </td>
+                <td>
+                  <a href="{% url 'stickers-edit' sticker.id %}" type="button" class="btn btn-gradient-primary btn-rounded btn-fw">Edit</a>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          {% else %}
+          <p class="card-description">🎉 Yay, Let setup first sticker!</p>
+          {% endif %}
+          <p></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="content-wrapper">
+  <div class="page-header">
+    <h3 class="page-title">Filters</h3>
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item active" aria-current="page">
+          <a href="{% url 'filters-add' %}" type="button" class="btn btn-gradient-primary btn-rounded btn-fw">Add
+            Filter</a>
+        </li>
+      </ol>
+    </nav>
+  </div>
+  <div class="row">
+    <div class="col-lg-12 grid-margin stretch-card">
+      <div class="card">
+        <div class="card-body">
+          <h4 class="card-title">Filters List</h4>
+          {% if filters %}
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Photo</th>
+                <th>Color Mode</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for filter in filters %}
+              <tr>
+                <td>{{filter.title}}</td>
+                <td><img src="{{filter.photo.url}}" width="100"></td></td>
+                <td class="text-danger">
+                  {{filter.color_mode}}
+                </td>
+                <td>
+                  <a href="{% url 'filters-edit' filter.id %}" type="button" class="btn btn-outline-info btn-fw">Edit</button>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          {% else %}
+          <p class="card-description">🎉 Yay, Let setup first filter!</p>
+          {% endif %}          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

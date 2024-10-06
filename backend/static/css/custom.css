@@ -1,0 +1,12 @@
+.photo_preview {
+    max-width: 500px;
+}
+
+.password-container {
+    display: flex;
+    align-items: center;
+}
+
+.password-container input {
+    flex-grow: 1;
+}

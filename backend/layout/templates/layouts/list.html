@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <div class="content-wrapper">
+    <div class="page-header">
+      <h3 class="page-title">Layouts</h3>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item active" aria-current="page">
+            <a href="{% url 'layouts-add' %}" type="button" class="btn btn-gradient-primary btn-rounded btn-fw">Add Layout</a>
+          </li>
+        </ol>
+      </nav>
+    </div>
+    <div class="row">
+      <div class="col-lg-12 grid-margin stretch-card">
+        <div class="card">
+          <div class="card-body">
+            <h4 class="card-title">Layouts</h4>            
+            {% if layouts %}
+            <p>
+              <select class="form-control" id="backgrounds_select">
+                <option value="0">All Backgrounds</option>
+                {% for background in backgrounds %}
+                <option value="{{ background.id }}">{{ background.title }}</option>
+                {% endfor %}
+              </select>
+            </p>            
+            <table id="layouts-table" class="table table-hover">
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Position</th>  
+                  <th>Photo</th>
+                  <th>Photo Cover</th>
+                  <th>Background</th>
+                  <th>Frame</th>                                  
+                  <th></th>                  
+                </tr>
+              </thead>
+              <tbody>
+                {% for layout in layouts %}
+                <tr data-background-id="{{ layout.background.id }}" data-frame-id="{}">                                    
+                    <td>{{layout.title}}</td>
+                    <td>{{layout.position}}</td>
+                    <td><img src="{{layout.photo.url}}" alt="Photo Preview"></td>
+                    <td><img src="{{layout.photo_cover.url}}" alt="Photo Preview"></td>
+                    <td>{{layout.background.title}}</td>
+                    <td>{{ layout.frame.title }}</td>
+                    <td><a type="button" href="{% url 'layouts-edit' layout.id %}" class="btn btn-gradient-primary btn-rounded btn-fw">Edit</button></td>                         
+                </tr>                
+                {% endfor %}             
+              </tbody>
+            </table>
+            <span class="step-links">
+              {% if layouts.has_previous %}
+                  <a href="?page=1">&laquo; first</a>
+                  <a href="?page={{ layouts.previous_page_number }}">previous</a>
+              {% endif %}
+      
+              <span class="current">
+                  Page {{ layouts.number }} of {{ layouts.paginator.num_pages }}.
+              </span>
+      
+              {% if layouts.has_next %}
+                  <a href="?page={{ layouts.next_page_number }}">next</a>
+                  <a href="?page={{ layouts.paginator.num_pages }}">last &raquo;</a>
+              {% endif %}
+            </span>
+            {% else %}
+              <p class="card-description">🎉 Yay, Let setup first layout!</p>
+            {% endif %}                          
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('backgrounds_select').addEventListener('change', function() {
+      var backgroundId = this.value
+      var currentUrl = window.location.href;
+  
+      // Check if the current URL already contains query parameters
+      var separator = currentUrl.includes('?') ? '&' : '?';
+      
+      var redirectUrl = currentUrl + separator + 'background=' + selectedValue;
+      
+      window.location.href = redirectUrl;
+    })    
+</script>
+{% endblock %}
