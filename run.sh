@@ -14,7 +14,7 @@ cd ../frontend
 
 # Install Node.js dependencies and start the frontend in a new terminal
 echo "Installing Node.js dependencies and starting frontend in dev mode..."
-gnome-terminal -- bash -c "npm install && npm run dev; exec bash"
+gnome-terminal -- bash -c "bun install && bun run dev; exec bash"
 
 # Start Google Chrome in fullscreen and kiosk mode
 echo "Launching Google Chrome in kiosk mode..."
