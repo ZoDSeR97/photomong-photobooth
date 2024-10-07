@@ -44,3 +44,8 @@
      bottom: 2%;
      right: 2%;
 }
+.gif-qr-code-container {
+     position: absolute;
+     bottom: 2%;
+     right: 13%;
+}

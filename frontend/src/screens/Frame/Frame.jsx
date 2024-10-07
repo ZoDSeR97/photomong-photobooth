@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import i18n from '../../translations/i18n';
@@ -9,7 +9,7 @@ import axios from 'axios';
 import background_en from '../../assets/Frame/Type/BG.png';
 import background_kr from '../../assets/Frame/Type/kr/BG.png';
 import background_vn from '../../assets/Frame/Type/vn/BG.png';
-
+import background_mn from '../../assets/Frame/Type/mn/BG.png';
 // Go Back
 import goback_en from '../../assets/Common/goback.png';
 import goback_en_hover from '../../assets/Common/gobackhover.png';
@@ -17,6 +17,9 @@ import goback_kr from '../../assets/Common/kr/goback.png';
 import goback_kr_hover from '../../assets/Common/kr/gobackhover.png';
 import goback_vn from '../../assets/Common/vn/goback.png';
 import goback_vn_hover from '../../assets/Common/vn/gobackhover.png';
+import goback_mn from '../../assets/Common/mn/goback.png';
+import goback_mn_hover from '../../assets/Common/mn/gobackhover.png';
+import { getAudio, getClickAudio, originAxiosInstance } from '../../api/config';
 
 
 function Frame() {
@@ -42,8 +45,6 @@ function Frame() {
   const [frameBackground, setFrameBackground] = useState([]);
 
   const [goBackBg, setGoBackBg] = useState([]);
-
-
   useEffect(() => {
     const storedLanguage = sessionStorage.getItem('language');
     if (storedLanguage) {
@@ -56,7 +57,14 @@ function Frame() {
       } else if (storedLanguage === 'vi') {
         setFrameBackground(background_vn);
         setGoBackBg(goback_vn);
-      } else {
+      }
+      else if(storedLanguage==="mn"){
+        setFrameBackground(background_mn);
+        setGoBackBg(goback_mn);
+
+      }
+      
+      else {
         setFrameBackground(background_en);
         setGoBackBg(goback_en);
       }
@@ -66,10 +74,15 @@ function Frame() {
   useEffect(() => {
     fetchFrames();
   }, []);
-
+  const playAudio = async() => {
+    const res=await getAudio({file_name:"choose_frame_layout.wav"})
+      }
+useEffect(()=>{
+playAudio()
+},[])
   const fetchFrames = async () => {
     try {
-      const response = await axios.get(`${import.meta.env.VITE_REACT_APP_BACKEND}/frames/api`)
+      const response = await originAxiosInstance.get(`${import.meta.env.VITE_REACT_APP_BACKEND}/frames/api`)
       const frames = response.data
 
       frames.forEach(frame => {
@@ -116,13 +129,17 @@ function Frame() {
       setGoBackBg(goBackBg === goback_kr ? goback_kr_hover : goback_kr);
     } else if (goBackBG === 'vi') {
       setGoBackBg(goBackBg === goback_vn ? goback_vn_hover : goback_vn);
-    } else {
+    } 
+    else if (goBackBG === 'mn') {
+      setGoBackBg(goBackBg === goback_mn ? goback_mn_hover : goback_mn);
+    } 
+    else {
       setGoBackBg(goBackBg === goback_en ? goback_en_hover : goback_en);
     }
   }
 
   const goToBackground = (titleFrame, price) => {
-    // save the selected frame in session storage
+    getClickAudio()
     sessionStorage.setItem('selectedFrame', JSON.stringify({
       frame: titleFrame
     }))
@@ -132,7 +149,9 @@ function Frame() {
 
   return (
     <div className='frame-container' style={{ backgroundImage: `url(${frameBackground})` }}>
-      <div className="go-back" style={{ backgroundImage: `url(${goBackBg})` }} onClick={() => navigate("/")} onMouseEnter={() => hoverGoBackBtn(language)} onMouseLeave={() => hoverGoBackBtn(language)}></div>
+      <div className="go-back" style={{ backgroundImage: `url(${goBackBg})` }} onClick={() =>{
+        getClickAudio()
+        navigate("/")}} onMouseEnter={() => hoverGoBackBtn(language)} onMouseLeave={() => hoverGoBackBtn(language)}></div>
       <div className="topSection">
         <div className="column">
           <div className="imageDiv-top-left" style={{ backgroundImage: `url( ${hoveredImage === frameRow11 ? frameRow11Hover : frameRow11})` }} onMouseEnter={() => handleMouseEnter(frameRow11)} onMouseLeave={handleMouseLeave} onClick={() => goToBackground('Stripx2', 70000)}></div>
@@ -140,9 +159,6 @@ function Frame() {
         <div className="column">
           <div className="imageDiv-top-right" style={{ backgroundImage: `url(${hoveredImage === frameRow12 ? frameRow12Hover : frameRow12})`, marginLeft: '-40%', }} onMouseEnter={() => handleMouseEnter(frameRow12)} onMouseLeave={handleMouseLeave} onClick={() => goToBackground('2cut-x2', 100000)}></div>
         </div>
-        {/* <div className="column">
-          <div className="imageDiv-end" style={{ backgroundImage: `url(${hoveredImage === frameRow13 ? frameRow13Hover : frameRow13})`, marginLeft: '-80%' }} onMouseEnter={() => handleMouseEnter(frameRow13)} onMouseLeave={handleMouseLeave} onClick={() => goToBackground('3-cutx2', 100000)}></div>
-        </div> */}
       </div>
       <div className="bottomSection">
         <div className="column">
@@ -151,9 +167,7 @@ function Frame() {
         <div className="column">
           <div className="imageDiv-bottom-right" style={{ backgroundImage: `url(${hoveredImage === frameRow22 ? frameRow22Hover : frameRow22})`, marginLeft: '-40%', }} onMouseEnter={() => handleMouseEnter(frameRow22)} onMouseLeave={() => handleMouseLeave} onClick={() => goToBackground('6-cutx2', 100000)}></div>
         </div>
-        {/* <div className="column">
-          <div className="imageDiv-end" style={{ backgroundImage: `url(${hoveredImage === frameRow23 ? frameRow23Hover : frameRow23})`, marginLeft: '-80%' }} onMouseEnter={() => handleMouseEnter(frameRow23)} onMouseLeave={() => handleMouseLeave} onClick={() => goToBackground('6-cutx2', 100000)}></div>
-        </div> */}
+
       </div>
     </div>
   );

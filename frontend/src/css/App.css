@@ -348,7 +348,9 @@
   bottom: 0;
   border: 1px solid pink;
   pointer-events: none;
+  /* Tránh ảnh hưởng tới sự kiện chuột */
   z-index: 1;
+  /* Hiển thị phía trên hình ảnh */
 }
 
 .effect-container {
@@ -394,7 +396,7 @@
   text-align: left;  
   margin-top: 20px;
   display: flex;
-  justify-content: space-between;
+  justify-content: space-between; /* Căn giữa nút với nội dung */
   align-items: center;
   width: 60%;
 }
@@ -410,7 +412,7 @@
 }
 
 .confirm-frame-button:hover {
-  background-color: #ff69b4;
+  background-color: #ff69b4; /* Màu hồng nhạt khi di chuột qua */
 }
 
 /* End Frame */

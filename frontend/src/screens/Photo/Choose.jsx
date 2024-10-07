@@ -82,12 +82,14 @@ function Choose() {
           if (sessionSelectedLayout) {
                const parsedSelectedLayout = JSON.parse(sessionSelectedLayout);
                setMyBackground(parsedSelectedLayout.photo);
+               console.log(myBackground);
                setSelectedLayout(parsedSelectedLayout.photo_cover);
+               console.log(selectedLayout);
           }
      }, []);
 
      useEffect(() => {
-          fetch(`${process.env.REACT_APP_BACKEND}/frames/api/clear-images`, {
+          fetch(`${import.meta.env.VITE_REACT_APP_BACKEND}/frames/api/clear-images`, {
                method: 'POST',
                headers: {
                     'Content-Type': 'application/json'
@@ -147,7 +149,7 @@ function Choose() {
           }
 
           const parsedSelectedLayout = JSON.parse(sessionSelectedLayout);
-          const copyImageUrl = `${process.env.REACT_APP_BACKEND}/frames/api/copy-image`;
+          const copyImageUrl = `${import.meta.env.VITE_REACT_APP_BACKEND}/frames/api/copy-image`;
           const copyImageData = {
                photo_url: parsedSelectedLayout.photo,
                photo_cover: parsedSelectedLayout.photo_cover
@@ -308,7 +310,7 @@ function Choose() {
      }
 
      const showSelectedPhotos = () => {
-          if (selectedFrame == '3-cutx2' && selectedPhotos.length > 0) {
+          if (selectedFrame == '4-cutx2' && selectedPhotos.length > 0) {
                const firstPhotoTpl = (
                     <div className="choose-photo-row">
                          <div
@@ -331,8 +333,8 @@ function Choose() {
                          </div>
                     ))]
                );
-          } else if (selectedFrame == '5-cutx2' && selectedPhotos.length > 0) {
-               if (selectedPhotos.length == 5) {
+          } else if (selectedFrame == '6-cutx2' && selectedPhotos.length > 0) {
+               if (selectedPhotos.length == 7) {
                     const lastPhotoTpl = (
                          <div className="choose-photo-row">
                               <div

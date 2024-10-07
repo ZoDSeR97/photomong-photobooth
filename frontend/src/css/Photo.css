@@ -61,11 +61,104 @@
      background-repeat: no-repeat;
      background-position: center;
 }
+.right-preview-ul{
+     position: absolute;
+     top: 12%;
+     right: 9%;
+     width: 15%;
+     height: 80%;
+     overflow: hidden;
+     /* background-color: red; */
+}
+.right-preview-ul-arrow{
+     position: absolute;
+     z-index: 999;
+     top: 87%;
+     right: 9%;
+     width: 15%;
+     height: 5%;
+     cursor: pointer;
+     /* background-color: aqua; */
+}
+.right-preview-div{
+     position: absolute;
+     top: 12%;
+     right: 9%;
+     width: 15%;
+     height: 80%;
+     background-size: contain;
+     background-repeat: no-repeat;
+     background-position: center;
+     overflow: hidden;
+}
+.preview-default-4,
+.preview-default-0{
+     /* overflow: hidden;
+     border-radius: 20px; */
+     transform:scaleX(-1);
 
+     z-index: 900;
+     position: absolute;
+     top: 12%;
+     left: 12%;
+     width: 75%;
+     height: 18.5%;
+     background-size: cover;
+     background-repeat: no-repeat;
+     background-position: center;
+}
+.preview-default-5,
+.preview-default-1{
+     transform:scaleX(-1);
+     z-index: 900;
+     position: absolute;
+     top: 32.5%;
+     left: 12%;
+     width: 75%;
+     height: 18.5%;
+     background-size: cover;
+     background-repeat: no-repeat;
+     background-position: center;
+}
+.preview-default-6,
+.preview-default-2{
+     transform:scaleX(-1);
+     z-index: 900;
+     position: absolute;
+     top: 52.5%;
+     left: 12%;
+     width: 75%;
+     height: 18.5%;
+     background-size: cover;
+     background-repeat: no-repeat;
+     background-position: center;
+}
+.preview-default-7,
+.preview-default-3{
+     transform:scaleX(-1);
+     z-index: 900;
+     position: absolute;
+     top: 72.5%;
+     left: 12%;
+     width: 75%;
+     height: 18.5%;
+     background-size: cover;
+     background-repeat: no-repeat;
+     background-position: center;
+}
+
+.preview-cnt{
+     text-align: start;
+     left: 12%;
+     top: 0%;
+     position: relative;
+     font-size: 40px;
+     font-family: fantasy;
+}
 .right-photo-div {
      position: absolute;
-     top: 10%;
-     right: 9%;
+     top: 32%;
+     left: 11%;
      width: 12%;
      height: 18%;
      background-size: contain;
@@ -92,7 +185,8 @@
 
 .photo-webcam {
      text-align: center;
-     top: 15%;
+     top: 100px; /* 동일한 위치로 조정 */
+     /* top: 15%; */
      position: relative;
      font-size: 51px;
      font-family: fantasy;
@@ -115,6 +209,19 @@
      font-size: 88px;
      font-family: fantasy;
 }
+
+.live-view {
+     position: absolute;
+     top: 100px; /* 필요한 만큼 아래로 내리기 위해 이 값을 조정하세요 */
+     left: 50%;
+     transform: translateX(-50%);
+     width: 80%; /* 원하는 너비 설정 */
+     max-width: 640px;
+     border: 2px solid #ccc;
+     border-radius: 8px;
+     overflow: hidden;
+ }
+
 
 /** Choose **/
 .photo-choose-container {
@@ -198,11 +305,11 @@
 
 .right-choose-container {
      position: absolute;
-     top: 40%;
-     right: 8%;
+     top: 30%;
+     right: 7%;
      display: flex;
      flex-direction: column;
-     width: 45%;
+     width: 46%;
 }
 
 .choose-line {
@@ -212,12 +319,12 @@
 
 .choose-image {
      width: 100%;
-     height: 250px;
+     height: 128px;
      background-size: contain;
      background-image: url('../assets/Photo/Choose/photo_box.png');
      background-repeat: no-repeat;
      background-position: center;
-     margin: 10px auto;
+     margin: 30px 10px;
 }
 
 .bottom_choose_container {
@@ -311,34 +418,60 @@
 }
 
 /** Frame 4cut **/
-
+.choose-photo-item-4cut-0-0.clicked,
+.choose-photo-item-4cut-0-1.clicked,
+.choose-photo-item-4cut-1-0.clicked,
+.choose-photo-item-4cut-1-1.clicked,
+.choose-photo-item-3cut-0-0.clicked,
+.choose-photo-item-3cut-0-1.clicked,
+.choose-photo-item-2cut-0-0.clicked,
+.choose-photo-item-2cut-0-1.clicked,
+.choose-photo-item6-0-0.clicked,
+.choose-photo-item6-0-1.clicked,
+.choose-photo-item6-1-0.clicked,
+.choose-photo-item6-1-1.clicked,
+.choose-photo-item6-2-0.clicked,
+.choose-photo-item6-2-1.clicked,
+.choose-photo-item-0-0.clicked,
+.choose-photo-item-0-1.clicked,
+.choose-photo-item-1-0.clicked,
+.choose-photo-item-1-1.clicked,
+.choose-photo-item-2-0.clicked,
+.choose-photo-item-2-1.clicked,
+.choose-photo-item-3-0.clicked,
+.choose-photo-item-3-1.clicked
+{
+     border: 6px solid red;
+     box-sizing: border-box;
+     border-radius: 10px;
+}
 .choose-photo-item-4cut-0-0 {
-     width: 320px;
-     height: 230px;
+     width: 232.75px;
+     height: 175px;
      background-size: cover;
      background-repeat: no-repeat;
      background-position: center;
      margin: 1%;
      position: fixed;
-     top: 32%;
+     top: 31%;
      left: 11%;
 }
 
 .choose-photo-item-4cut-0-1 {
-     width: 320px;
-     height: 230px;
+     width: 232.75px;
+     height: 175px;
      background-size: cover;
      background-repeat: no-repeat;
      background-position: center;
      margin: 1%;
      position: fixed;
-     top: 32%;
-     left: 25%;
+     top: 31%;
+     left: 26%;
 }
 
 .choose-photo-item-4cut-1-0 {
-     width: 320px;
-     height: 230px;
+     width: 232.75px;
+     height: 175px;
      background-size: cover;
      background-repeat: no-repeat;
      background-position: center;
@@ -349,15 +482,15 @@
 }
 
 .choose-photo-item-4cut-1-1 {
-     width: 320px;
-     height: 230px;
+     width: 232.75px;
+     height: 175px;
      background-size: cover;
      background-repeat: no-repeat;
      background-position: center;
      margin: 1%;
      position: fixed;
      top: 52%;
-     left: 25%;
+     left: 26%;
 }
 
 /** Frame 3cut **/
@@ -400,192 +533,192 @@
 
 /** Frame 2cut **/
 .choose-photo-item-2cut-0-0 {
-     width: 350px;
-     height: 480px;
+     width: 300px;
+     height: 339px;
      background-size: cover;
      background-repeat: revert-layer;
      background-position: center;
      margin: 1%;
      position: fixed;
-     top: 32%;
-     left: 9%;
+     top: 33%;
+     left: 8%;
 }
 
 .choose-photo-item-2cut-0-1 {
-     width: 350px;
-     height: 480px;
+     width: 300px;
+     height: 339px;
      background-size: cover;
      background-repeat: no-repeat;
      background-position: center;
      margin: 1%;
      position: fixed;
-     top: 32%;
-     left: 26%;
+     top: 33%;
+     left: 25%;
 }
 
 /** Frame 6 cut **/
 .choose-photo-item6-0-0 {
-     width: 200px;
-     height: 200px;
+     width: 163.2px; /* 가로 크기 */
+     height:160px; /* 세로 크기: 가로 크기의 1.02배 */
      background-size: cover;
      background-repeat: no-repeat;
      background-position: center;
      margin: 1%;
      position: fixed;
-     top: 33.5%;
+     top: 28%;
      left: 16%;
 }
 
 .choose-photo-item6-0-1 {
-     width: 200px;
-     height: 200px;
+     width: 163.2px; /* 가로 크기 */
+     height:160px; /* 세로 크기: 가로 크기의 1.02배 */
      background-size: cover;
      background-repeat: no-repeat;
      background-position: center;
      margin: 1%;
      position: fixed;
-     top: 33.5%;
-     left: 25.9%;
+     top: 28%;
+     left: 26%;
 }
 
 .choose-photo-item6-1-0 {
-     width: 200px;
-     height: 200px;
+     width: 163.2px; /* 가로 크기 */
+     height:160px; /* 세로 크기: 가로 크기의 1.02배 */
      background-size: cover;
      background-repeat: no-repeat;
      background-position: center;
      margin: 1%;
      position: fixed;
-     top: 52%;
+     top: 48%;
      left: 16%;
 }
 
 .choose-photo-item6-1-1 {
-     width: 200px;
-     height: 200px;
+     width: 163.2px; /* 가로 크기 */
+     height:160px; /* 세로 크기: 가로 크기의 1.02배 */
      background-size: cover;
      background-repeat: no-repeat;
      background-position: center;
      margin: 1%;
      position: fixed;
-     top: 52%;
-     left: 25.9%;
+     top: 48%;
+     left: 26%;
 }
 
 .choose-photo-item6-2-0 {
-     width: 200px;
-     height: 200px;
+     width: 163.2px; /* 가로 크기 */
+     height:160px; /* 세로 크기: 가로 크기의 1.02배 */
      background-size: cover;
      background-repeat: no-repeat;
      background-position: center;
      margin: 1%;
      position: fixed;
-     top: 71.3%;
+     top: 68%;
      left: 16%;
 }
 
 .choose-photo-item6-2-1 {
-     width: 200px;
-     height: 200px;
+     width: 163.2px; /* 가로 크기 */
+     height:160px; /* 세로 크기: 가로 크기의 1.02배 */
      background-size: cover;
      background-repeat: no-repeat;
      background-position: center;
      margin: 1%;
      position: fixed;
-     top: 71.3%;
-     left: 25.9%;
+     top: 68%;
+     left: 26%;
 }
 
 /** Frame 6 cut-end **/
 
 /** Frame 8 cut **/
 .choose-photo-item-0-0 {
-     width: 225px;
-     height: 151px;
+     width:161.7px;
+     height:110px ;
      background-size: cover;
      background-repeat: no-repeat;
      background-position: center;
      margin: 1%;
      position: fixed;
-     top: 33.5%;
-     left: 15.5%;
+     top: 28%;
+     left: 15.8%;
 }
 
 .choose-photo-item-0-1 {
-     width: 225px;
-     height: 151px;
+     width:161.7px;
+     height:110px ;
      background-size: cover;
      background-repeat: no-repeat;
      margin: 1%;
      position: fixed;
-     top: 33.5%;
-     left: 25.9%;
+     top: 28%;
+     left: 26.1%;
 }
 
 .choose-photo-item-1-0 {
-     width: 225px;
-     height: 151px;
+     width:161.7px;
+     height:110px ;
      background-size: cover;
      background-repeat: no-repeat;
      margin: 1%;
      position: fixed;
-     top: 46.5%;
-     left: 15.5%;
+     top: 42%;
+     left: 15.8%;
 }
 
 .choose-photo-item-1-1 {
-     width: 225px;
-     height: 151px;
+     width:161.7px;
+     height:110px ;
      background-size: cover;
      background-repeat: no-repeat;
      margin: 1%;
      position: fixed;
-     top: 46.5%;
-     left: 25.9%;
+     top: 42%;
+     left: 26.1%;
 }
 
 .choose-photo-item-2-0 {
-     width: 225px;
-     height: 151px;
+     width:161.7px;
+     height:110px ;
      background-size: cover;
      background-repeat: no-repeat;
      margin: 1%;
      position: fixed;
-     top: 59.5%;
-     left: 15.5%;
+     top: 56%;
+     left: 15.8%;
 }
 
 .choose-photo-item-2-1 {
-     width: 225px;
-     height: 151px;
+     width:161.7px;
+     height:110px ;
      background-size: cover;
      background-repeat: no-repeat;
      margin: 1%;
      position: fixed;
-     top: 59.5%;
-     left: 25.9%;
+     top: 56%;
+     left: 26.1%;
 }
 
 .choose-photo-item-3-0 {
-     width: 225px;
-     height: 151px;
+     width:161.7px;
+     height:110px ;
      background-size: cover;
      background-repeat: no-repeat;
      margin: 1%;
      position: fixed;
-     top: 72.5%;
-     left: 15.5%;
+     top: 70%;
+     left: 15.8%;
 }
 
 .choose-photo-item-3-1 {
-     width: 225px;
-     height: 151px;
+     width:161.7px;
+     height:110px ;
      background-size: cover;
      background-repeat: no-repeat;
      margin: 1%;
      position: fixed;
-     top: 72.5%;
-     left: 25.9%;
+     top: 70%;
+     left: 26.1%;
 }
 
 /** Frame 8 cut end **/
@@ -680,7 +813,11 @@
      pointer-events: none;
      /* Prevents clicks on the flash div */
 }
-
+.left-cnt-div{
+     display: flex;
+     flex-direction: column;
+     background-color: red;
+}
 .animate {
      animation: flashAnimation 0.2s ease-out forwards;
 }
@@ -694,3 +831,8 @@
           opacity: 0;
      }
 }
+.choose-image.clicked {
+     outline: 6px solid red;
+     box-sizing: border-box;
+     border-radius: 10px;
+ }

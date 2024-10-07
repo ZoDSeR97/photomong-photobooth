@@ -1,7 +1,7 @@
 import Menu from './Menu';
 import Body from './Body';
 import Footer from './Footer';
-import './Main.css';
+import '../css/Main.css';
 
 export const MainComponent = () => {
   return (
