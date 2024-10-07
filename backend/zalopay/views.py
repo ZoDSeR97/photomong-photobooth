@@ -15,7 +15,6 @@ from django.conf import settings
 
 # Create your views here.
 class ZaloPayAPI(APIView):
-
     def get(self, request, *args, **kwargs):
         zaloPay = Payment.objects.filter(code='zalopay').first()
         config = {
@@ -31,7 +30,7 @@ class ZaloPayAPI(APIView):
             "app_id": config["app_id"],
             "app_trans_id": "{:%y%m%d}_{}".format(
                 datetime.today(), transID
-            ),  # mã giao dich có định dạng yyMMdd_xxxx
+            ),
             "app_user": "user123",
             "app_time": int(round(time() * 1000)),  # miliseconds
             "embed_data": json.dumps({}),

@@ -6,7 +6,7 @@ from .views import (
       LayoutList,
       LayoutCreateView,
       LayoutEditView
-)
+  )
 
 urlpatterns = [
       # API

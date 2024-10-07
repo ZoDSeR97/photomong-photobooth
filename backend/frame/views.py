@@ -37,20 +37,20 @@ def get_device_list():
 @api_view(['POST'])
 def upload_full(request):
     if request.method == 'POST':
-        photo_data = ''
-        for key, value in request.POST.items():
+          photo_data = ''
+          for key, value in request.POST.items():
             if (key == 'photo'):
-                photo_data = value
-        if photo_data:
-            filename = 'photo.png'
-            file_path = os.path.join(settings.BASE_DIR, '../app/public/photo_saved/', filename)
-            if os.path.exists(file_path) and os.path.isfile(file_path):
-                os.remove(file_path)
-            with open(file_path, 'wb') as f:
-                f.write(base64.b64decode(photo_data.split(',')[1]))
-            return JsonResponse({
-                'photo_url': f'/photo_saved/{filename}' if photo_data else None
-            }, status=status.HTTP_201_CREATED)                  
+                photo_data = value         
+          if photo_data:                                           
+                filename = 'photo.png'
+                file_path = os.path.join(settings.BASE_DIR, '../app/public/photo_saved/', filename)
+                if os.path.exists(file_path) and os.path.isfile(file_path):
+                    os.remove(file_path)
+                with open(file_path, 'wb') as f:
+                    f.write(base64.b64decode(photo_data.split(',')[1]))
+                return JsonResponse({
+                    'photo_url': f'/photo_saved/{filename}' if photo_data else None
+                }, status=status.HTTP_201_CREATED)                  
     else:
         return JsonResponse({'error': 'Image not provided'}, status=status.HTTP_400_BAD_REQUEST)
     
@@ -94,7 +94,8 @@ def print_photo(request):
         return JsonResponse({'message': 'OK'}, status=status.HTTP_200_OK)
     else:
         return JsonResponse({'error': 'Image not provided'}, status=status.HTTP_400_BAD_REQUEST)    
-
+    
+                                           
 class ClearImagesAPIView(APIView):
     def post(self, request, format=None):
         folder_path = os.path.join(settings.BASE_DIR, '../app/public/photos')
@@ -134,7 +135,8 @@ class UploadPhotoCloud(APIView):
             order = Order.objects.filter(order_code=order_code).first()
             if order:
                 order.photo_url_done = upload_data.get('url')
-                order.save()
+                order.save()                    
+           
         return Response({
             'photo_url': upload_data.get('url')
         }, status=201)

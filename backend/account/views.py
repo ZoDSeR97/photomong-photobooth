@@ -19,38 +19,39 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import logout
 
+
 def change_password(request):
-    if request.method == 'POST':
-        form = PasswordChangeForm(request.user, request.POST)
-        if form.is_valid():
-            user = form.save()
-            update_session_auth_hash(request, user)  # Important!
-            messages.success(request, 'Your password was successfully updated!')
-            return redirect('account-password')
-        else:
-            messages.error(request, form.errors)
+  if request.method == 'POST':
+    form = PasswordChangeForm(request.user, request.POST)
+    if form.is_valid():
+      user = form.save()
+      update_session_auth_hash(request, user)  # Important!
+      messages.success(request, 'Your password was successfully updated!')
+      return redirect('account-password')
     else:
-        form = PasswordChangeForm(request.user)
-    return render(request, 'accounts/change_password.html', {
-        'form': form
-    })
-    
+      messages.error(request, form.errors)
+  else:
+    form = PasswordChangeForm(request.user)
+  return render(request, 'accounts/change_password.html', {
+    'form': form
+  })
+  
 def logout_view(request):
     logout(request)
     return redirect('login')  
     
 def view_account_info(request):
-    return render(request, 'accounts/account_info.html')
+  return render(request, 'accounts/account_info.html')
 
 class AccountLoginView(LoginView):
-    redirect_authenticated_user = True
-    
-    def get_success_url(self):
-        return reverse_lazy('devices')
-    
-    def form_invalid(self, form):
-        messages.error(self.request, 'Invalid username or password')
-        return self.render_to_response(self.get_context_data(form=form))     
+     redirect_authenticated_user = True
+     
+     def get_success_url(self):
+         return reverse_lazy('devices')
+     
+     def form_invalid(self, form):
+         messages.error(self.request, 'Invalid username or password')
+         return self.render_to_response(self.get_context_data(form=form))     
 
 # Create your views here.
 class AccountAPI(APIView):
@@ -89,7 +90,7 @@ class AccountDetailAPI(APIView):
         account = Account.objects.get(id=pk)
         account.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-
+      
 class AccountList(LoginRequiredMixin, ListView):
     model = Account
     template_name = 'accounts/list.html'

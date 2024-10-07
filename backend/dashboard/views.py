@@ -7,18 +7,18 @@ from store.models import Store
 
 # Create your views here.
 
-class Dashboard(LoginRequiredMixin, View):
+class Dashboard(LoginRequiredMixin, View):    
     def get(self, request):
         
         # List stores
         stores = Store.objects.all()
         
         # List devices by store
-        devices = Device.objects.all()
+        devices = Device.objects.all()               
         
         return render(request, 'dashboard.html', {
             'stores': stores,
-            'devices': devices,
+            'devices': devices,            
         })            
         
 

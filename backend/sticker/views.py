@@ -30,7 +30,7 @@ class StickerAPI(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+      
 class StickerDetailAPI(APIView):
     
     def get(self, request, pk, *args, **kwargs):
@@ -50,7 +50,7 @@ class StickerDetailAPI(APIView):
         sticker = Sticker.objects.get(id=pk)
         sticker.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)      
-
+      
 class StickerList(LoginRequiredMixin, ListView):
     model = Sticker
     template_name = 'stickers/list.html'
@@ -69,7 +69,7 @@ class StickerCreateView(LoginRequiredMixin, View):
         else:
             messages.error(request, form.errors)
         return render(request, 'stickers/add.html', {'form': form})
-
+      
 class StickerEditView(LoginRequiredMixin, View):
     def get(self, request, pk, *args, **kwargs):
         sticker = Sticker.objects.get(id=pk)

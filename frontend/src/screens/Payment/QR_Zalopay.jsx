@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import i18n from '../../translations/i18n';
 import "../../css/Payment.css";
-import QRCode from 'qrcode.react';
+import {QRCodeSVG} from 'qrcode.react';
 
 // Go Back
 import goback_en from '../../assets/Common/goback.png';
@@ -18,7 +18,7 @@ import background_en from '../../assets/Payment/QR/BG.png';
 import background_vn from '../../assets/Payment/QR/vn/BG.png';
 import background_kr from '../../assets/Payment/QR/kr/BG.png';
 
-export const QR_Zalopay = () => {
+const QR_Zalopay = () => {
      const { t } = useTranslation();
      const navigate = useNavigate();
      const [hoveredImage, setHoveredImage] = useState(null);
@@ -113,9 +113,11 @@ export const QR_Zalopay = () => {
      return (
           <div className='qr-container' style={{ backgroundImage: `url(${background})` }}>
                <div className='qr-code'>
-                    {qrCode && <QRCode value={qrCode} size={200}/>}
+                    {qrCode && <QRCodeSVG value={qrCode} size={200}/>}
                </div>
                <div className="go-back" style={{ backgroundImage: `url(${goBackBg})` }} onClick={goBack} ></div>
           </div>
      );
 };
+
+export default QR_Zalopay;

@@ -10,7 +10,7 @@ import background_kr from '../assets/Prints/kr/BG.png';
 import background_vn from '../assets/Prints/vn/BG.png';
 
 // QR
-import QRCode from 'qrcode.react';
+import {QRCodeSVG} from 'qrcode.react';
 
 function Print() {
      const { t } = useTranslation();
@@ -46,7 +46,7 @@ function Print() {
      const QRCodeComponent = () => {
           const myImage = sessionStorage.getItem('uploadedCloudPhotoUrl');
           return (
-               <QRCode
+               <QRCodeSVG
                     value={myImage}
                     size={200}
                />

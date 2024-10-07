@@ -12,8 +12,8 @@ class PhotoForm(forms.ModelForm):
     fields = '__all__'
     
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['image'].options={
-            'tags': 'new_image',
-            'format': 'png'
-        }
+       super().__init__(*args, **kwargs)
+       self.fields['image'].options={
+           'tags': 'new_image',
+           'format': 'png'
+    }

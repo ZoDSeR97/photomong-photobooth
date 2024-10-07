@@ -3,7 +3,6 @@ from device.models import Device
 from payment.models import Payment
 
 # Create your models here.
-
 class Order(models.Model):
     order_code = models.CharField(max_length=100)
     device_id = models.ForeignKey(Device, on_delete=models.CASCADE)
@@ -18,8 +17,7 @@ class Order(models.Model):
 
     def __str__(self):
         return f"Order #{self.order_code} with {self.total_price}"
-
-
+    
 class Transaction(models.Model):
     order_id = models.ForeignKey(Order, on_delete=models.CASCADE)
     payment_id = models.ForeignKey(Payment, on_delete=models.CASCADE)

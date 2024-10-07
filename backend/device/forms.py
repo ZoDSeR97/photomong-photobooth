@@ -8,9 +8,8 @@ from .models import Device
 class DeviceForm(forms.ModelForm):
     class Meta:
         model = Device
-        fields = ['name', 'code', 'store_id',
-                'photo_work_time', 'contact_number', 'status']
-
+        fields = ['name', 'code', 'store_id', 'photo_work_time', 'contact_number', 'status']
+        
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)

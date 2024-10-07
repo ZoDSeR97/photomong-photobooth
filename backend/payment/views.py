@@ -26,7 +26,6 @@ import datetime
 from datetime import datetime as dt
 
 # Create your views here.
-
 def random_string_generator(size=10, chars=string.ascii_lowercase + string.digits):
     return ''.join(random.choice(chars) for _ in range(size))
 
@@ -38,61 +37,62 @@ def start_cash_pay(request):
     response = requests.request("POST", url, headers=headers, data=payload)
     print(response.text)
 
+
 @csrf_exempt
 def stop_cash_pay(request):
     try:
         cash_url = settings.API_CASH_READER + '/api/stop/'
         response = requests.post(cash_url, {})
-        return JsonResponse({'message': 'Stop'}, status=status.HTTP_200_OK)
+        return JsonResponse({'message': 'Stop'}, status=status.HTTP_200_OK)                
     except Payment.DoesNotExist:
-        return JsonResponse({'error': 'Payment not found'}, status=status.HTTP_404_NOT_FOUND)
-    return JsonResponse({'error': 'Error Failed'}, status=status.HTTP_200_OK)
-
+        return JsonResponse({'error': 'Payment not found'}, status=status.HTTP_404_NOT_FOUND)            
+    return JsonResponse({'error': 'Error Failed'}, status=status.HTTP_200_OK)           
+    
 @csrf_exempt
 def create_cash_order(request):
-    device_code = request.GET.get('device')
-    amount = request.GET.get("amount")
-    order_code = random_string_generator()
+        device_code = request.GET.get('device')
+        amount = request.GET.get("amount")
+        order_code = random_string_generator()        
 
-    order = Order.objects.create(
-        order_code=order_code,
-        device_id=Device.objects.filter(code=device_code).first(),
-        product_price=amount,
-        base_price=0,
-        tax=0,
-        total_price=amount,
-        status="Pending",
-    )
-    return JsonResponse({'order_code': order_code})
+        order = Order.objects.create(
+            order_code=order_code,
+            device_id=Device.objects.filter(code=device_code).first(),
+            product_price=amount,
+            base_price=0,
+            tax=0,
+            total_price=amount,
+            status="Pending",
+        )    
+        return JsonResponse({'order_code': order_code})    
 
 @csrf_exempt
 def webhook_cash_api(request):
-    order_code = request.GET.get("order")
-    if order_code:
-        order = Order.objects.filter(order_code=order_code).first()
+        order_code = request.GET.get("order")
+        if order_code:
+            order = Order.objects.filter(order_code=order_code).first()
 
-    try:
-        total_money = 0
-        cash_url = settings.API_CASH_READER + '/api/money/'
-        response = requests.get(cash_url)
+        try:
+            total_money = 0
+            cash_url = settings.API_CASH_READER + '/api/money/'
+            response = requests.get(cash_url)
+            
+            if True:
+                data = response.json()
+                total_money = data['total_money']
+                if (int(total_money) >= order.total_price):
+                    Transaction.objects.create(
+                        order_id=order,
+                        payment_id=Payment.objects.filter(code='Cash').first(),
+                        amount=order.total_price,
+                        transaction_status="Success"
+                    )
+                    return JsonResponse({'total_money': total_money, 'status': 'OK'}, status=status.HTTP_200_OK)           
+                return JsonResponse({'total_money': total_money, 'status': 'NOK'})    
 
-        if True:
-            data = response.json()
-            total_money = data['total_money']
-            if (int(total_money) >= order.total_price):
-                Transaction.objects.create(
-                    order_id=order,
-                    payment_id=Payment.objects.filter(code='Cash').first(),
-                    amount=order.total_price,
-                    transaction_status="Success"
-                )
-                return JsonResponse({'total_money': total_money, 'status': 'OK'}, status=status.HTTP_200_OK)
             return JsonResponse({'total_money': total_money, 'status': 'NOK'})
-
-        return JsonResponse({'total_money': total_money, 'status': 'NOK'})
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
-
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)    
+        
 @csrf_exempt
 def redeem_pay(request):
     device_code = request.GET.get('device')
@@ -125,7 +125,7 @@ def redeem_pay(request):
                         payment_id=Payment.objects.get(code='REDEEM'),
                         amount=request_amount,
                         transaction_status="Success"
-                    )
+                    )                                        
 
                     order.status = "Success"
                     order.save()
@@ -157,9 +157,9 @@ def redeem_pay(request):
                         amount=request_amount,
                         transaction_status="Success"
                     )
-
-                    redeem.is_used = True
-                    redeem.date_used = dt.now()
+                    
+                    redeem.is_used = True   
+                    redeem.date_used = dt.now()                 
                     redeem.save()
 
                     order.status = "Success"
@@ -168,7 +168,8 @@ def redeem_pay(request):
                     return JsonResponse({'status': 'OK', 'order_code': order.order_code}, status=status.HTTP_200_OK)
                 else:
                     return JsonResponse({'error': 'Redeem Amount not enough'}, status=status.HTTP_400_BAD_REQUEST)
-
+                
+            
             return JsonResponse({'error': 'Redeem Already Used'}, status=status.HTTP_400_BAD_REQUEST)
 
         except Redeem.DoesNotExist:
@@ -201,10 +202,10 @@ class PaymentDetailAPI(APIView):
         try:
             payment = Payment.objects.get(code=code)
         except Payment.DoesNotExist:
-            return Response({'error': 'Payment not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'Payment not found'}, status=status.HTTP_404_NOT_FOUND)    
         serializer = PaymentSerializer(payment)
         return Response(serializer.data, status=status.HTTP_200_OK)
-
+    
 
 class PaymentList(LoginRequiredMixin, ListView):
     def get(self, request):

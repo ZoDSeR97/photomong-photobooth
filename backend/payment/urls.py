@@ -18,7 +18,7 @@ urlpatterns = [
     path('api/cash/webhook', webhook_cash_api, name='create_cash_order'),
     path('api/cash/stop', stop_cash_pay, name='webhook_cash_api'),
     path('api/redeem', redeem_pay, name='redeem_pay'),
-
+     
     # WEB
     path('', PaymentList.as_view(), name='payments'),
     path('add', PaymentCreateView.as_view(), name='payments-add'),
