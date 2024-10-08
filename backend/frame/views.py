@@ -40,16 +40,18 @@ def upload_full(request):
           photo_data = ''
           for key, value in request.POST.items():
             if (key == 'photo'):
-                photo_data = value         
+                photo_data = value 
+            print(key)        
           if photo_data:                                           
                 filename = 'photo.png'
-                file_path = os.path.join(settings.BASE_DIR, '../app/public/photo_saved/', filename)
+                save_dir = os.path.join(os.getcwd(),'..','frontend/public/photo_saved', filename)
+                file_path = os.path.abspath(save_dir)
                 if os.path.exists(file_path) and os.path.isfile(file_path):
                     os.remove(file_path)
                 with open(file_path, 'wb') as f:
                     f.write(base64.b64decode(photo_data.split(',')[1]))
                 return JsonResponse({
-                    'photo_url': f'/photo_saved/{filename}' if photo_data else None
+                    'photo_url': f'/photo_saved/{filename}'
                 }, status=status.HTTP_201_CREATED)                  
     else:
         return JsonResponse({'error': 'Image not provided'}, status=status.HTTP_400_BAD_REQUEST)
@@ -187,8 +189,9 @@ class FrameImageCopyAPI(APIView):
         if photo_url:
             response = requests.get(photo_url)
             if response.status_code == 200:
-                filename = os.path.basename(photo_url)
-                file_path = os.path.join(settings.BASE_DIR, '../app/public/photos', filename)
+                filename = 'photo.png'
+                save_dir = os.path.join(os.getcwd(),'..','frontend/public/photos', filename)
+                file_path = os.path.abspath(save_dir)
                 if os.path.exists(file_path) and os.path.isfile(file_path):
                     os.remove(file_path)
                 with open(file_path, 'wb') as f:
@@ -198,7 +201,8 @@ class FrameImageCopyAPI(APIView):
                     response_cover = requests.get(photo_cover)
                     if response_cover.status_code == 200:
                         cover_filename = os.path.basename(photo_cover)
-                        cover_path = os.path.join(settings.BASE_DIR, '../app/public/photo_covers', cover_filename)
+                        cover_path = os.path.join(os.getcwd(),'..','frontend/public/photo_covers', cover_filename)
+                        cover_path = os.path.abspath(cover_path)
                         if os.path.exists(cover_path) and os.path.isfile(cover_path):
                             os.remove(cover_path)
                         with open(cover_path, 'wb') as f_cover:

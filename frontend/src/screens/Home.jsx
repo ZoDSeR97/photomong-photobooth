@@ -23,7 +23,7 @@ function App() {
     sessionStorage.setItem('language', 'en');
     i18n.changeLanguage('en');
     setDisplayLanguage(t(`language.en`));
-  }, [t]);
+  }, []);
 
   const handleChangeLanguage = (value) => {
     const selectedLanguage = value;

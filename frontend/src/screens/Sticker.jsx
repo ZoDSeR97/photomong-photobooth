@@ -186,7 +186,7 @@ function Sticker() {
 
           const sessionSelectedLayout = sessionStorage.getItem('selectedLayout');
           if (sessionSelectedLayout) {
-               const parsedSelectedLayout = JSON.parse(sessionSelectedLayout);
+               const parsedSelectedLayout = [JSON.parse(sessionSelectedLayout)];
 
                setSelectedLayout(parsedSelectedLayout.map(it => it.photo_cover));
                setMyBackgrounds(parsedSelectedLayout.map(it => it.photo));
@@ -379,7 +379,7 @@ function Sticker() {
                return;
           }
 
-          playPrintAudio()
+          //playPrintAudio()
           setClickPrint(true);
 
           callPrinter();
@@ -418,7 +418,7 @@ function Sticker() {
      const uploadCloud = () => {
           try {
                const stageRef = printRefs[bgIdx];
-               const originalDataURL = stageRef.current.toDataURL();
+               const originalDataURL = stageRef.current.toDataURL(); // This file path is way too long need to reduce it somehow
                let rotated = null;
                rotateImageDataURL(originalDataURL, 90)
                     .then(rotatedDataURL => {
@@ -427,7 +427,7 @@ function Sticker() {
                          formData.append("order_code", sessionStorage.getItem('orderCodeNum'));
 
                          originAxiosInstance.post(
-                              `${process.env.REACT_APP_BACKEND}/frames/api/upload_cloud`,
+                              `${import.meta.env.VITE_REACT_APP_BACKEND}/frames/api/upload_cloud`,
                               formData,
                               {
                                    headers: {
@@ -503,7 +503,7 @@ function Sticker() {
 
           // try {
           const response = await originAxiosInstance.post(
-               `${process.env.REACT_APP_BACKEND}/frames/api/print`,
+               `${import.meta.env.VITE_REACT_APP_BACKEND}/frames/api/print`,
                formData,
                {
                     headers: {
@@ -884,7 +884,7 @@ function Sticker() {
                          tempImg.src = photo.url;
 
                          tempImg.onload = () => {
-                              applyStyles(tempImg, { width: 2400, height: 1600, filter: photo.filter });
+                              applyStyles(tempImg, { width: 2400, height: 1600, filter: filterEffect });
                               // tempImg.style.filter= photo.filter
                               resolve(tempImg);
                          };
@@ -895,7 +895,7 @@ function Sticker() {
 
                Promise.all(imagePromises)
                     .then((tempImgs) => {
-                         const filterapply = tempImgs.map(img => applyFilters(img, img.filter))
+                         const filterapply = tempImgs.map(img => applyFilters(img, filterEffect))
                          setTempImage(filterapply);
                     })
                     .catch((error) => {
@@ -1126,6 +1126,7 @@ function Sticker() {
                                              x={x}
                                              y={y}
                                              image={tag}
+                                             key={photoIndex}
                                         />
                                    );
                               })
@@ -1152,6 +1153,7 @@ function Sticker() {
                                              x={x}
                                              y={y}
                                              image={tag}
+                                             key={photoIndex}
                                         />
                                    );
                               })
@@ -1197,6 +1199,7 @@ function Sticker() {
                                              x={x * ratio}
                                              y={y * ratio}
                                              image={tag}
+                                             key={photoIndex}
                                         />
                                    );
                               })
@@ -1235,6 +1238,7 @@ function Sticker() {
                                              x={x * ratio}
                                              y={y * ratio}
                                              image={tag}
+                                             key={photoIndex}
                                         />
                                    );
                               })
@@ -1272,6 +1276,7 @@ function Sticker() {
                                              x={x * ratio}
                                              y={y * ratio}
                                              image={tag}
+                                             key={photoIndex}
                                         />
                                    );
                               })
@@ -1310,6 +1315,7 @@ function Sticker() {
                                              x={x * ratio}
                                              y={y * ratio}
                                              image={tag}
+                                             key={photoIndex}
                                         />
                                    );
                               })
@@ -1427,9 +1433,9 @@ function Sticker() {
           const res = await getAudio({ file_name: "add_emoji.wav" })
      }
 
-     useEffect(() => {
+     /* useEffect(() => {
           playAudio()
-     }, [])
+     }, []) */
 
      return (
           <div className='sticker-container' style={{ backgroundImage: `url(${backgroundImage})` }}>
@@ -1577,7 +1583,6 @@ function Sticker() {
                                                             image={image}
                                                             shapeProps={image}
                                                        />
-
                                                   ))}
                                              </Layer>
                                         </Stage>

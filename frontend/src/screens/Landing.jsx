@@ -37,7 +37,7 @@ function Print() {
 
 
      const clearSessionStorageAndLeaveOut = () => {
-          // sessionStorage.clear();
+          sessionStorage.clear();
           navigate('/');
      }
 

@@ -197,3 +197,5 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 CORS_ALLOW_ALL_ORIGINS = True
+
+DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760 # EXTEND Data upload to 10MB due to long url that I cannot be bother to fix atm

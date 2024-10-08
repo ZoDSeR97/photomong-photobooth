@@ -431,7 +431,7 @@ function Choose() {
                                    <div
                                         key={photoIndex}
                                         className={displayClassNameForPhoto(rowIndex, photoIndex)}
-                                        style={{ backgroundImage: `url(${formattedPhotos[selectedIndex].url})`, transform: "scaleX(-1)" }}
+                                        style={{ backgroundImage: `url(${photos[selectedIndex].url})`, transform: "scaleX(-1)" }}
                                    />
                               ))}
                          </div>
