@@ -45,9 +45,9 @@ function Layout() {
      const [confirmClick, setConfirmClick] = useState(false);
      // const [slicedLayouts,setSlicedLayouts]=useState([])
      //드래그 끝나면 기존 레이아웃중에 5개 다음거 담기
-     const [sliceIdx,setSliceIdx]=useState(0)
+     const [sliceIdx, setSliceIdx] = useState(0)
      //드래그 중일때 카드 선택 안되도록 하기
-     const [draging,setDraging]=useState(false)
+     const [draging, setDraging] = useState(false)
      const { t } = useTranslation();
      const navigate = useNavigate();
      const onDragEnd = (e) => {
@@ -56,15 +56,15 @@ function Layout() {
           const nextSliceIdx = (sliceIdx + 1) % 4; // 다음에 가져올 slicedLayouts의 시작 인덱스
           // 0,5
           // 5,10
-//     const nextSlicedLayouts = layouts[nextSliceIdx];
-//     getBackground(nextSliceIdx)
-//     setSlicedLayouts(...nextSlicedLayouts);
-    setDraging(false)
-      };
-      const onDrag=(e)=>{
+          //     const nextSlicedLayouts = layouts[nextSliceIdx];
+          //     getBackground(nextSliceIdx)
+          //     setSlicedLayouts(...nextSlicedLayouts);
+          setDraging(false)
+     };
+     const onDrag = (e) => {
           // e.preventDefault()
           setDraging(true)
-      }
+     }
      useEffect(() => {
           const storedLanguage = sessionStorage.getItem('language');
           if (storedLanguage) {
@@ -83,7 +83,7 @@ function Layout() {
 
                // Define the base path for the session style
                const basePath = `../../assets/Frame/Layout/${sessionStyleBg}`;
-               
+
                // Determine the image path based on the stored language
                const languagePathMap = {
                     ko: `${basePath}/kr/BG.png`,
@@ -125,9 +125,9 @@ function Layout() {
           const fetchLayoutsByBackground = async () => {
                try {
                     const frame = JSON.parse(sessionStorage.getItem('selectedFrame')).frame;
-                  
-               
-                    const bgStyle=sessionStorage.getItem('styleBg')
+
+
+                    const bgStyle = sessionStorage.getItem('styleBg')
                     console.log(bgStyle)
                     console.log(String(`${import.meta.env.VITE_REACT_APP_BACKEND}/layouts/api/by-background/` + bgStyle + '/frame/' + frame))
                     const response = await originAxiosInstance.get(`${import.meta.env.VITE_REACT_APP_BACKEND}/layouts/api/by-background/` + bgStyle + '/frame/' + frame);
@@ -138,25 +138,25 @@ function Layout() {
                          photo_cover: import.meta.env.VITE_REACT_APP_BACKEND + item.photo_cover,
                          photo_full: import.meta.env.VITE_REACT_APP_BACKEND + item.photo_full
                     }));
-                   /*
-                   Stripx2
-                   2cut-x2
-                   4-cutx2
-                   6-cutx2
-                   */
-                   const resAll=newBackgrounds        
+                    /*
+                    Stripx2
+                    2cut-x2
+                    4-cutx2
+                    6-cutx2
+                    */
+                    const resAll = newBackgrounds
 
-                    console.log("collab bg>>>",resAll)
+                    console.log("collab bg>>>", resAll)
 
-                   if (frame==="4-cutx2") {
-                    setLayouts(resAll.filter(r=>r.title!="Cartoon-5cut-4"))
-                   }else{
-              
-                    setLayouts(resAll);
-                   }
-                   //[...seasonsNewBackgrounds,...partyNewBackgrounds,...cartoonNewBackgrounds,...minNewBackgrounds]
-                  
-                   
+                    if (frame === "4-cutx2") {
+                         setLayouts(resAll.filter(r => r.title != "Cartoon-5cut-4"))
+                    } else {
+
+                         setLayouts(resAll);
+                    }
+                    //[...seasonsNewBackgrounds,...partyNewBackgrounds,...cartoonNewBackgrounds,...minNewBackgrounds]
+
+
                } catch (error) {
                     console.error(error)
                }
@@ -165,54 +165,51 @@ function Layout() {
           fetchLayoutsByBackground()
      }, []);
 
-     const handleClick = (index,clickedTitle) => {
-          if (draging)return
-         //라우팅 할 때 리스트 한번에 보내기
+     const handleClick = (index, clickedTitle) => {
+          if (draging) return
+          //라우팅 할 때 리스트 한번에 보내기
           // sessionStorage.setItem('selectedLayout', JSON.stringify(layouts));
           // setClickedIndex(index === clickedIndex ? null : index);
-          getClickAudio()
+          //getClickAudio()
           if (clickedTitles.includes(clickedTitle)) {
                setClickedTitles(prevTitles => prevTitles.filter(clickedTitle => clickedTitle != clickedTitle));
 
-          
+
           } else {
                setClickedTitles(prevTitles => [...prevTitles, clickedTitle]);
-               
-           }
-          
-          
+
+          }
+
+
           setConfirmClick(confirmButton)
      }
 
-     const goToPayment = () => {  
-         
+     const goToPayment = () => {
+
           if (confirmClick === confirmButton) {
-               const selectedLayouts=[]
-       
-            for (let i = 0; i < layouts.length; i++) {
+               const selectedLayouts = []
+
+               for (let i = 0; i < layouts.length; i++) {
                     const fiveLayout = layouts[i];
                     for (let j = 0; j < fiveLayout.length; j++) {
                          const layout = fiveLayout[j];
-                        
-             
-                    for (let k = 0; k < layout.length; k++) {
-                         const element = layout[k];
-                                //   const filtered=layout.filter(l=>l.title)
-                        
-                         for (let l = 0; l < clickedTitles.length; l++) {
-                           if (element.title===clickedTitles[l]) {
-                               selectedLayouts.push(element)
-                           }
-                              
+
+
+                         for (let k = 0; k < layout.length; k++) {
+                              const element = layout[k];
+                              //   const filtered=layout.filter(l=>l.title)
+
+                              for (let l = 0; l < clickedTitles.length; l++) {
+                                   if (element.title === clickedTitles[l]) {
+                                        selectedLayouts.push(element)
+                                   }
+
+                              }
                          }
                     }
-                    }
-                    
+
                }
-               sessionStorage.setItem('selectedLayout', JSON.stringify(layouts.filter(layout=>clickedTitles.includes(layout.title))));
-               // sessionStorage.setItem('selectedLayout', JSON.stringify(layouts[index]));
-          
-               // navigate('/payment');
+               sessionStorage.setItem('selectedLayout', JSON.stringify(layouts.findLast(layout=>clickedTitles.includes(layout.title))));
                navigate('/payment-number');
           }
      }
@@ -222,47 +219,95 @@ function Layout() {
                setGoBackBg(goBackBg === goback_kr ? goback_kr_hover : goback_kr);
           } else if (goBackBG === 'vi') {
                setGoBackBg(goBackBg === goback_vn ? goback_vn_hover : goback_vn);
-          }else if(goBackBG === 'mn'){
+          } else if (goBackBG === 'mn') {
                setGoBackBg(goBackBg === goback_mn ? goback_mn_hover : goback_mn);
-          } 
+          }
           else {
                setGoBackBg(goBackBg === goback_en ? goback_en_hover : goback_en);
           }
      }
-
-     const playAudio = async() => {
-          const res=await getAudio({file_name:"choose_frame_style.wav"})
+     useEffect(() => {
+          const storedLanguage = sessionStorage.getItem('language');
+          if (storedLanguage) {
+               i18n.changeLanguage(storedLanguage);
+               setLanguage(storedLanguage);
           }
-     useEffect(()=>{
-     playAudio()
-     },[])
 
+          const frame = sessionStorage.getItem('selectedFrame');
+          if (frame) {
+               setSelectedFrame(JSON.parse(frame).frame);
+          }
+          const sessionStyleBg = sessionStorage.getItem('styleBg');
+          if (sessionStyleBg) {
+               let layoutBg = '';
+
+               // Define the base path for the session style
+               const basePath = `../../assets/Frame/Layout/${sessionStyleBg}`;
+
+               // Determine the image path based on the stored language
+               const languagePathMap = {
+                    ko: `${basePath}/kr/BG.png`,
+                    vi: `${basePath}/vn/BG.png`,
+                    default: `${basePath}/BG.png`
+               };
+
+               // Use async function to load the image dynamically
+               const loadImage = async () => {
+                    const path = languagePathMap[storedLanguage] || languagePathMap.default;
+                    layoutBg = (await import(path)).default; // Use .default to access the imported image
+                    setLayoutBackground(layoutBg);
+               };
+
+               loadImage();
+          }
+
+          if (storedLanguage === 'en') {
+               setGoBackBg(goback_en);
+               setConfirmButton(confirm_en);
+               setConfirmHoverButton(confirm_en_hover);
+          } else if (storedLanguage === 'ko') {
+               setGoBackBg(goback_kr);
+               setConfirmButton(confirm_kr);
+               setConfirmHoverButton(confirm_kr_hover);
+          } else if (storedLanguage === 'vi') {
+               setGoBackBg(goback_vn);
+               setConfirmButton(confirm_vn);
+               setConfirmHoverButton(confirm_vn_hover);
+          }
+     }, []);
+     const playAudio = async () => {
+          const res = await getAudio({ file_name: "choose_frame_style.wav" })
+     }
+     useEffect(() => {
+          playAudio()
+     }, [])
      return (
-          <div className='layout-container' 
-          // onDragStart={onDrag}
-          // onDrag={onDrag}
-          // onDragEnd={onDragEnd}
-          // onClick={onDrag}
-          style={{backgroundImage: `url(${layoutBackground})`
-               // backgroundColor:"red"
-          }}
+          <div className='layout-container'
+               // onDragStart={onDrag}
+               // onDrag={onDrag}
+               // onDragEnd={onDragEnd}
+               // onClick={onDrag}
+               style={{
+                    backgroundImage: `url(${layoutBackground})`
+                    // backgroundColor:"red"
+               }}
           >
                <div className="go-back" style={{ backgroundImage: `url(${goBackBg})` }} onClick={() => navigate("/background")} onMouseEnter={() => hoverGoBackBtn(language)} onMouseLeave={() => hoverGoBackBtn(language)}></div>
                <div className="style-section"
-               draggable={false}
-               onDragStart={onDrag}
-               onDrag={onDrag}
-               onDragEnd={onDragEnd}
-               
-               // onClick={onDrag}
-               style={{
-               }}
+                    draggable={false}
+                    onDragStart={onDrag}
+                    onDrag={onDrag}
+                    onDragEnd={onDragEnd}
+
+                    // onClick={onDrag}
+                    style={{
+                    }}
                >
-                    <FrameCarousel 
-               clickedTitles={clickedTitles}
-               images={layouts}
-                  handleClick={ handleClick}
-               />
+                    <FrameCarousel
+                         clickedTitles={clickedTitles}
+                         images={layouts}
+                         handleClick={handleClick}
+                    />
                </div>
                <div
                     className="confirm-layout-button"

@@ -10,6 +10,7 @@ import photo_frame from '../../assets/Photo/Choose/photo_frame.png';
 import background_en from '../../assets/Photo/Choose/BG.png';
 import background_kr from '../../assets/Photo/Choose/kr/BG.png';
 import background_vn from '../../assets/Photo/Choose/vn/BG.png';
+import background_mn from '../../assets/Photo/Choose/mn/BG.png';
 
 // Go Back
 import goback_en from '../../assets/Common/goback.png';
@@ -18,7 +19,8 @@ import goback_kr from '../../assets/Common/kr/goback.png';
 import goback_kr_hover from '../../assets/Common/kr/gobackhover.png';
 import goback_vn from '../../assets/Common/vn/goback.png';
 import goback_vn_hover from '../../assets/Common/vn/gobackhover.png';
-
+import goback_mn from '../../assets/Common/mn/goback.png';
+import goback_mn_hover from '../../assets/Common/mn/gobackhover.png';
 // Continue
 import continue_en from '../../assets/Common/continue.png';
 import continue_en_hover from '../../assets/Common/continue_click.png';
@@ -26,6 +28,9 @@ import continue_kr from '../../assets/Common/kr/continue.png';
 import continue_kr_hover from '../../assets/Common/kr/continue_click.png';
 import continue_vn from '../../assets/Common/vn/continue.png';
 import continue_vn_hover from '../../assets/Common/vn/continue_click.png';
+import continue_mn from '../../assets/Common/mn/continue.png';
+import continue_mn_hover from '../../assets/Common/mn/continue_click.png';
+import { getAudio, getClickAudio, getPhotos } from '../../api/config';
 
 function Choose() {
      const { t } = useTranslation();
@@ -41,20 +46,23 @@ function Choose() {
      const [goBackButton, setGoBackButton] = useState([]);
      const [language, setLanguage] = useState(null);
      const [continueButton, setContinueButton] = useState(continue_en);
-
      const [clickedButton, setClickedButton] = useState(false);
-
+     const [formattedPhotos, setFormattedPhotos] = useState([]);
+     const uuid = sessionStorage.getItem("uuid")
      const photos = JSON.parse(sessionStorage.getItem('photos'));
-     // Split photos into arrays of 4 photos each
-     const photoGroups = [];
-     for (let i = 0; i < photos.length; i += 4) {
-          photoGroups.push(photos.slice(i, i + 4));
+
+     const get_photo = () => {
+          const photoGroups = [];
+          for (let i = 0; i < photos.length; i += 4) {
+               photoGroups.push(photos.slice(i, i + 4));
+          }
+          setFormattedPhotos(photoGroups)
      }
 
-     const chunkArray = (arr, size) => {
-          return arr.reduce((acc, _, i) => (i % size ? acc : [...acc, arr.slice(i, i + size)]), []);
-     };
-
+     useEffect(() => {
+          //사진 제대로 들어오는지 보기위한 테스트 코드
+          get_photo();
+      }, []);
 
      useEffect(() => {
           const storedLanguage = sessionStorage.getItem('language');
@@ -70,6 +78,10 @@ function Choose() {
                     setBackground(background_vn);
                     setContinueButton(continue_vn_hover);
                }
+               else if (storedLanguage === 'mn') {
+                    setBackground(background_mn);
+                    setContinueButton(continue_mn_hover);
+               }
           }
 
           // Retrieve selected frame from session storage
@@ -79,16 +91,16 @@ function Choose() {
           }
 
           const sessionSelectedLayout = sessionStorage.getItem('selectedLayout');
+
           if (sessionSelectedLayout) {
                const parsedSelectedLayout = JSON.parse(sessionSelectedLayout);
+               console.log("photo choose urls>>>", parsedSelectedLayout)
                setMyBackground(parsedSelectedLayout.photo);
-               console.log(myBackground);
                setSelectedLayout(parsedSelectedLayout.photo_cover);
-               console.log(selectedLayout);
           }
      }, []);
 
-     useEffect(() => {
+     /* useEffect(() => {
           fetch(`${import.meta.env.VITE_REACT_APP_BACKEND}/frames/api/clear-images`, {
                method: 'POST',
                headers: {
@@ -98,7 +110,7 @@ function Choose() {
                .then(response => response.json())
                .then(data => console.log(data))
                .catch(error => console.error(`Failed to clear images: ${error}`));
-     }, []);
+     }, []); */
 
      const toggleSelection = (index) => {
           // Determine total photos
@@ -119,14 +131,16 @@ function Choose() {
 
           const selectedIndex = selectedPhotos.indexOf(index);
           if (selectedIndex === -1 && selectedPhotos.length < totalMeetsPhotos) {
-               // Add the photo to selectedPhotos if it's not already selected
-               setSelectedPhotos([...selectedPhotos, index]);
+               if (selectedFrame == 'Stripx2') {
+                    setSelectedPhotos([...selectedPhotos, index, index]);
+               } else {
+                    setSelectedPhotos([...selectedPhotos, index]);
+               }
+
           } else {
-               // Remove the photo from selectedPhotos if it's already selected
                setSelectedPhotos(selectedPhotos.filter((item) => item !== index));
           }
 
-          // Check if all photos have been selected
           if (selectedPhotos.length === totalMeetsPhotos - 1) {
                setConfirmButton(true);
           } else {
@@ -149,10 +163,12 @@ function Choose() {
           }
 
           const parsedSelectedLayout = JSON.parse(sessionSelectedLayout);
+          const layoutData = parsedSelectedLayout;
+
           const copyImageUrl = `${import.meta.env.VITE_REACT_APP_BACKEND}/frames/api/copy-image`;
           const copyImageData = {
-               photo_url: parsedSelectedLayout.photo,
-               photo_cover: parsedSelectedLayout.photo_cover
+               photo_url: layoutData.photo,
+               photo_cover: layoutData.photo_cover
           };
 
           try {
@@ -166,16 +182,18 @@ function Choose() {
                const data = await response.json();
                sessionStorage.setItem('copiedPhoto', data.photo_path);
                sessionStorage.setItem('copiedPhotoCover', data.photo_cover_path);
-
+               return true;
           } catch (error) {
                console.error(`Failed to copy image: ${error}`);
+               return false;
           }
      };
 
-     const goToFilter = () => {
+     const goToFilter = async () => {
           if (clickedButton) {
                return;
           }
+          getClickAudio()
           sessionStorage.setItem('choosePhotos', JSON.stringify(selectedPhotos));
 
           // Determine total photos
@@ -197,10 +215,8 @@ function Choose() {
           if (selectedPhotos.length === totalMeetsPhotos) {
                hoverContinueButton();
                setClickedButton(true);
-               copyImageApi();
-               setTimeout(() => {
-                    navigate("/filter");
-               }, 5000);
+               const result = await copyImageApi();
+               navigate("/filter");
           }
      }
 
@@ -299,6 +315,10 @@ function Choose() {
           return 'choose-photo-item';
      }
 
+     const chunkArray = (arr, size) => {
+          return arr.reduce((acc, _, i) => (i % size ? acc : [...acc, arr.slice(i, i + size)]), []);
+     };
+
      const hoverGoBackButton = (lang) => {
           if (lang === 'en') {
                setGoBackButton(goBackButton == goback_en_hover ? goback_en : goback_en_hover);
@@ -306,16 +326,26 @@ function Choose() {
                setGoBackButton(goBackButton == goback_kr_hover ? goback_kr : goback_kr_hover);
           } else if (lang === 'vi') {
                setGoBackButton(goBackButton == goback_vn_hover ? goback_vn : goback_vn_hover);
+          } else if (lang === 'mn') {
+               setGoBackButton(goBackButton == goback_mn_hover ? goback_mn : goback_mn_hover);
           }
      }
 
+     const playAudio = async () => {
+          const res = await getAudio({ file_name: "choose_photos.wav" })
+     }
+
+     /* useEffect(() => {
+          playAudio()
+     }, []) */
      const showSelectedPhotos = () => {
-          if (selectedFrame == '4-cutx2' && selectedPhotos.length > 0) {
+
+          if (selectedFrame == '3-cutx2' && selectedPhotos.length > 0) {
                const firstPhotoTpl = (
                     <div className="choose-photo-row">
                          <div
                               className="choose-photo-item-3cut-top-line"
-                              style={{ backgroundImage: `url(${photos[selectedPhotos[0]].url})` }}
+                              style={{ backgroundImage: `url(${photos[selectedPhotos[0]].url})`, transform: "scaleX(-1)" }}
                          />
                     </div>
                )
@@ -327,19 +357,19 @@ function Choose() {
                                    <div
                                         key={photoIndex}
                                         className={displayClassNameForPhoto(rowIndex, photoIndex)}
-                                        style={{ backgroundImage: `url(${photos[selectedIndex].url})` }}
+                                        style={{ backgroundImage: `url(${photos[selectedIndex].url})`, transform: "scaleX(-1)" }}
                                    />
                               ))}
                          </div>
                     ))]
                );
-          } else if (selectedFrame == '6-cutx2' && selectedPhotos.length > 0) {
-               if (selectedPhotos.length == 7) {
+          } else if (selectedFrame == '5-cutx2' && selectedPhotos.length > 0) {
+               if (selectedPhotos.length == 5) {
                     const lastPhotoTpl = (
                          <div className="choose-photo-row">
                               <div
                                    className="choose-photo-item-5cut-last-line"
-                                   style={{ backgroundImage: `url(${photos[selectedPhotos[selectedPhotos.length - 1]].url})` }}
+                                   style={{ backgroundImage: `url(${photos[selectedPhotos[selectedPhotos.length - 1]].url})`, transform: "scaleX(-1)" }}
                               />
                          </div>
                     )
@@ -351,7 +381,7 @@ function Choose() {
                                         <div
                                              key={photoIndex}
                                              className={displayClassNameForPhoto(rowIndex, photoIndex)}
-                                             style={{ backgroundImage: `url(${photos[selectedIndex].url})` }}
+                                             style={{ backgroundImage: `url(${photos[selectedIndex].url})`, transform: "scaleX(-1)" }}
                                         />
                                    ))}
                               </div>
@@ -366,7 +396,7 @@ function Choose() {
                                         <div
                                              key={photoIndex}
                                              className={displayClassNameForPhoto(rowIndex, photoIndex)}
-                                             style={{ backgroundImage: `url(${photos[selectedIndex].url})` }}
+                                             style={{ backgroundImage: `url(${photos[selectedIndex].url})`, transform: "scaleX(-1)" }}
                                         />
                                    ))}
                               </div>
@@ -374,7 +404,9 @@ function Choose() {
                     );
                }
 
-          } else {
+          }
+
+          else if (selectedFrame === "6-cutx2") {
                const selectedPhotoRows = chunkArray(selectedPhotos, 2);
                return (
                     selectedPhotoRows.map((row, rowIndex) => (
@@ -383,7 +415,23 @@ function Choose() {
                                    <div
                                         key={photoIndex}
                                         className={displayClassNameForPhoto(rowIndex, photoIndex)}
-                                        style={{ backgroundImage: `url(${photos[selectedIndex].url})` }}
+                                        style={{ backgroundImage: `url(${photos[selectedIndex].url})`, transform: "scaleX(-1)" }}
+                                   />
+                              ))}
+                         </div>
+                    ))
+               );
+          }
+          else {
+               const selectedPhotoRows = chunkArray(selectedPhotos, 2);
+               return (
+                    selectedPhotoRows.map((row, rowIndex) => (
+                         <div key={rowIndex} className="choose-photo-row">
+                              {row.map((selectedIndex, photoIndex) => (
+                                   <div
+                                        key={photoIndex}
+                                        className={displayClassNameForPhoto(rowIndex, photoIndex)}
+                                        style={{ backgroundImage: `url(${formattedPhotos[selectedIndex].url})`, transform: "scaleX(-1)" }}
                                    />
                               ))}
                          </div>
@@ -400,6 +448,8 @@ function Choose() {
                setContinueButton(continueButton == continue_kr ? continue_kr_hover : continue_kr);
           } else if (storedLanguage === 'vi') {
                setContinueButton(continueButton == continue_vn ? continue_vn_hover : continue_vn);
+          } else if (storedLanguage === 'mn') {
+               setContinueButton(continueButton == continue_mn ? continue_mn_hover : continue_mn);
           }
      }
 
@@ -407,19 +457,20 @@ function Choose() {
           <div className='photo-choose-container' style={{ backgroundImage: `url(${background})` }}>
                <div className="go-back" style={{ backgroundImage: `url(${goBackButton})` }} onClick={() => navigate("/photo")} onMouseEnter={() => hoverGoBackButton(language)} onMouseLeave={() => hoverGoBackButton(language)}></div>
                <div className="left-big-frame">
+                    {/* 프레임속 회색네모 갯수만큼 나오는 곳 */}
                     <div ref={parentRef} className={displayClassNameForBackground()} style={{ backgroundImage: `url(${myBackground})` }}>
                          {showSelectedPhotos()}
                     </div>
                     <div className={displayClassNameForLayout()} style={{ backgroundImage: `url(${selectedLayout})` }}></div>
                </div>
                <div className="right-choose-container">
-                    {photoGroups.map((group, index) => (
+                    {formattedPhotos.map((group, index) => (
                          <div key={index} className="choose-line">
                               {group.map((photo, photoIndex) => (
                                    <div
                                         key={photoIndex}
-                                        className="choose-image"
-                                        style={{ backgroundImage: `url(${photo.url})` }}
+                                        className={`choose-image ${selectedPhotos.includes(photo.id) ? "clicked" : ""}`}
+                                        style={{ backgroundImage: `url(${photo.url})`, transform: "scaleX(-1)" }}
                                         onClick={() => toggleSelection(photo.id)}
                                    />
                               ))}
@@ -428,7 +479,7 @@ function Choose() {
                </div>
                <div
                     className="bottom_choose_container"
-                    style={{ backgroundImage: `url(${continueButton})` }}                    
+                    style={{ backgroundImage: `url(${continueButton})` }}
                     onClick={goToFilter}
                ></div>
           </div>

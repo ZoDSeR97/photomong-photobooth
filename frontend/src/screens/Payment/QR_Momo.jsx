@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import i18n from '../../translations/i18n';
 import "../../css/Payment.css";
-import {QRCodeSVG} from 'qrcode.react';
+import { QRCodeSVG } from 'qrcode.react';
 
 // Go Back
 import goback_en from '../../assets/Common/goback.png';
@@ -43,6 +43,52 @@ function QR_Momo() {
     });
 
     useEffect(() => {
+        const fetchQRPayment = async () => {
+            try {
+                const deviceNumber = import.meta.env.VITE_REACT_APP_DEVICE_NUMBER;
+                const framePrice = sessionStorage.getItem('framePrice');
+                const response = await fetch(`${import.meta.env.VITE_REACT_APP_BACKEND}/momo/api?device=${deviceNumber}&amount=${framePrice}`);
+                const qrCodeData = await response.json();
+                setQrCode(qrCodeData.qr_code);
+                setOrderCode(qrCodeData.order_code);
+
+                if (qrCodeData.return_code == 1) {
+                    setPaymentStatus(qrCodeData.status);
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        fetchQRPayment();
+    }, [])
+
+    useEffect(() => {
+        const checkPaymentStatus = async (orderCodeNum) => {
+            try {
+                const response = await fetch(`${import.meta.env.VITE_REACT_APP_BACKEND}/momo/api/webhook?order=${orderCodeNum}`);
+                const paymentData = await response.json();
+                if (paymentData.status === "Success") {
+                    clearInterval(intervalId);
+                    navigate("/payment-result");
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        };
+
+        const intervalId = setInterval(() => {
+            if (orderCode) {
+                checkPaymentStatus(orderCode);
+            }
+        }, 8000);
+
+        return () => {
+            clearInterval(intervalId);
+        }
+    })
+
+    useEffect(() => {
         if (paymentStatus === 'Success') {
             navigate("/payment-result"); // Redirect to the next page
         }
@@ -67,7 +113,7 @@ function QR_Momo() {
     return (
         <div className='qr-container' style={{ backgroundImage: `url(${background})` }}>
             <div className='qr-code'>
-                {qrCode && <QRCodeSVG value={qrCode} size={200}/>}
+                {qrCode && <QRCodeSVG value={qrCode} size={200} />}
             </div>
             <div className="go-back" style={{ backgroundImage: `url(${goBackBg})` }} onClick={goBack} ></div>
         </div>

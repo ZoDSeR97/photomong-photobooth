@@ -227,20 +227,14 @@ function Filter() {
      }, []);
 
      useEffect(() => {
-          const copiedPhoto = sessionStorage.getItem('copiedPhoto');
-          if (copiedPhoto) {
-               console.log(copiedPhoto);
-               setMyBackground(copiedPhoto);
+          const sessionSelectedLayout = sessionStorage.getItem('selectedLayout');
+          const parsedSelectedLayout = JSON.parse(sessionSelectedLayout);
+          const layoutData = parsedSelectedLayout;
+          if (layoutData) {
+               setMyBackground(layoutData.photo);
+               setSelectedLayout(layoutData.photo_cover);
           }
-     });
-
-     useEffect(() => {
-          const copiedPhotoCover = sessionStorage.getItem('copiedPhotoCover');
-          if (copiedPhotoCover) {
-               console.log(copiedPhotoCover);
-               setSelectedLayout(copiedPhotoCover);
-          }
-     });
+     }, []);
 
      const handleMouseEnter = (image) => {
           setHoveredImage(image);
