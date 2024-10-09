@@ -28,8 +28,11 @@ from dashboard import urls as dashboard_urls
 from account import urls as account_urls
 from zalopay import urls as zalopay_urls
 from redeem import urls as redeem_urls
+from upload import urls as upload_urls
+from get_photo import urls as get_photo_urls
 from django.conf import settings
 from django.conf.urls.static import static
+from get_photo.views import serve_photo, download, PhotoListView, PhotoDetailView, PhotoDeleteView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -46,6 +49,13 @@ urlpatterns = [
     path('account/', include(account_urls)),
     path('zalopay/', include(zalopay_urls)),
     path('redeem/', include(redeem_urls)),
+    path('upload/', include(upload_urls)),  # upload 앱의 URL을 include
+    path('get_photo/', include(get_photo_urls)),  # upload 앱의 URL을 include
+    path('get_photo/uploads/<path:file_path>', serve_photo, name='serve_photo'),
+    path('download/', download, name='download'),
+    path('photo_list', PhotoListView.as_view(), name='photo_list'),
+    path('photo_detail/<str:folder_id>', PhotoDetailView.as_view(), name='photo_detail'),
+    path('photo_delete/<str:folder_id>/<str:image>', PhotoDeleteView.as_view(), name='photo_delete'),
 ]
 
 if settings.DEBUG:

@@ -82,3 +82,10 @@ class FilterEditView(LoginRequiredMixin, View):
             form.save()
             return redirect('filters')
         return render(request, 'filters/edit.html', {'form': form, 'filter': filter})        
+    
+class FilterDeleteView(LoginRequiredMixin, View):
+
+    def get(self, request, pk):
+        filter = Filter.objects.get(id=pk)
+        filter.delete()
+        return redirect('filters')    

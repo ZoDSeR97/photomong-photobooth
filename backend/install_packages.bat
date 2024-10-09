@@ -21,6 +21,7 @@ echo sqlparse
 echo tzdata
 echo urllib3
 echo whitenoise
+echo opencv-python
 ) > requirements.txt
 
 echo Installing packages...

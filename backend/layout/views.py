@@ -8,7 +8,7 @@ from .models import Layout
 from .serializers import LayoutSerializer
 from django.views import View
 from django.views.generic import ListView, DetailView, CreateView
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.urls import reverse_lazy
 from .forms import LayoutForm
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -25,7 +25,7 @@ BACKGROUND_API_URL = settings.DEV_URL + "backgrounds/api"
 
 FRAME_API_URL = settings.DEV_URL + "frames/api"
 
-POSITION_LIST = ['row-1-1', 'row-1-2', 'row-1-3', 'row-1-4', 'row-1-5']
+POSITION_LIST = ['row-1-1', 'row-1-2', 'row-1-3', 'row-1-4', 'row-1-5', 'row-1-6', 'row-1-7', 'row-1-8', 'row-1-9', 'row-1-10']
 
 
 def get_background_list():
@@ -48,11 +48,11 @@ class LayoutAPI(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request, *args, **kwargs):
-        serializer = LayoutSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        form = LayoutForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            return JsonResponse({"message": "Layout created successfully"}, status=201)
+        return JsonResponse({"message": "Failed to create layout"}, status=400)
     
 class LayoutDetailAPI(APIView):
     
@@ -65,11 +65,13 @@ class LayoutDetailAPI(APIView):
     
         def put(self, request, pk, *args, **kwargs):
             layout = Layout.objects.get(id=pk)
-            serializer = LayoutSerializer(instance=layout, data=request.data)
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            form = LayoutForm(request.POST, request.FILES, instance=layout)
+            backgrounds = Background.objects.all()
+            frames = Frame.objects.all()
+            if form.is_valid():
+                form.save()
+                return JsonResponse({"message": "Layout updated successfully"}, status=201)
+            return JsonResponse({"message": "Failed to update layout"}, status=400)
     
         def delete(self, request, pk, *args, **kwargs):
             layout = Layout.objects.get(id=pk)
@@ -84,6 +86,17 @@ class LayoutByBackgroundAPI(APIView):
         layouts = Layout.objects.filter(background=background.id, frame=frame.id)
         serializer = LayoutSerializer(layouts, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+class LayoutGroupByBackgroundAPI(APIView):
+    def get(self, request, id, frame, *args, **kwargs):
+        frame = Frame.objects.get(pk=frame)
+        background = Background.objects.get(pk=id)
+        if frame:
+            layouts = Layout.objects.filter(background=background.id, frame=frame.id)
+        else:
+            layouts = Layout.objects.filter(background=background.id)        
+        serializer = LayoutSerializer(layouts, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
         
 class LayoutList(LoginRequiredMixin, ListView):
     def get(self, request):                
@@ -92,14 +105,12 @@ class LayoutList(LoginRequiredMixin, ListView):
         
         all_data = Layout.objects.all().order_by('-id')
         if background_query:
-            background = Background.objects.get(title=background_query)
-            all_data = Layout.objects.filter(background=background.id).order_by('-id')
-        paginator = Paginator(all_data, 10)
-        layouts = paginator.get_page(page_number)
+            background = Background.objects.get(id=background_query)
+            all_data = Layout.objects.filter(background=background.id).order_by('-id')        
         
         backgrounds = Background.objects.all()
         frames = Frame.objects.all()
-        return render(request, 'layouts/list.html', {'layouts': layouts, 'backgrounds': backgrounds, 'frames': frames, 'position_list': POSITION_LIST})
+        return render(request, 'layouts/list.html', {'layouts': all_data, 'backgrounds': backgrounds, 'frames': frames, 'position_list': POSITION_LIST})
 
 class LayoutCreateView(LoginRequiredMixin, View):
     template_name = 'layouts/add.html'
@@ -115,7 +126,7 @@ class LayoutCreateView(LoginRequiredMixin, View):
         frames = Frame.objects.all()
         if form.is_valid():
             form.save()
-            return redirect(reverse_lazy('layouts'))
+            return redirect(f'{reverse_lazy("layouts")}?background={form.instance.background.id}')
         return render(request, self.template_name, {'form': form, 'backgrounds': backgrounds, 'frames': frames, 'position_list': POSITION_LIST})
 
 class LayoutEditView(LoginRequiredMixin, View):
@@ -135,3 +146,10 @@ class LayoutEditView(LoginRequiredMixin, View):
             form.save()
             return redirect(reverse_lazy('layouts'))
         return render(request, 'layouts/edit.html', {'form': form, 'backgrounds': backgrounds, 'frames': frames, 'layout': layout, 'position_list': POSITION_LIST})
+    
+class LayoutDeleteView(LoginRequiredMixin, View):
+    
+    def get(self, request, pk):
+        layout = Layout.objects.get(id=pk)
+        layout.delete()
+        return redirect(reverse_lazy('layouts'))    

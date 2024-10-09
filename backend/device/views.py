@@ -13,6 +13,7 @@ from django.urls import reverse_lazy
 from .forms import DeviceForm
 from django.contrib.auth.mixins import LoginRequiredMixin
 from frame.models import Frame
+from background.models import Background
 from django.contrib import messages
 from django.conf import settings
 from store.models import Store
@@ -64,8 +65,13 @@ class DeviceDetailAPI(APIView):
 
 class DeviceList(LoginRequiredMixin, ListView):    
     def get(self, request):
+        background_query = request.GET.get('background')
         stores = Store.objects.all()
-        devices = Device.objects.all()        
+        if background_query:
+            background = Background.objects.filter(id=background_query).first()
+            devices = Device.objects.filter(background=background.id).order_by('-id')
+        else:
+            devices = Device.objects.all()        
         return render(request, 'devices/list.html', {'stores': stores, 'devices': devices})
 
 class DeviceCreateView(View):

@@ -7,7 +7,7 @@
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb">
         <li class="breadcrumb-item active" aria-current="page">
-          <a href="{% url 'devices-add' %}" type="button" class="btn btn-gradient-primary btn-rounded btn-fw">Add
+          <a href="{% url 'devices-add' %}" type="button" class="btn btn-gradient-primary btn-rounded btn-fw"><span class="mdi mdi-plus"></span> Add
             Device</a>
         </li>
       </ol>
@@ -20,11 +20,11 @@
           <h4 class="card-title">Devices List</h4>
 
           {% if devices %}
-          <table class="table table-hover">
+          <table id="devices-table" class="table table-bordered">
             <thead>
               <tr>
                 <th>Device</th>
-                <th>Device Code</th>
+                <th>Device Code</th> 
                 <th>Store</th>
                 <th>Status</th>
                 <th></th>
@@ -45,7 +45,10 @@
                   {% endif %}
                 </td>
                 <td>
-                  <a href="{% url 'devices-edit' device.id %}" type="button" class="btn btn-outline-info btn-fw">Edit</button>
+                  <a href="{% url 'devices-edit' device.id %}" type="button" class="text-center btn btn-gradient-primary btn-rounded btn-fw"><span
+                    class="mdi mdi-pencil"></span> Edit</a>
+                  <a href="{% url 'frames' %}" type="button" class="text-center btn btn-gradient-primary btn-rounded btn-fw"><span
+                      class="mdi mdi-cloud"></span> Setup</a>
                 </td>
               </tr>
               {% endfor %}
@@ -59,4 +62,9 @@
     </div>
   </div>
 </div>
+
+<script>
+  let table = new DataTable('#devices-table');
+</script>
+
 {% endblock %}

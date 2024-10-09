@@ -8,7 +8,7 @@ from .models import Payment
 from .serializers import PaymentSerializer
 from django.views import View
 from django.views.generic import ListView, DetailView, CreateView
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.urls import reverse_lazy
 from .forms import PaymentForm
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -187,24 +187,36 @@ class PaymentAPI(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request, *args, **kwargs):
-        serializer = PaymentSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        form = PaymentForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect("payments")
+        else:
+            messages.error(request, form.errors)
+        return render(request, "payments/add.html", {"form": form})
 
 
 class PaymentDetailAPI(APIView):
 
-    def get(self, request, code, *args, **kwargs):
-        if code is None:
+    def get(self, request, pk, *args, **kwargs):
+        if pk is None:
             return Response({'error': 'Code is required'}, status=status.HTTP_400_BAD_REQUEST)
         try:
-            payment = Payment.objects.get(code=code)
+            payment = Payment.objects.get(id=pk)
         except Payment.DoesNotExist:
             return Response({'error': 'Payment not found'}, status=status.HTTP_404_NOT_FOUND)    
         serializer = PaymentSerializer(payment)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def put(self, request, pk, *args, **kwargs):
+        payment = Payment.objects.get(id=pk)
+        form = PaymentForm(request.POST, instance=payment)
+        if form.is_valid():
+            form.save()
+            return JsonResponse({'message': 'Payment updated successfully'}, status=status.HTTP_200_OK)
+        else:
+            messages.error(request, form.errors)
+        return JsonResponse({'error': 'Failed to update payment'}, status=status.HTTP_400_BAD_REQUEST)
     
 
 class PaymentList(LoginRequiredMixin, ListView):
@@ -243,3 +255,10 @@ class PaymentEditView(LoginRequiredMixin, View):
         else:
             messages.error(request, form.errors)
         return render(request, "payments/edit.html", {"form": form, "payment": payment})
+    
+class PaymentDeleteView(LoginRequiredMixin, View):
+
+    def get(self, request, pk):
+        payment = Payment.objects.get(id=pk)
+        payment.delete()
+        return redirect("payments")    

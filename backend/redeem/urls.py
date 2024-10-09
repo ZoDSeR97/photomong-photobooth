@@ -3,6 +3,7 @@ from .views import (
   RedeemView,
   RedeemCreateView,
   RedeemEditView,
+  RedeemDeleteView,
   RedeemListAPI,
   RedeemCodeAPI
 )
@@ -16,4 +17,5 @@ urlpatterns = [
   path('', RedeemView.as_view(), name='redeems'),
   path('add', RedeemCreateView.as_view(), name='redeems-add'),
   path('edit/<int:pk>', RedeemEditView.as_view(), name='redeems-edit'),
+  path('delete/<int:pk>', RedeemDeleteView.as_view(), name='redeems-delete'),
 ]

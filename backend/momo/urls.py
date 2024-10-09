@@ -6,7 +6,7 @@ from .views import (
 )
 
 urlpatterns = [
-    path('api', ZaloPayAPI.as_view()),
-    path('api/update/<str:order_code>', ZaloPayUpdateAPI.as_view()),
-    path('api/webhook', ZaloPayWebhookAPI.as_view()),
+    path('api', MomoAPI.as_view()),
+    path('api/update/<str:order_code>', MomoUpdateAPI.as_view()),
+    path('api/webhook', MomoWebhookAPI.as_view()),
 ]

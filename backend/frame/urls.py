@@ -2,9 +2,7 @@ from django.urls import path, include
 from .views import (
     FrameAPI,
     FrameDetailAPI,
-    FrameList,
-    FrameCreateView,
-    FrameEditView,
+    FrameList,    
     FrameImageCopyAPI,
     UploadPhotoCloud  ,
     ClearImagesAPIView  
@@ -16,6 +14,7 @@ urlpatterns = [
     path('api', FrameAPI.as_view()),
     path('api/<int:pk>', FrameDetailAPI.as_view()),
     path('api/clear-images', ClearImagesAPIView.as_view(), name='clear-images'),
+    path('api/<int:pk>/delete', FrameDetailAPI.as_view(), name='delete-frame'),
     
     # API Image
     path('api/copy-image', FrameImageCopyAPI.as_view()),
@@ -24,7 +23,5 @@ urlpatterns = [
     path('api/print', print_photo, name='print_photo'), 
     
     # WEB
-    path('', FrameList.as_view(), name='frames'),
-    path('add', FrameCreateView.as_view(), name='frames-add'),
-    path('edit/<int:pk>', FrameEditView.as_view(), name='frames-edit')
+    path('', FrameList.as_view(), name='frames')    
 ]

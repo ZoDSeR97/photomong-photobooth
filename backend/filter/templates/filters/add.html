@@ -20,7 +20,7 @@
           <div class="form-group">
             <label for="photo_shooting_time">Photo</label>
             <input class="form-control" type="file" id="photo" name="photo" onchange="previewPhoto(event)">
-            <img id="photo_preview" src="#" alt="Photo Preview" style="display: none;"><br>
+            <img id="photo_preview" class="img-thumbnail img-fluid" src="#" alt="Photo Preview" style="display: none;"><br>
           </div>          
           <button type="submit" class="btn btn-gradient-primary me-2">Submit</button>
           <a href="{% url 'filters' %}" class="btn btn-light">Cancel</a>

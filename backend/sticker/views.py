@@ -8,7 +8,7 @@ from .models import Sticker
 from .serializers import StickerSerializer
 from django.views import View
 from django.views.generic import ListView, DetailView, CreateView
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, JsonResponse
 from .forms import StickerForm
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
@@ -25,11 +25,13 @@ class StickerAPI(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)     
     
     def post(self, request, *args, **kwargs):
-        serializer = StickerSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        form = StickerForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            return JsonResponse({'success': True})
+        else:
+            messages.error(request, form.errors)
+        return JsonResponse({'success': False})
       
 class StickerDetailAPI(APIView):
     
@@ -39,12 +41,14 @@ class StickerDetailAPI(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     def put(self, request, pk, *args, **kwargs):
-        sticker = Sticker.objects.get(id=pk)
-        serializer = StickerSerializer(instance=sticker, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        sticker = Sticker.objects.get(id=pk)        
+        form = StickerForm(request.POST, request.FILES, instance=sticker)
+        if form.is_valid():
+            form.save()
+            return JsonResponse({'success': True})
+        else:
+            messages.error(request, form.errors)
+        return JsonResponse({'error': messages})
     
     def delete(self, request, pk, *args, **kwargs):
         sticker = Sticker.objects.get(id=pk)
@@ -83,3 +87,10 @@ class StickerEditView(LoginRequiredMixin, View):
             form.save()
             return redirect('stickers')
         return render(request, 'stickers/edit.html', {'form': form, 'sticker': sticker})
+    
+class StickerDeleteView(LoginRequiredMixin, View):
+
+    def get(self, request, pk, *args, **kwargs):
+        sticker = Sticker.objects.get(id=pk)
+        sticker.delete()
+        return redirect('stickers')    

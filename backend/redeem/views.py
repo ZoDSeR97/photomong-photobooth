@@ -63,6 +63,13 @@ class RedeemEditView(LoginRequiredMixin, View):
       messages.error(request, form.errors)
     return render(request, "redeems/edit.html", {"form": form, "redeem": redeem})  
   
+class RedeemDeleteView(LoginRequiredMixin, View):
+
+  def get(self, request, pk):
+    redeem = Redeem.objects.get(id=pk)
+    redeem.delete()
+    return redirect("redeems")  
+  
 class RedeemListAPI(APIView):
 
   def get(self, request, *args, **kwargs):

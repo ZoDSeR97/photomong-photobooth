@@ -4,7 +4,8 @@ from .views import (
     FilterDetailAPI,
     FilterList,
     FilterCreateView,
-    FilterEditView
+    FilterEditView,
+    FilterDeleteView
 )
 
 urlpatterns = [
@@ -14,5 +15,6 @@ urlpatterns = [
     # WEB
     path('', FilterList.as_view(), name='filters'),
     path('add', FilterCreateView.as_view(), name='filters-add'),
-    path('edit/<int:pk>', FilterEditView.as_view(), name='filters-edit')
+    path('edit/<int:pk>', FilterEditView.as_view(), name='filters-edit'),
+    path('delete/<int:pk>', FilterEditView.as_view(), name='filters-delete'),
 ]

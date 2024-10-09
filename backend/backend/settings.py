@@ -61,7 +61,7 @@ SECRET_KEY = 'django-insecure-mk2xtk=yk6e7g%ro2xoh-h+7e0=-@s(*ri+j@6qf61cu$=l4e%
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['139.180.209.110', '127.0.0.1', 'localhost']
+ALLOWED_HOSTS = ['139.180.209.110', '127.0.0.1', 'localhost','172.30.1.16','127.0.0.1','124.216.166.162']
 
 
 # Application definition
@@ -88,7 +88,8 @@ INSTALLED_APPS = [
     'sticker',
     'account',
     'zalopay',    
-    'redeem'
+    'redeem',
+    'get_photo',
 ]
 
 MIDDLEWARE = [
@@ -121,6 +122,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'backend.wsgi.application'
+DATA_UPLOAD_MAX_MEMORY_SIZE = 2621440000  
 
 
 # Database
@@ -197,5 +199,3 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 CORS_ALLOW_ALL_ORIGINS = True
-
-DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760 # EXTEND Data upload to 10MB due to long url that I cannot be bother to fix atm

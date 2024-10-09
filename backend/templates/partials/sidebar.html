@@ -29,84 +29,28 @@
       </a>
     </li>
     <li class="nav-item">
-      <a class="nav-link" data-bs-toggle="collapse" href="#stores" aria-expanded="true" aria-controls="ui-basic">
+      <a class="nav-link" href="{% url 'photo_list' %}">
+        <span class="menu-title">Photos</span>
+        <i class="mdi mdi-camera menu-icon"></i>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'stores' %}">
         <span class="menu-title">Stores</span>
-        <i class="menu-arrow"></i>
-        <i class="mdi mdi-projector-screen"></i>
+        <i class="mdi mdi-store menu-icon"></i>
       </a>
-      <div class="collapse show" id="stores" style="">
-        <ul class="nav flex-column sub-menu">
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'stores' %}">All Stores</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'stores-add' %}">Add new Store</a>
-          </li>
-        </ul>
-      </div>
-    </li>
+    </li>    
     <li class="nav-item">
-      <a class="nav-link" data-bs-toggle="collapse" href="#devices" aria-expanded="true" aria-controls="ui-basic">
-        <span class="menu-title">Devices</span>
-        <i class="menu-arrow"></i>
-        <i class="mdi mdi-projector-screen"></i>
+      <a class="nav-link" href="{% url 'devices' %}">
+        <span class="menu-title">All Devices</span>
+        <i class="mdi mdi-laptop-windows menu-icon"></i>
       </a>
-      <div class="collapse show" id="devices" style="">
-        <ul class="nav flex-column sub-menu">
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'devices' %}">All Devices</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'devices-add' %}">Add new Device</a>
-          </li>
-        </ul>
-      </div>
-    </li>
+    </li>   
     <li class="nav-item">
-      <a class="nav-link" data-bs-toggle="collapse" href="#settings" aria-expanded="true" aria-controls="ui-basic">
+      <a class="nav-link" href="{% url 'frames' %}">
         <span class="menu-title">Setup Photomong</span>
-        <i class="menu-arrow"></i>
-        <i class="mdi mdi-cloud-check"></i>
+        <i class="mdi mdi-cloud-check menu-icon"></i>
       </a>
-      <div class="collapse show" id="settings" style="">
-        <ul class="nav flex-column sub-menu">
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'frames' %}">Frames</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'backgrounds' %}">Backgrounds</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'layouts' %}">Layouts</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'payments' %}">Payments</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'filters' %}">Filters</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'stickers' %}">Stickers</a>
-          </li>
-        </ul>
-      </div>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" data-bs-toggle="collapse" href="#my-account" aria-expanded="true" aria-controls="ui-basic">
-        <span class="menu-title">My Account</span>
-        <i class="menu-arrow"></i>
-        <i class="mdi mdi-account"></i>
-      </a>
-      <div class="collapse show" id="my-account" style="">
-        <ul class="nav flex-column sub-menu">
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'account-password' %}">Password</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'logout' %}">Logout</a>
-          </li>
-        </ul>
-      </div>
-    </li>
+    </li>            
   </ul>
 </nav>
