@@ -19,7 +19,6 @@ import Sticker from './screens/Sticker';
 import Print from './screens/Print';
 import Landing from './screens/Landing';
 import QrDownload from './screens/QrDownload';
-import ErrorBoundary from './screens/ErrorBoundary';
 
 function App() {
   return (
@@ -36,11 +35,7 @@ function App() {
         <Route path="/payment-momo" element={<QR_Momo />} />
         <Route path="/payment-zalopay" element={<QR_Zalopay />} />
         <Route path="/payment-promo" element={<Promo />} />
-        <Route path="/photo" element={
-          <ErrorBoundary>
-            <Photo />
-          </ErrorBoundary>
-        } />
+        <Route path="/photo" element={<Photo />} />
         <Route path="/photo-choose" element={<Choose />} />
         <Route path="/filter" element={<Filter />} />
         <Route path="/sticker" element={<Sticker />} />

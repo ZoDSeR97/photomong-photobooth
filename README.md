@@ -12,7 +12,7 @@ v22.9.0
 
 ## :checkered_flag: How to run ##
 
-- Window: execute run.bat file
+- Frontend: execute run.bat or run.sh
 - Linux & MacOS: execute run.sh file
 
 ## 🤡 Frontend

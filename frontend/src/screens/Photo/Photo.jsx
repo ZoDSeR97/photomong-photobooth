@@ -12,6 +12,18 @@ import background_en from '../../assets/Photo/Snap/BG.png';
 import background_kr from '../../assets/Photo/Snap/kr/BG.png';
 import background_vn from '../../assets/Photo/Snap/vn/BG.png';
 
+import load_en from '../../assets/Photo/Load/BG.png';
+import load_kr from '../../assets/Photo/Load/kr/BG.png';
+import load_vn from '../../assets/Photo/Load/vn/BG.png';
+import load_mn from '../../assets/Photo/Load/mn/BG.png';
+
+import ok_button from '../../assets/Photo/Snap/OK.png';
+import ok_button_inactive from '../../assets/Photo/Snap/OkInactive.png';
+import take_again_button from '../../assets/Photo/Snap/TakeAgain.png';
+import take_again_button_inactive from '../../assets/Photo/Snap/TakeAgainInactive.png';
+import { getAudio, getPhotos, deletePhoto, sendCaptureReq, startLiveView, videoFeedUrl } from '../../api/config';
+import Uid from "react-uuid"
+
 
 function Photo() {
      const navigate = useNavigate();
@@ -87,42 +99,44 @@ function Photo() {
           }
      }, []);
 
-     const takeSnapshot = async() => {
-          if (!cameraConnected) {
+     const takePhoto = async () => {
+          await sleep(100);
+          setCapturing(true);
+          try {
                setFlash(true);
-               const imageSrc = webcamRef.current.getScreenshot();
-               const newPhotoArray = [...photos, imageSrc];
-               setPhotos(newPhotoArray);
+               playTakePhotoAudio();
+               await sendCaptureReq(uuid);
                setPhotoCount((prevCount) => prevCount + 1);
-     
-               setTimeout(() => {
-                    setFlash(false);
-               }, 100);
-     
-               if (photoCount == totalSnapshotPhoto) {
-                    const photosWithIds = newPhotoArray.map((photo, index) => ({
-                         id: index,
-                         url: photo
-                    }));
-                    sessionStorage.setItem("uuid", uuid);
-                    sessionStorage.setItem('photos', JSON.stringify(photosWithIds));
-                    navigate('/photo-choose')
-               } else {
-                    setCountdown(8);
-               }
-          } else {
-               await sleep(100);
-               setCapturing(true);
-               try {
-                   setFlash(true);
-                   playTakePhotoAudio();
-                   await sendCaptureReq(uuid);       
-                   setPhotoCount((prevCount) => prevCount + 1);     
-               } catch (error) {
-                   console.error('Failed to capture image:', error);
-               }
+          } catch (error) {
+               console.error('Failed to capture image:', error);
+          }
+          setFlash(false);
+          setCapturing(false);
+     }
+
+     const takeSnapshot = () => {
+          setFlash(true);
+          const imageSrc = webcamRef.current.getScreenshot();
+          const newPhotoArray = [...photos, imageSrc];
+          setPhotos(newPhotoArray);
+          setPhotoCount((prevCount) => prevCount + 1);
+
+          setTimeout(() => {
                setFlash(false);
-               setCapturing(false); 
+          }, 100);
+
+          if (photoCount === totalSnapshotPhoto) {
+               console.log(photoCount);
+               console.log(totalSnapshotPhoto);
+               const photosWithIds = newPhotoArray.map((photo, index) => ({
+                    id: index,
+                    url: photo
+               }));
+               sessionStorage.setItem("uuid", uuid);
+               sessionStorage.setItem('photos', JSON.stringify(photosWithIds));
+               navigate('/photo-choose')
+          } else {
+               setCountdown(8);
           }
      };
 
@@ -131,7 +145,11 @@ function Photo() {
                if (countdown > 0) {
                     setCountdown(countdown - 1);
                } else {
-                    takeSnapshot();
+                    if (!cameraConnected) {
+                         takeSnapshot();
+                    } else {
+                         takePhoto();
+                    }
                }
           }, 1000);
 
@@ -533,7 +551,7 @@ function Photo() {
      };
 
      useEffect(() => {
-          if (uuid && status === 'working') {
+          if (cameraConnected) {
                const initializeLiveView = async () => {
                     try {
                          await startLiveView();
@@ -543,7 +561,7 @@ function Photo() {
                     }
                };
                initializeLiveView();
-               startTimer();
+               //startTimer();
           }
 
           return () => {
@@ -616,7 +634,7 @@ function Photo() {
                                    height: 720,
                                    width: 1280
                               }}
-                              screenshotFormat='image/png'
+                              screenshotFormat='image/jpeg' //Cannot swap to png due to quota
                               screenshotQuality={1}
                               className='photo-webcam'
                          />
