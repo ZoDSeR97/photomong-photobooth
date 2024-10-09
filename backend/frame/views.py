@@ -44,7 +44,8 @@ def upload_full(request):
                 photo_data = value         
           if photo_data:                                           
                 filename = 'photo.png'
-                file_path = os.path.join(settings.BASE_DIR, '../app/public/photo_saved/', filename)
+                file_path = os.path.join(settings.BASE_DIR, '../frontend/public/photo_saved/', filename)
+                file_path = os.path.abspath(file_path)
                 if os.path.exists(file_path) and os.path.isfile(file_path):
                     os.remove(file_path)
                 with open(file_path, 'wb') as f:
@@ -139,128 +140,11 @@ def print_photo(request):
             return JsonResponse({'error': 'Internal server error'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     else:
         return JsonResponse({'error': 'Invalid request method'}, status=status.HTTP_400_BAD_REQUEST)
-
-# @api_view(['POST'])
-# def print_photo(request):
-#     if request.method == 'POST':
-#         try:
-#             print("print_photo")
-#             folder_path = r"C:\\Users\\USER\\Desktop\\DeepSoft\\Project\\포토키오스크\\photomong\\photomong\\print_files"
-#             if not os.path.exists(folder_path):
-#                 os.makedirs(folder_path)
-
-#             image_file = request.data.get('photo')
-#             frame = request.data.get('frame')
-            
-#             if not image_file or not frame:
-#                 return JsonResponse({'error': 'Invalid input'}, status=status.HTTP_400_BAD_REQUEST)
-            
-#             print_url = settings.API_PRINTER_2
-#             print_file_name = ''
-#             if frame == 'Stripx2':
-#                 print_file_name = 'stripx2.png'
-#                 print_url = settings.API_PRINTER_CUT
-#             elif frame == '2cut-x2':
-#                 print_file_name = 'cutx2.png'
-#                 print_url = settings.API_PRINTER_2
-#             elif frame == '3-cutx2':
-#                 print_file_name = 'cutx3.png'
-#                 print_url = settings.API_PRINTER_3
-#             elif frame == '4-cutx2':
-#                 print_file_name = 'cutx4.png'
-#                 print_url = settings.API_PRINTER_4
-#             elif frame == '5-cutx2':
-#                 print_file_name = 'cutx5.png'
-#                 print_url = settings.API_PRINTER_5
-#             elif frame == '6-cutx2':
-#                 print_file_name = 'cutx6.png'
-#                 print_url = settings.API_PRINTER_6
-            
-#             file_path = os.path.join(folder_path, print_file_name)
-
-
-#             print(111)
-#             print("file_path")
-#             print(file_path)
-#             print(111)
-
-
-#             print(image_file)
-#             with open(file_path, 'wb') as destination:
-#                 # destination.write(base64.b64decode(image_file.split(',')[1]))
-#                 destination.write(base64.b64decode(image_file))
-
-#             # 파일이 제대로 저장되었는지 확인
-#             if not os.path.exists(file_path):
-#                 return JsonResponse({'error': 'Failed to save the file'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-            
-#             # 파일 크기 확인
-#             file_size = os.path.getsize(file_path)
-#             if file_size == 0:
-#                 return JsonResponse({'error': 'Saved file is empty'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-            
-#             # Call POST method to printer                
-#             with open(file_path, 'rb') as f:
-#                 response = requests.post(print_url, files={'file': f})
-
-#             print(response.status_code)
-#             print(response.text)
-        
-#             if response.status_code == 200:
-#                 return JsonResponse({'message': 'Print job started successfully.'}, status=status.HTTP_200_OK)
-#             else:
-#                 return JsonResponse({'error': 'Failed to send print request'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-#         except Exception as e:
-#             print(f"Error in print_photo: {str(e)}")
-#             return JsonResponse({'error': 'Internal server error'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-#     else:
-#         return JsonResponse({'error': 'Invalid request method'}, status=status.HTTP_400_BAD_REQUEST)
-
-# @api_view(['POST'])
-# def print_photo(request):
-#     if request.method == 'POST':
-#         # Copy file to folder for printer
-#         # Check folder exist
-#         folder_path = "C:\\Users\\USER\\Desktop\\DeepSoft\\Project\\포토키오스크\\photomong\\photomong\\print_files"
-#         if os.path.exists(folder_path):
-#             image_file = request.data.get('photo')
-#             frame = request.data.get('frame')
-            
-#             print_url = settings.API_PRINTER_2
-#             print_file_name = ''
-#             if frame == 'Stripx2':
-#                 print_file_name = 'stripx2.png'
-#                 print_url = settings.API_PRINTER_CUT
-#             elif frame == '2cut-x2':
-#                 print_file_name = 'cutx2.png'
-#                 print_url = settings.API_PRINTER_2
-#             elif frame == '3-cutx2':
-#                 print_file_name = 'cutx3.png'
-#                 print_url = settings.API_PRINTER_3
-#             elif frame == '4-cutx2':
-#                 print_file_name = 'cutx4.png'
-#                 print_url = settings.API_PRINTER_4
-#             elif frame == '5-cutx2':
-#                 print_file_name = 'cutx5.png'
-#                 print_url = settings.API_PRINTER_5
-#             elif frame == '6-cutx2':
-#                 print_file_name = 'cutx6.png'
-#                 print_url = settings.API_PRINTER_6
-#             if image_file is not None:
-#                 with open(os.path.join(folder_path, print_file_name), 'wb+') as destination:
-#                     destination.write(base64.b64decode(image_file.split(',')[1]))
-                
-#                 # Call POST method to printer                
-#                 response = requests.post(print_url, {})        
-        
-#         return JsonResponse({'message': 'OK'}, status=status.HTTP_200_OK)
-#     else:
-#         return JsonResponse({'error': 'Image not provided'}, status=status.HTTP_400_BAD_REQUEST)    
-    
                                            
 class ClearImagesAPIView(APIView):
     def post(self, request, format=None):
-        folder_path = os.path.join(settings.BASE_DIR, '../app/public/photos')
+        folder_path = os.path.join(settings.BASE_DIR, '../frontend/public/photos')
+        folder_path = os.path.abspath(file_path)
         try:
             files = os.listdir(folder_path)
             for file_name in files:
@@ -268,7 +152,8 @@ class ClearImagesAPIView(APIView):
                     file_path = os.path.join(folder_path, file_name)
                     os.remove(file_path)
             
-            folder_path = os.path.join(settings.BASE_DIR, '../app/public/photo_covers')
+            folder_path = os.path.join(settings.BASE_DIR, '../frontend/public/photo_covers')
+            folder_path = os.path.abspath(file_path)
             files = os.listdir(folder_path)
             for file_name in files:
                 if file_name.lower().endswith(('.png', '.jpg', '.jpeg', '.gif')):
@@ -350,7 +235,8 @@ class FrameImageCopyAPI(APIView):
             response = requests.get(photo_url)
             if response.status_code == 200:
                 filename = os.path.basename(photo_url)
-                file_path = os.path.join(settings.BASE_DIR, '../app/public/photos', filename)
+                file_path = os.path.join(settings.BASE_DIR, '../frontend/public/photos', filename)
+                file_path = os.path.abspath(file_path)
                 if os.path.exists(file_path) and os.path.isfile(file_path):
                     os.remove(file_path)
                 with open(file_path, 'wb') as f:
@@ -360,7 +246,8 @@ class FrameImageCopyAPI(APIView):
                     response_cover = requests.get(photo_cover)
                     if response_cover.status_code == 200:
                         cover_filename = os.path.basename(photo_cover)
-                        cover_path = os.path.join(settings.BASE_DIR, '../app/public/photo_covers', cover_filename)
+                        cover_path = os.path.join(settings.BASE_DIR, '../frontend/public/photo_covers', cover_filename)
+                        cover_path = os.path.abspath(cover_path)
                         if os.path.exists(cover_path) and os.path.isfile(cover_path):
                             os.remove(cover_path)
                         with open(cover_path, 'wb') as f_cover:

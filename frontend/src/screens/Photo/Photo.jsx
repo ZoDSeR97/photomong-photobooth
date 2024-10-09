@@ -104,7 +104,6 @@ function Photo() {
           setCapturing(true);
           try {
                setFlash(true);
-               playTakePhotoAudio();
                await sendCaptureReq(uuid);
                setPhotoCount((prevCount) => prevCount + 1);
           } catch (error) {
@@ -551,11 +550,12 @@ function Photo() {
      };
 
      useEffect(() => {
-          if (cameraConnected) {
+          if (uuid && status === "working") {
                const initializeLiveView = async () => {
                     try {
                          await startLiveView();
                          setCameraConnected(true);
+                         console.log(cameraConnected);
                     } catch (error) {
                          console.error("No Camera detected!", error);
                     }

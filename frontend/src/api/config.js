@@ -8,21 +8,21 @@ import axios from "axios";
 // export const startCashUrl="http://127.0.0.1:8002/api/start/"
 // export const BaseURL = "http://127.0.0.1:5000"
 // export const videoFeedUrl=`http://127.0.0.1:5000/video_feed`//Photo.js live view url
-const audioBaseURL="http://127.0.0.1:8001"
-const checkBaseUrl="http://3.26.21.10:9000"
-const OriginBaseURL="http://3.26.21.10:8000"
-export const startCashUrl="http://127.0.0.1:8002/api/start/"
+const audioBaseURL = "http://127.0.0.1:8001"
+const checkBaseUrl = "http://3.26.21.10:9000"
+const OriginBaseURL = "http://3.26.21.10:8000"
+export const startCashUrl = "http://127.0.0.1:8002/api/start/"
 export const BaseURL = "http://127.0.0.1:5000"
-export const videoFeedUrl=`http://127.0.0.1:5000/video_feed`//Photo.js live view url
+export const videoFeedUrl = `http://127.0.0.1:5000/video_feed`//Photo.js live view url
 
 //axios api
 const checkAxiosInstance = axios.create({
   baseURL: checkBaseUrl,
 });
-const audioAxiosInstance=axios.create({
-  baseURL:audioBaseURL
+const audioAxiosInstance = axios.create({
+  baseURL: audioBaseURL
 })
- const axiosInstance = axios.create({
+const axiosInstance = axios.create({
   baseURL: BaseURL,
 });
 export const originAxiosInstance = axios.create({
@@ -37,7 +37,7 @@ export const sendDongNum = async (dongNum, checkCoupon) => {
     const { data } = await axiosInstance.get('/get_print_amount', {
       params: {
         printAmount: dongNum,
-        checkCoupon:checkCoupon
+        checkCoupon: checkCoupon
       }
     });
     return data;
@@ -51,9 +51,9 @@ export const sendDongNum = async (dongNum, checkCoupon) => {
 
 //Promo.js
 
-export const checkPromotionCode=async(payload)=>{
-  const { data,status } = await checkAxiosInstance.post('/api/check_promotion_code',payload)
-  return [data,status]
+export const checkPromotionCode = async (payload) => {
+  const { data, status } = await checkAxiosInstance.post('/api/check_promotion_code', payload)
+  return [data, status]
 }
 
 // Photo.js
@@ -79,27 +79,27 @@ export const deletePhoto = async (uuid, photoName) => {
   }
 };
 
-export const sendCaptureReq = async (uuid,photoNum) => {
-  const { data } = await axiosInstance.post('/capture', { uuid:uuid,photoNum:photoNum });
+export const sendCaptureReq = async (uuid, photoNum) => {
+  const { data } = await axiosInstance.post('/capture', { uuid: uuid, photoNum: photoNum });
   return data;
 };
 
-export  const startLiveView = async () => {
+export const startLiveView = async () => {
   try {
-    
+
     await axios.get('http://127.0.0.1:5000/start_live_view');
     // await axios.get('http://127.0.0.1:5000/start_live_view');
   } catch (error) {
-      console.error('Failed to start live view:', error);
+    console.error('Failed to start live view:', error);
   }
 };
 
 //sound get
-export const getAudio=async(payload)=>{
-  const {data}=await audioAxiosInstance.post(`/api/play_sound/`,payload)
+export const getAudio = async (payload) => {
+  const { data } = await audioAxiosInstance.post(`/api/play_sound/`, payload)
   return "";
 }
-export const getClickAudio=async()=>{
-  const {data}=await audioAxiosInstance.post(`/api/play_sound/`,{file_name:"click_sound.wav"})
+export const getClickAudio = async () => {
+  const { data } = await audioAxiosInstance.post(`/api/play_sound/`, { file_name: "click_sound.wav" })
   return "";
 }

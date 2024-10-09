@@ -188,7 +188,7 @@ def kill_process_using_device(vendor_id, product_id):
 def capture_image_with_retries(uuid, retries=5, delay=10):
     current_directory = os.path.dirname(os.path.abspath(__file__))
     date_str = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
-    filename = os.path.join(current_directory, f'{date_str}.png')
+    filename = os.path.join(current_directory, f'{date_str}.jpeg')
     debug_logfile = os.path.join(current_directory, 'gphoto2_debug.log')
 
     vendor_id = '04a9'  # Canon vendor ID
@@ -243,7 +243,7 @@ def capture_image():
         capture_count += 1
 
         image_filename = result['file_saved_as']
-        if upload_file(image_filename, uuid, 'image/png'):
+        if upload_file(image_filename, uuid, 'image/jpeg'):
             logging.info(f"Image uploaded successfully: {image_filename}")
         else:
             logging.error(f"Failed to upload image: {image_filename}")
