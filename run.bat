@@ -1,7 +1,4 @@
 @echo off
-result=${PWD##*/}
-
-@echo off
 cd backend
 start cmd /k "pip install -r requirements.txt && python manage.py runserver"
 cd ../frontend
