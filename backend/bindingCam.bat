@@ -27,7 +27,7 @@ if not defined busid (
 REM USBIPD 바인딩 및 연결
 echo Found device: %devicename%
 echo Binding and attaching Canon Digital Camera with busid: %busid%
-usbipd bind --busid %busid% -f
+usbipd bind --busid %busid% --force
 if %errorlevel% neq 0 (
     echo Failed to bind the device. Please check the device status and try again.
     pause

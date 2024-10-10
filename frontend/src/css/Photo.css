@@ -18,8 +18,8 @@
 
 .go-back {
      position: absolute;
-     top: 4.1%;
-     left: 11.6%;
+     top: 4.5%;
+    left: 7.6%;
      width: 9%;
      height: 10%;
      /* Set height of the div */
@@ -39,13 +39,49 @@
      /* Change cursor on hover */
 }
 
-.left-big-frame {
-     position: absolute;
-     top: 20%;
-     left: 3%;
+/* no f11 */
+/* .left-big-frame-11 {
+     position: relative;
+     top: 8%;
+     left: -22%;
      width: 45%;
      height: 75%;
      background-image: url('../assets/Common/frame.png');
+     background-size: contain;
+     background-repeat: no-repeat;
+     background-position: center;
+} */
+/* .left-big-frame-11 {
+     position: relative;
+     width: 45%; 
+     height: 75%; 
+     top: 8%;
+     left: -22%;
+     background-image: url('../assets/Common/frame.png');
+     background-size: contain;
+     background-repeat: no-repeat;
+     background-position: center;
+     margin: auto;
+ } */
+.left-big-frame-11 {
+     position: relative;
+     top: 50px;
+     left: -500px;
+     width: 700px;
+     height: 750px;
+     background-image: url('../assets/Common/frame.png');
+     background-size: contain;
+     background-repeat: no-repeat;
+     background-position: center;
+}
+
+.right-big-frame-11 {
+     position: relative;
+     top: -11px;
+     left: 633px;
+     width: 700px;
+     height: 750px;
+     /* background-image: url('../assets/Common/frame.png'); */
      background-size: contain;
      background-repeat: no-repeat;
      background-position: center;
@@ -61,7 +97,8 @@
      background-repeat: no-repeat;
      background-position: center;
 }
-.right-preview-ul{
+
+.right-preview-ul {
      position: absolute;
      top: 12%;
      right: 9%;
@@ -70,7 +107,8 @@
      overflow: hidden;
      /* background-color: red; */
 }
-.right-preview-ul-arrow{
+
+.right-preview-ul-arrow {
      position: absolute;
      z-index: 999;
      top: 87%;
@@ -80,7 +118,8 @@
      cursor: pointer;
      /* background-color: aqua; */
 }
-.right-preview-div{
+
+.right-preview-div {
      position: absolute;
      top: 12%;
      right: 9%;
@@ -91,11 +130,12 @@
      background-position: center;
      overflow: hidden;
 }
+
 .preview-default-4,
-.preview-default-0{
+.preview-default-0 {
      /* overflow: hidden;
      border-radius: 20px; */
-     transform:scaleX(-1);
+     transform: scaleX(-1);
 
      z-index: 900;
      position: absolute;
@@ -107,9 +147,10 @@
      background-repeat: no-repeat;
      background-position: center;
 }
+
 .preview-default-5,
-.preview-default-1{
-     transform:scaleX(-1);
+.preview-default-1 {
+     transform: scaleX(-1);
      z-index: 900;
      position: absolute;
      top: 32.5%;
@@ -120,9 +161,10 @@
      background-repeat: no-repeat;
      background-position: center;
 }
+
 .preview-default-6,
-.preview-default-2{
-     transform:scaleX(-1);
+.preview-default-2 {
+     transform: scaleX(-1);
      z-index: 900;
      position: absolute;
      top: 52.5%;
@@ -133,9 +175,10 @@
      background-repeat: no-repeat;
      background-position: center;
 }
+
 .preview-default-7,
-.preview-default-3{
-     transform:scaleX(-1);
+.preview-default-3 {
+     transform: scaleX(-1);
      z-index: 900;
      position: absolute;
      top: 72.5%;
@@ -147,7 +190,7 @@
      background-position: center;
 }
 
-.preview-cnt{
+.preview-cnt {
      text-align: start;
      left: 12%;
      top: 0%;
@@ -155,6 +198,7 @@
      font-size: 40px;
      font-family: fantasy;
 }
+
 .right-photo-div {
      position: absolute;
      top: 32%;
@@ -185,7 +229,8 @@
 
 .photo-webcam {
      text-align: center;
-     top: 100px; /* 동일한 위치로 조정 */
+     top: 100px;
+     /* 동일한 위치로 조정 */
      /* top: 15%; */
      position: relative;
      font-size: 51px;
@@ -200,27 +245,75 @@
      position: relative;
      font-size: 51px;
      font-family: fantasy;
+     color: #ffffff;
+}
+
+.ok-photo-button {
+     margin-top: 60px;
+     text-align: center;
+     bottom: 10%;
+     height: 100px;
+     right: -277px;
+     position: relative;
+     font-size: 51px;
+     font-family: fantasy;
+     background-repeat: no-repeat;
+}
+
+.take-again-button {
+     margin-top: 15px;
+     text-align: center;
+     bottom: 10%;
+     height: 100px;
+     right: -277px;
+     position: relative;
+     font-size: 51px;
+     font-family: fantasy;
+     background-repeat: no-repeat;
 }
 
 .photo-countdown {
      text-align: center;
-     top: 30%;
+     top: 22%;
      position: relative;
      font-size: 88px;
      font-family: fantasy;
+     color: #ffffff;
+}
+
+.filter-countdown {
+     text-align: center;
+     right: -250px;
+     top: 35%;
+     position: relative;
+     font-size: 40px;
+     color: #606060;
+     font-family: fantasy;     
+}
+
+.sticker-countdown {
+     text-align: center;
+     right: -100px;
+     top: 50%;
+     position: relative;
+     font-size: 40px;
+     color: #606060;
+     font-family: fantasy;     
 }
 
 .live-view {
      position: absolute;
-     top: 100px; /* 필요한 만큼 아래로 내리기 위해 이 값을 조정하세요 */
+     top: 100px;
+     /* 필요한 만큼 아래로 내리기 위해 이 값을 조정하세요 */
      left: 50%;
      transform: translateX(-50%);
-     width: 80%; /* 원하는 너비 설정 */
+     width: 80%;
+     /* 원하는 너비 설정 */
      max-width: 640px;
      border: 2px solid #ccc;
      border-radius: 8px;
      overflow: hidden;
- }
+}
 
 
 /** Choose **/
@@ -244,8 +337,22 @@
 
 .left-choose-container {
      position: absolute;
-     top: 16%;
+     top: 5%;
      left: 12%;
+     width: 79%;
+     height: 79%;
+     background-size: contain;
+     background-repeat: no-repeat;
+     background-position: center;
+     display: flex;
+     flex-direction: column;
+     justify-content: center;
+     align-items: center;
+}
+.right-choose-container-photo {
+     position: absolute;
+     top: 5%;
+     left: 19%;
      width: 79%;
      height: 79%;
      background-size: contain;
@@ -272,10 +379,40 @@
      align-items: center;
 }
 
+.right-choose-container-2cut {
+     position: absolute;
+     top: 3%;
+     left: 35%;
+     width: 50%;
+     height: 84%;
+     background-size: contain;
+     background-repeat: no-repeat;
+     background-position: center;
+     display: flex;
+     flex-direction: column;
+     justify-content: center;
+     align-items: center;
+}
+
 .left-choose-container-4cut {
      position: absolute;
      top: 5%;
      left: 21%;
+     width: 59%;
+     height: 86%;
+     background-size: contain;
+     background-repeat: no-repeat;
+     background-position: center;
+     display: flex;
+     flex-direction: column;
+     justify-content: center;
+     align-items: center;
+}
+
+.right-choose-container-4cut {
+     position: absolute;
+     top: -2%;
+     left: 27%;
      width: 59%;
      height: 86%;
      background-size: contain;
@@ -339,6 +476,7 @@
 }
 
 .choose-photo-row {
+     /* background-color: red; */
      display: flex;
      justify-content: center;
      align-items: center;
@@ -439,58 +577,133 @@
 .choose-photo-item-2-0.clicked,
 .choose-photo-item-2-1.clicked,
 .choose-photo-item-3-0.clicked,
-.choose-photo-item-3-1.clicked
-{
+.choose-photo-item-3-1.clicked {
      border: 6px solid red;
      box-sizing: border-box;
      border-radius: 10px;
 }
+
+.choose-photo-item-4cut-0-0-right.clicked,
+.choose-photo-item-4cut-0-1-right.clicked,
+.choose-photo-item-4cut-1-0-right.clicked,
+.choose-photo-item-4cut-1-1-right.clicked,
+.choose-photo-item-3cut-0-0-right.clicked,
+.choose-photo-item-3cut-0-1-right.clicked,
+.choose-photo-item-2cut-0-0-right.clicked,
+.choose-photo-item-2cut-0-1-right.clicked,
+.choose-photo-item6-0-0-right.clicked,
+.choose-photo-item6-0-1-right.clicked,
+.choose-photo-item6-1-0-right.clicked,
+.choose-photo-item6-1-1-right.clicked,
+.choose-photo-item6-2-0-right.clicked,
+.choose-photo-item6-2-1-right.clicked,
+.choose-photo-item-0-0-right.clicked,
+.choose-photo-item-0-1-right.clicked,
+.choose-photo-item-1-0-right.clicked,
+.choose-photo-item-1-1-right.clicked,
+.choose-photo-item-2-0-right.clicked,
+.choose-photo-item-2-1-right.clicked,
+.choose-photo-item-3-0-right.clicked,
+.choose-photo-item-3-1-right.clicked {
+     border: 6px solid red;
+     box-sizing: border-box;
+     border-radius: 10px;
+}
+
 .choose-photo-item-4cut-0-0 {
-     width: 232.75px;
-     height: 175px;
+    width: 150px;
+    height: 110px;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    margin: 1%;
+    position: absolute;
+    top: 31.8%;
+    left: 27.6%;
+}
+
+.choose-photo-item-4cut-0-0-right {
+     width: 150px;
+     height: 110px;
      background-size: cover;
      background-repeat: no-repeat;
      background-position: center;
      margin: 1%;
-     position: fixed;
-     top: 31%;
-     left: 11%;
+     position: absolute;
+     top: 24.8%;
+     left: 33.6%;
 }
 
 .choose-photo-item-4cut-0-1 {
-     width: 232.75px;
-     height: 175px;
+     width: 150px;
+    height: 110px;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    margin: 1%;
+    position: absolute;
+    top: 31.8%;
+    left: 50%;
+}
+
+.choose-photo-item-4cut-0-1-right {
+     width: 150px;
+     height: 110px;
      background-size: cover;
      background-repeat: no-repeat;
      background-position: center;
      margin: 1%;
-     position: fixed;
-     top: 31%;
-     left: 26%;
+     position: absolute;
+     top: 24.8%;
+     left: 56.3%;
 }
 
 .choose-photo-item-4cut-1-0 {
-     width: 232.75px;
-     height: 175px;
+     width: 150px;
+     height: 110px;
      background-size: cover;
      background-repeat: no-repeat;
      background-position: center;
      margin: 1%;
-     position: fixed;
-     top: 52%;
-     left: 11%;
+     position: absolute;
+     top: 47.8%;
+     left: 27.6%;
+}
+
+.choose-photo-item-4cut-1-0-right {
+     width: 150px;
+     height: 110px;
+     background-size: cover;
+     background-repeat: no-repeat;
+     background-position: center;
+     margin: 1%;
+     position: absolute;
+     top: 40.8%;
+     left: 33.6%;
 }
 
 .choose-photo-item-4cut-1-1 {
-     width: 232.75px;
-     height: 175px;
+     width: 150px;
+    height: 110px;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    margin: 1%;
+    position: absolute;
+    top: 47.8%;
+    left: 50%;
+}
+
+.choose-photo-item-4cut-1-1-right {
+     width: 150px;
+     height: 110px;
      background-size: cover;
      background-repeat: no-repeat;
      background-position: center;
      margin: 1%;
-     position: fixed;
-     top: 52%;
-     left: 26%;
+     position: absolute;
+     top: 40.8%;
+     left: 56.3%;
 }
 
 /** Frame 3cut **/
@@ -516,7 +729,7 @@
      margin: 1%;
      position: fixed;
      top: 57%;
-     left: 16%;
+     left: 22%;
 }
 
 .choose-photo-item-3cut-0-1 {
@@ -533,194 +746,443 @@
 
 /** Frame 2cut **/
 .choose-photo-item-2cut-0-0 {
-     width: 300px;
-     height: 339px;
+
+     width: 252px;
+     height: 285px;
      background-size: cover;
      background-repeat: revert-layer;
      background-position: center;
      margin: 1%;
-     position: fixed;
-     top: 33%;
-     left: 8%;
+     position: absolute;
+     top: 25.6%;
+     left: 12%;
+}
+
+.choose-photo-item-2cut-0-0-right {
+
+     width: 152px;
+     height: 185px;
+     background-size: cover;
+     background-repeat: revert-layer;
+     background-position: center;
+     margin: 1%;
+     position: absolute;
+     top: 31.5%;
+     left: 36.4%;
 }
 
 .choose-photo-item-2cut-0-1 {
-     width: 300px;
-     height: 339px;
+     width: 252px;
+     height: 285px;
      background-size: cover;
-     background-repeat: no-repeat;
+     background-repeat: revert-layer;
      background-position: center;
      margin: 1%;
-     position: fixed;
-     top: 33%;
-     left: 25%;
+     position: absolute;
+     top: 25.6%;
+     left: 50%;
+}
+
+.choose-photo-item-2cut-0-1-right {
+     width: 152px;
+     height: 185px;
+     background-size: cover;
+     background-repeat: revert-layer;
+     background-position: center;
+     margin: 1%;
+     position: absolute;
+     top: 31.5%;
+     left: 60%;
 }
 
 /** Frame 6 cut **/
 .choose-photo-item6-0-0 {
-     width: 163.2px; /* 가로 크기 */
-     height:160px; /* 세로 크기: 가로 크기의 1.02배 */
-     background-size: cover;
-     background-repeat: no-repeat;
-     background-position: center;
-     margin: 1%;
-     position: fixed;
-     top: 28%;
-     left: 16%;
+     width: 163.2px;
+    height: 162px;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    margin: 1%;
+    position: absolute;
+    top: 7%;
+    left: 26.3%;
+}
+
+.choose-photo-item6-0-0-right {
+     width: 163.2px;
+    height: 162px;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    margin: 1%;
+    position: absolute;
+    top: 7%;
+    left: 33.3%;
 }
 
 .choose-photo-item6-0-1 {
-     width: 163.2px; /* 가로 크기 */
-     height:160px; /* 세로 크기: 가로 크기의 1.02배 */
+     width: 163.2px;
+     height: 162px;
      background-size: cover;
      background-repeat: no-repeat;
      background-position: center;
      margin: 1%;
-     position: fixed;
-     top: 28%;
-     left: 26%;
+     position: absolute;
+     top: 7%;
+     left: 51.3%;
+}
+
+.choose-photo-item6-0-1-right {
+     width: 163.2px;
+     height: 162px;
+     background-size: cover;
+     background-repeat: no-repeat;
+     background-position: center;
+     margin: 1%;
+     position: absolute;
+     top: 7%;
+     left: 58.2%;
 }
 
 .choose-photo-item6-1-0 {
-     width: 163.2px; /* 가로 크기 */
-     height:160px; /* 세로 크기: 가로 크기의 1.02배 */
+     width: 163.2px;
+     height: 162px;
      background-size: cover;
      background-repeat: no-repeat;
      background-position: center;
      margin: 1%;
-     position: fixed;
-     top: 48%;
-     left: 16%;
+     position: absolute;
+     top: 30%;
+     left: 26.3%;
+}
+
+.choose-photo-item6-1-0-right {
+     width: 163.2px;
+    height: 162px;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    margin: 1%;
+    position: absolute;
+    top: 30%;
+    left: 33.2%;
 }
 
 .choose-photo-item6-1-1 {
-     width: 163.2px; /* 가로 크기 */
-     height:160px; /* 세로 크기: 가로 크기의 1.02배 */
-     background-size: cover;
-     background-repeat: no-repeat;
-     background-position: center;
-     margin: 1%;
-     position: fixed;
-     top: 48%;
-     left: 26%;
+     width: 163.2px;
+    height: 162px;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    margin: 1%;
+    position: absolute;
+    top: 30%;
+    left: 51.3%;
+}
+
+.choose-photo-item6-1-1-right {
+     width: 163.2px;
+    height: 162px;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    margin: 1%;
+    position: absolute;
+    top: 30.3%;
+    left: 58.3%;
 }
 
 .choose-photo-item6-2-0 {
-     width: 163.2px; /* 가로 크기 */
-     height:160px; /* 세로 크기: 가로 크기의 1.02배 */
-     background-size: cover;
-     background-repeat: no-repeat;
-     background-position: center;
-     margin: 1%;
-     position: fixed;
-     top: 68%;
-     left: 16%;
+     width: 163.2px;
+    height: 162px;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    margin: 1%;
+    position: absolute;
+    top: 53%;
+    left: 26.3%;
+}
+
+.choose-photo-item6-2-0-right {
+     width: 163.2px;
+    height: 162px;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    margin: 1%;
+    position: absolute;
+    top: 53%;
+    left: 33.3%;
 }
 
 .choose-photo-item6-2-1 {
-     width: 163.2px; /* 가로 크기 */
-     height:160px; /* 세로 크기: 가로 크기의 1.02배 */
+     width: 163.2px;
+     height: 162px;
      background-size: cover;
      background-repeat: no-repeat;
      background-position: center;
      margin: 1%;
-     position: fixed;
-     top: 68%;
-     left: 26%;
+     position: absolute;
+     top: 53%;
+     left: 51.3%;
+}
+
+.choose-photo-item6-2-1-right {
+     width: 163.2px;
+    height: 162px;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    margin: 1%;
+    position: absolute;
+    top: 53.3%;
+    left: 58.3%;
 }
 
 /** Frame 6 cut-end **/
 
-/** Frame 8 cut **/
+/** Frame 8 cut no f11**/
 .choose-photo-item-0-0 {
-     width:161.7px;
-     height:110px ;
+     width: 176px;
+     height: 122px;
      background-size: cover;
      background-repeat: no-repeat;
      background-position: center;
      margin: 1%;
-     position: fixed;
-     top: 28%;
-     left: 15.8%;
+     position: absolute;
+     top: 9%;
+     left: 23.9%;
+}
+.choose-photo-item-0-0-right {
+     width: 176px;
+     height: 122px;
+     background-size: cover;
+     background-repeat: no-repeat;
+     background-position: center;
+     margin: 1%;
+     position: absolute;
+     top: 9%;
+     left: 30.9%;
 }
 
 .choose-photo-item-0-1 {
-     width:161.7px;
-     height:110px ;
+     width: 176px;
+     height: 122px;
      background-size: cover;
      background-repeat: no-repeat;
+     background-position: center;
      margin: 1%;
-     position: fixed;
-     top: 28%;
-     left: 26.1%;
+     position: absolute;
+     top: 9%;
+     left: 52%;
+}
+.choose-photo-item-0-1-right {
+     width: 176px;
+     height: 122px;
+     background-size: cover;
+     background-repeat: no-repeat;
+     background-position: center;
+     margin: 1%;
+     position: absolute;
+     top: 9%;
+     left: 59.2%;
 }
 
 .choose-photo-item-1-0 {
-     width:161.7px;
-     height:110px ;
+     width: 176px;
+     height: 122px;
      background-size: cover;
      background-repeat: no-repeat;
+     background-position: center;
      margin: 1%;
-     position: fixed;
-     top: 42%;
-     left: 15.8%;
+     position: absolute;
+     top: 25%;
+     left: 23.9%;
+}
+.choose-photo-item-1-0-right {
+     width: 176px;
+     height: 122px;
+     background-size: cover;
+     background-repeat: no-repeat;
+     background-position: center;
+     margin: 1%;
+     position: absolute;
+     top: 25.5%;
+     left: 30.9%;
 }
 
 .choose-photo-item-1-1 {
-     width:161.7px;
-     height:110px ;
+     width: 176px;
+     height: 122px;
      background-size: cover;
      background-repeat: no-repeat;
+     background-position: center;
      margin: 1%;
-     position: fixed;
-     top: 42%;
-     left: 26.1%;
+     position: absolute;
+     top: 25%;
+     left: 52%;
+}
+.choose-photo-item-1-1-right {
+     width: 176px;
+     height: 122px;
+     background-size: cover;
+     background-repeat: no-repeat;
+     background-position: center;
+     margin: 1%;
+     position: absolute;
+     top: 25.5%;
+     left: 59.2%;
 }
 
 .choose-photo-item-2-0 {
-     width:161.7px;
-     height:110px ;
+     width: 176px;
+     height: 122px;
      background-size: cover;
      background-repeat: no-repeat;
+     background-position: center;
      margin: 1%;
-     position: fixed;
-     top: 56%;
-     left: 15.8%;
+     position: absolute;
+     top: 43%;
+     left: 23.9%;
+}
+.choose-photo-item-2-0-right {
+     width: 176px;
+     height: 122px;
+     background-size: cover;
+     background-repeat: no-repeat;
+     background-position: center;
+     margin: 1%;
+     position: absolute;
+     top: 43%;
+     left: 30.9%;
 }
 
 .choose-photo-item-2-1 {
-     width:161.7px;
-     height:110px ;
+     width: 176px;
+     height: 122px;
      background-size: cover;
      background-repeat: no-repeat;
+     background-position: center;
      margin: 1%;
-     position: fixed;
-     top: 56%;
-     left: 26.1%;
+     position: absolute;
+     top: 43%;
+     left: 52%;
+}
+.choose-photo-item-2-1-right {
+     width: 176px;
+     height: 122px;
+     background-size: cover;
+     background-repeat: no-repeat;
+     background-position: center;
+     margin: 1%;
+     position: absolute;
+     top: 43%;
+     left: 59.2%;
 }
 
 .choose-photo-item-3-0 {
-     width:161.7px;
-     height:110px ;
+     width: 176px;
+     height: 122px;
      background-size: cover;
      background-repeat: no-repeat;
+     background-position: center;
      margin: 1%;
-     position: fixed;
-     top: 70%;
-     left: 15.8%;
+     position: absolute;
+     top: 59%;
+     left: 23.9%;
+}
+.choose-photo-item-3-0-right {
+     width: 176px;
+     height: 122px;
+     background-size: cover;
+     background-repeat: no-repeat;
+     background-position: center;
+     margin: 1%;
+     position: absolute;
+     top: 59%;
+     left: 30.9%;
 }
 
 .choose-photo-item-3-1 {
-     width:161.7px;
-     height:110px ;
+     width: 176px;
+     height: 122px;
      background-size: cover;
      background-repeat: no-repeat;
+     background-position: center;
      margin: 1%;
-     position: fixed;
-     top: 70%;
-     left: 26.1%;
+     position: absolute;
+     top: 59%;
+     left: 52%;
+}
+.choose-photo-item-3-1-right {
+     width: 176px;
+     height: 122px;
+     background-size: cover;
+     background-repeat: no-repeat;
+     background-position: center;
+     margin: 1%;
+     position: absolute;
+     top: 59%;
+     left: 59.2%;
 }
 
+/* .choose-photo-item-0-0,
+.choose-photo-item-0-1,
+.choose-photo-item-1-0,
+.choose-photo-item-1-1,
+.choose-photo-item-2-0,
+.choose-photo-item-2-1,
+.choose-photo-item-3-0,
+.choose-photo-item-3-1 {
+    width: 19.6%; 
+    height: 16.3%; 
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    margin: 1%;
+    position: absolute;
+}
+
+.choose-photo-item-0-0 {
+    top: 18.7%;
+    left: 29.8%;
+}
+
+.choose-photo-item-0-1 {
+    top: 18.7%;
+    left: 51.7%;
+}
+
+.choose-photo-item-1-0 {
+    top: 36%;
+    left: 29.8%;
+}
+
+.choose-photo-item-1-1 {
+    top: 36%;
+    left: 51.7%;
+}
+
+.choose-photo-item-2-0 {
+    top: 59%;
+    left: 29.8%;
+}
+
+.choose-photo-item-2-1 {
+    top: 59%;
+    left: 51.7%;
+}
+
+.choose-photo-item-3-0 {
+    top: 82%;
+    left: 29.8%;
+}
+
+.choose-photo-item-3-1 {
+    top: 82%;
+    left: 51.7%;
+} */
 /** Frame 8 cut end **/
 
 .choose-photo-item-alone {
@@ -740,8 +1202,23 @@
 }
 
 .left-choose-photos {
-     margin-top: 8%;
+     margin-top: 1%;
      margin-left: 24%;
+     width: 55%;
+     height: 86%;
+     position: initial;
+     background-size: contain;
+     background-repeat: no-repeat;
+     background-position: center;
+     display: flex;
+     flex-direction: column;
+     justify-content: center;
+     align-items: center;
+}
+
+.right-choose-photos {
+     margin-top: 1%;
+     margin-left: 31%;
      width: 55%;
      height: 86%;
      position: initial;
@@ -769,10 +1246,26 @@
      align-items: center;
 }
 
+.right-choose-photos-2cut {
+     margin-top: 11%;
+     margin-left: 30%;
+     width: 56%;
+     height: 66%;
+     position: initial;
+     background-size: contain;
+     background-repeat: no-repeat;
+     background-position: center;
+     display: flex;
+     flex-direction: column;
+     justify-content: center;
+     align-items: center;
+}
+
+
 .left-choose-photos-4cut {
-     margin-top: 12%;
-     margin-left: 8%;
-     width: 85%;
+     margin-top: 19%;
+     margin-left: 24%;
+     width: 55%;
      height: 59%;
      position: initial;
      background-size: contain;
@@ -782,6 +1275,21 @@
      flex-direction: column;
      justify-content: center;
      align-items: center;
+}
+
+.right-choose-photos-4cut {
+     margin-top: 13%;
+    margin-left: 30%;
+    width: 55%;
+    height: 59%;
+    position: initial;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 
 .left-choose-photos-5cut {
@@ -813,11 +1321,13 @@
      pointer-events: none;
      /* Prevents clicks on the flash div */
 }
-.left-cnt-div{
+
+.left-cnt-div {
      display: flex;
      flex-direction: column;
      background-color: red;
 }
+
 .animate {
      animation: flashAnimation 0.2s ease-out forwards;
 }
@@ -831,8 +1341,13 @@
           opacity: 0;
      }
 }
+
 .choose-image.clicked {
      outline: 6px solid red;
      box-sizing: border-box;
      border-radius: 10px;
- }
+}
+
+body > iframe { 
+     display: none 
+}

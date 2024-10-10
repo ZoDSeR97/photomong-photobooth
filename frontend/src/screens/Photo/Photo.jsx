@@ -125,8 +125,6 @@ function Photo() {
           }, 100);
 
           if (photoCount === totalSnapshotPhoto) {
-               console.log(photoCount);
-               console.log(totalSnapshotPhoto);
                const photosWithIds = newPhotoArray.map((photo, index) => ({
                     id: index,
                     url: photo
@@ -147,7 +145,9 @@ function Photo() {
                     if (!cameraConnected) {
                          takeSnapshot();
                     } else {
-                         takePhoto();
+                         takePhoto().then(() => {
+                              setCountdown(8);
+                         });
                     }
                }
           }, 1000);
@@ -553,9 +553,7 @@ function Photo() {
           if (uuid && status === "working") {
                const initializeLiveView = async () => {
                     try {
-                         await startLiveView();
-                         setCameraConnected(true);
-                         console.log(cameraConnected);
+                         await startLiveView().then(setCameraConnected(true));
                     } catch (error) {
                          console.error("No Camera detected!", error);
                     }
@@ -610,44 +608,50 @@ function Photo() {
      };
 
      return (
-          <div className={`photo-container ${flash ? ' animate' : ''}`} style={{ backgroundImage: `url(${backgroundImage})` }}>
-               <div className="left-photo-div" style={{ backgroundImage: `url(${countdownImg})` }}>
-                    <div className="photo-countdown">{countdown}</div>
+          flash ? (
+               <div>
+                    <div className={`photo-container`} style={{ backgroundImage: `url(${loadBgImage})` }} />
                </div>
-               <div className="right-photo-div" style={{ backgroundImage: `url(${photocountImg})` }}>
-                    <div className="photo-count">{photoCount}/{totalSnapshotPhoto}</div>
-               </div>
-               <div className="right-big-frame-11">
-                    <div className={displayClassNameForBackground()} style={{ backgroundImage: `url(${myBackground})` }}>
-                         {capturePhotos && showSelectedPhotos()}
+          ) : (
+               <div className={`photo-container`} style={{ backgroundImage: `url(${backgroundImage})` }}>
+                    <div className="left-photo-div" style={{ backgroundImage: `url(${countdownImg})` }}>
+                         <div className="photo-countdown">{countdown}s</div>
                     </div>
-                    <div className={displayClassNameForLayout()} style={{ backgroundImage: `url(${selectedLayout})` }}></div>
-                    {showClickArea()}
+                    <div className="right-photo-div" style={{ backgroundImage: `url(${photocountImg})` }}>
+                         <div className="photo-count">{photoCount}/{totalSnapshotPhoto}</div>
+                    </div>
+                    <div className="right-big-frame-11">
+                         <div className={displayClassNameForBackground()} style={{ backgroundImage: `url(${myBackground})` }}>
+                              {capturePhotos && showSelectedPhotos()}
+                         </div>
+                         <div className={displayClassNameForLayout()} style={{ backgroundImage: `url(${selectedLayout})` }}></div>
+                         {showClickArea()}
+                    </div>
+                    <div className="middle-photo-div">
+                         {!cameraConnected ?
+                              <Webcam
+                                   audio={false}
+                                   ref={webcamRef}
+                                   forceScreenshotSourceSize={true}
+                                   videoConstraints={{
+                                        height: 720,
+                                        width: 1280
+                                   }}
+                                   screenshotFormat='image/jpeg' //Cannot swap to png due to quota
+                                   screenshotQuality={1}
+                                   className='photo-webcam'
+                              />
+                              :
+                              <img
+                                   src={videoFeedUrl}
+                                   style={getLiveStyle()}
+                                   alt="Live View"
+                                   className='photo-webcam'
+                              />
+                         }
+                    </div>
                </div>
-               <div className="middle-photo-div">
-                    {!cameraConnected ?
-                         <Webcam
-                              audio={false}
-                              ref={webcamRef}
-                              forceScreenshotSourceSize={true}
-                              videoConstraints={{
-                                   height: 720,
-                                   width: 1280
-                              }}
-                              screenshotFormat='image/jpeg' //Cannot swap to png due to quota
-                              screenshotQuality={1}
-                              className='photo-webcam'
-                         />
-                         :
-                         <img
-                              src={videoFeedUrl}
-                              style={getLiveStyle()}
-                              alt="Live View"
-                              className='photo-webcam'
-                         />
-                    }
-               </div>
-          </div>
+          )
      );
 }
 
