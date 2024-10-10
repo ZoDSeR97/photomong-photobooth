@@ -1174,7 +1174,7 @@ function Sticker() {
 
                const x11 = 18;
                const x12 = calcedWidth + x11 + 26;
-               const y1 = 36;
+               const y1 = 30;
 
                return imgTag.length === 0 ? <></> : (
                     <>
@@ -1209,11 +1209,11 @@ function Sticker() {
           }
 
           if (selectedFrame === "2cut-x2") {
-               const calcedWidth = width / 2.3;
+               const calcedWidth = width / 2.2;
                const calcedHeight = calcedWidth * 1.13;
                const x11 = 20;
-               const x12 = calcedWidth + x11 + 20;
-               const y1 = 33;
+               const x12 = calcedWidth + x11 + 7;
+               const y1 = 29;
 
                return imgTag.length === 0 ? <></> : (
                     <>
@@ -1251,7 +1251,7 @@ function Sticker() {
                const calcedWidth = calcedHeight * 1.33;
                const x11 = 52;
                const x12 = calcedWidth + x11 + 17;
-               const y1 = 26;
+               const y1 = 20;
 
                return imgTag.length === 0 ? <></> : (
                     <>

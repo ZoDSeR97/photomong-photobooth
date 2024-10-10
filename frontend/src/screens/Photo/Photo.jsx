@@ -230,14 +230,13 @@ function Photo() {
                          return prevCountdown - 1;
                     } else {
                          clearInterval(timerRef.current);
-                         if (cameraConnected) {
-                              takeSnapshot().then(() => {
+                         takeSnapshot()
+                              .then(() => {
                                    setCountdown(8);
                                    if (status === "working") {
                                         startTimer();
                                    }
-                              });
-                         }
+                              })
                          return 8;
                     }
                });
@@ -716,22 +715,22 @@ function Photo() {
                                    alt="Live View"
                                    className='photo-webcam'
                               />
-                         ) || ( setCameraConnected(false) &&
-                                   <Webcam
-                                        audio={false}
-                                        ref={webcamRef}
-                                        forceScreenshotSourceSize={true}
-                                        videoConstraints={{
-                                             height: 720,
-                                             width: 1280
-                                        }}
-                                        style={{
-                                             width: 900,
-                                             height: 500,
-                                        }}
-                                        screenshotFormat='image/jpeg'
-                                        className='photo-webcam'
-                                   />
+                         ) || (setCameraConnected(false) &&
+                              <Webcam
+                                   audio={false}
+                                   ref={webcamRef}
+                                   forceScreenshotSourceSize={true}
+                                   videoConstraints={{
+                                        height: 720,
+                                        width: 1280
+                                   }}
+                                   style={{
+                                        width: 900,
+                                        height: 500,
+                                   }}
+                                   screenshotFormat='image/jpeg'
+                                   className='photo-webcam'
+                              />
                               )}
                     </div>
                </div>
