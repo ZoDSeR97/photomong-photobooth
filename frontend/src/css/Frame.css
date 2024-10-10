@@ -1,3 +1,61 @@
+/* Background */
+
+
+/** Layout **/
+.layout-container {
+    position: relative;
+    width: 100vw;
+    /* Full width of the viewport */
+    height: 100vh;
+    /* Full height of the viewport */
+    /* Specify the path to your background image */
+    background-size: contain;
+    background-repeat: no-repeat;
+    /* Cover the entire container */
+    background-position: center;
+    /* Center the background image */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* Add additional styles for your payment content if needed */
+}
+
+.confirm-layout-button {
+    position: absolute;
+    bottom: 0px;
+    right: 10%;
+    width: 20%;
+    height: 30%;
+    background-size: contain;
+    background-position: center;
+    transition: background-image 0.3s ease;
+    background-repeat: no-repeat;
+}
+
+/** Layout **/
+
+.scroll-left {
+    position: absolute;
+    top: 43%;
+    left: 5%;
+    width: 9%;
+    height: 10%;
+    background-size: contain;
+    background-repeat: no-repeat;
+    transition: background-image 0.3s;
+}
+
+.scroll-right {
+    position: absolute;
+    top: 43%;
+    right: 3%;
+    width: 9%;
+    height: 10%;
+    background-size: contain;
+    background-repeat: no-repeat;
+    transition: background-image 0.3s;
+}
+
 .frame-container {
     position: relative;
     width: 100vw;
@@ -16,11 +74,29 @@
     /* Add additional styles for your payment content if needed */
 }
 
+.go-back-frame {
+    position: absolute;
+    /* Position div absolutely within the container */
+    top: 7.5%;
+    left: 11%;
+    /* Distance from left of container */
+    width: 8%;
+    /* Set width of the div */
+    height: 10%;
+    /* Set height of the div */    
+    /* Specify the path to your initial background image */
+    background-size: contain;
+    background-repeat: no-repeat;
+    /* Cover the entire div */
+    transition: background-image 0.3s;
+    /* Add transition for smooth effect */
+}
+
 .go-back {
     position: absolute;
     /* Position div absolutely within the container */
     top: 4.5%;
-    left: 14%;
+    left: 7.6%;
     /* Distance from left of container */
     width: 8%;
     /* Set width of the div */
@@ -225,39 +301,3 @@
 .style-column {
     width: 15%;
 }
-
-/* Background */
-
-
-/** Layout **/
-.layout-container {
-    position: relative;
-    width: 100vw;
-    /* Full width of the viewport */
-    height: 100vh;
-    /* Full height of the viewport */
-    /* Specify the path to your background image */
-    background-size: contain;
-    background-repeat: no-repeat;
-    /* Cover the entire container */
-    background-position: center;
-    /* Center the background image */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    /* Add additional styles for your payment content if needed */
-}
-
-.confirm-layout-button {
-    position: absolute;
-    bottom: 0px;
-    right: 10%;
-    width: 20%;
-    height: 30%;
-    background-size: contain;
-    background-position: center;
-    transition: background-image 0.3s ease;
-    background-repeat: no-repeat;
-}
-
-/** Layout **/

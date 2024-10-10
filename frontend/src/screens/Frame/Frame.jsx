@@ -10,6 +10,7 @@ import background_en from '../../assets/Frame/Type/BG.png';
 import background_kr from '../../assets/Frame/Type/kr/BG.png';
 import background_vn from '../../assets/Frame/Type/vn/BG.png';
 import background_mn from '../../assets/Frame/Type/mn/BG.png';
+
 // Go Back
 import goback_en from '../../assets/Common/goback.png';
 import goback_en_hover from '../../assets/Common/gobackhover.png';
@@ -19,13 +20,23 @@ import goback_vn from '../../assets/Common/vn/goback.png';
 import goback_vn_hover from '../../assets/Common/vn/gobackhover.png';
 import goback_mn from '../../assets/Common/mn/goback.png';
 import goback_mn_hover from '../../assets/Common/mn/gobackhover.png';
+import scroll_left from '../../assets/Photo/Snap/ScrollLeft.png';
+import scroll_right from '../../assets/Photo/Snap/ScrollRight.png';
 import { getAudio, getClickAudio, originAxiosInstance } from '../../api/config';
+
+// Language
+import confirm_en from '../../assets/Frame/Layout/confirm.png';
+import confirm_en_hover from '../../assets/Frame/Layout/confirm_click.png';
+
+// Other
+import FrameCarousel from '../../components/FrameCarousel';
 
 
 function Frame() {
   const [hoveredImage, setHoveredImage] = useState(null);
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const definedWidth = '100%';
 
   const [language, setLanguage] = useState('en');
 
@@ -44,7 +55,18 @@ function Frame() {
   const [frameRow23Hover, setFrameRow23Hover] = useState([]);
   const [frameBackground, setFrameBackground] = useState([]);
 
+  // Frames
+  const [frames, setFrames] = useState([]);
+
+  // Frame Page  
   const [goBackBg, setGoBackBg] = useState([]);
+  const [dragging, setDragging] = useState(false);
+  const [sliceIdx, setSliceIdx] = useState(0);
+  const [clickedTitles, setClickedTitles] = useState([]);
+  const [confirmClick, setConfirmClick] = useState(false);
+  const [confirmButton, setConfirmButton] = useState(confirm_en);
+  const [confirmHoverButton, setConfirmHoverButton] = useState(confirm_en_hover);
+
   useEffect(() => {
     const storedLanguage = sessionStorage.getItem('language');
     if (storedLanguage) {
@@ -58,12 +80,12 @@ function Frame() {
         setFrameBackground(background_vn);
         setGoBackBg(goback_vn);
       }
-      else if(storedLanguage==="mn"){
+      else if (storedLanguage === "mn") {
         setFrameBackground(background_mn);
         setGoBackBg(goback_mn);
 
       }
-      
+
       else {
         setFrameBackground(background_en);
         setGoBackBg(goback_en);
@@ -74,12 +96,18 @@ function Frame() {
   useEffect(() => {
     fetchFrames();
   }, []);
-  const playAudio = async() => {
-    const res=await getAudio({file_name:"choose_frame_layout.wav"})
-      }
-useEffect(()=>{
-playAudio()
-},[])
+
+  /* const playAudio = async () => {
+    const res = await getAudio({ file_name: "choose_frame_layout.wav" })
+  }
+
+  useEffect(() => {
+    playAudio()
+  }, []) */
+
+  /**
+   * API frames
+   */
   const fetchFrames = async () => {
     try {
       const response = await originAxiosInstance.get(`${import.meta.env.VITE_REACT_APP_BACKEND}/frames/api`)
@@ -111,6 +139,13 @@ playAudio()
         //   setFrameRow23Hover(import.meta.env.VITE_REACT_APP_BACKEND + frame.photo_hover);
         // }
       });
+
+      setFrames(frames.map(frame => ({
+        ...frame,
+        title: frame.title,
+        photo_full: import.meta.env.VITE_REACT_APP_BACKEND + frame.photo,
+        photo_hover: import.meta.env.VITE_REACT_APP_BACKEND + frame.photo_hover
+      })));
     } catch (error) {
       console.error('Error fetching frames:', error);
     }
@@ -124,22 +159,54 @@ playAudio()
     setHoveredImage(null);
   }
 
+  const onDrag = (e) => {
+    setDragging(true);
+  }
+
+  const onDragEnd = (e) => {
+    setSliceIdx(prevIdx => (prevIdx + 1) % 4);
+    const nextSliceIdx = (sliceIdx + 1) % 4;
+    setDragging(false);
+  }
+
   const hoverGoBackBtn = (goBackBG) => {
     if (goBackBG === 'ko') {
       setGoBackBg(goBackBg === goback_kr ? goback_kr_hover : goback_kr);
     } else if (goBackBG === 'vi') {
       setGoBackBg(goBackBg === goback_vn ? goback_vn_hover : goback_vn);
-    } 
+    }
     else if (goBackBG === 'mn') {
       setGoBackBg(goBackBg === goback_mn ? goback_mn_hover : goback_mn);
-    } 
+    }
     else {
       setGoBackBg(goBackBg === goback_en ? goback_en_hover : goback_en);
     }
   }
 
-  const goToBackground = (titleFrame, price) => {
-    getClickAudio()
+  const handleClick = (index, clickedTitle) => {
+    if (dragging) return;
+
+    //getClickAudio();
+
+    if (clickedTitles.includes(clickedTitle)) {
+      setClickedTitles(prevTitles => prevTitles.filter(clickedTitle => clickedTitle != clickedTitle));
+    } else {
+      setClickedTitles(prevTitles => [...prevTitles, clickedTitle]);
+    }
+
+    setConfirmClick(confirmButton);
+    let price = 0;
+    frames.forEach(frame => {
+      if (frame.title === clickedTitle) {
+        price = frame.price
+      }
+    })
+    goToBg(clickedTitle, price);
+  }
+
+  const goToBg = (titleFrame, price) => {
+    //getClickAudio()
+    console.log(titleFrame)
     sessionStorage.setItem('selectedFrame', JSON.stringify({
       frame: titleFrame
     }))
@@ -147,27 +214,34 @@ playAudio()
     navigate('/background');
   }
 
-  return (
-    <div className='frame-container' style={{ backgroundImage: `url(${frameBackground})` }}>
-      <div className="go-back" style={{ backgroundImage: `url(${goBackBg})` }} onClick={() =>{
-        getClickAudio()
-        navigate("/")}} onMouseEnter={() => hoverGoBackBtn(language)} onMouseLeave={() => hoverGoBackBtn(language)}></div>
-      <div className="topSection">
-        <div className="column">
-          <div className="imageDiv-top-left" style={{ backgroundImage: `url( ${hoveredImage === frameRow11 ? frameRow11Hover : frameRow11})` }} onMouseEnter={() => handleMouseEnter(frameRow11)} onMouseLeave={handleMouseLeave} onClick={() => goToBackground('Stripx2', 70000)}></div>
-        </div>
-        <div className="column">
-          <div className="imageDiv-top-right" style={{ backgroundImage: `url(${hoveredImage === frameRow12 ? frameRow12Hover : frameRow12})`, marginLeft: '-40%', }} onMouseEnter={() => handleMouseEnter(frameRow12)} onMouseLeave={handleMouseLeave} onClick={() => goToBackground('2cut-x2', 100000)}></div>
-        </div>
-      </div>
-      <div className="bottomSection">
-        <div className="column">
-          <div className="imageDiv-bottom-left" style={{ backgroundImage: `url(${hoveredImage === frameRow21 ? frameRow21Hover : frameRow21})` }} onMouseEnter={() => handleMouseEnter(frameRow21)} onMouseLeave={() => handleMouseLeave} onClick={() => goToBackground('4-cutx2', 100000)}></div>
-        </div>
-        <div className="column">
-          <div className="imageDiv-bottom-right" style={{ backgroundImage: `url(${hoveredImage === frameRow22 ? frameRow22Hover : frameRow22})`, marginLeft: '-40%', }} onMouseEnter={() => handleMouseEnter(frameRow22)} onMouseLeave={() => handleMouseLeave} onClick={() => goToBackground('6-cutx2', 100000)}></div>
-        </div>
+  const scrollPage = (scrollOffset) => {
+    const frameContainer = document.querySelector('.frame-carousel-container');
+    frameContainer.scrollLeft += scrollOffset;
+  }
 
+  return (
+    <div className='layout-container'
+      style={{
+        backgroundImage: `url(${frameBackground})`
+      }}
+    >
+      <div className="go-back-frame" style={{ backgroundImage: `url(${goBackBg})` }} onClick={() => navigate("/")} onMouseEnter={() => hoverGoBackBtn(language)} onMouseLeave={() => hoverGoBackBtn(language)}></div>
+      <div className="style-section"
+        draggable={false}
+        onDragStart={onDrag}
+        onDrag={onDrag}
+        onDragEnd={onDragEnd}
+        style={{
+        }}
+      >
+        <div className="scroll-left" style={{ backgroundImage: `url(${scroll_left})` }} onClick={() => scrollPage(-200)}></div>
+        <FrameCarousel
+          clickedTitles={clickedTitles}
+          images={frames}
+          handleClick={handleClick}
+          width={definedWidth}
+        />
+        <div className="scroll-right" style={{ backgroundImage: `url(${scroll_right})` }} onClick={() => scrollPage(200)}></div>
       </div>
     </div>
   );

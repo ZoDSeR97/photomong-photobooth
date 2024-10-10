@@ -193,7 +193,7 @@ function Choose() {
           if (clickedButton) {
                return;
           }
-          getClickAudio()
+          //getClickAudio()
           sessionStorage.setItem('choosePhotos', JSON.stringify(selectedPhotos));
 
           // Determine total photos

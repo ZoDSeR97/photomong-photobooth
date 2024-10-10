@@ -1169,19 +1169,19 @@ function Sticker() {
                );
           }
           else if (selectedFrame === "Stripx2") {
-               const calcedHeight = height / 5.3;
-               const calcedWidth = calcedHeight * 1.47;
+               const calcedHeight = height / 5.1;
+               const calcedWidth = calcedHeight * 1.45;
 
-               const x11 = 22;
-               const x12 = calcedWidth + x11 + 22;
-               const y1 = 40;
+               const x11 = 18;
+               const x12 = calcedWidth + x11 + 26;
+               const y1 = 36;
 
                return imgTag.length === 0 ? <></> : (
                     <>
                          {chunkArray(imgTag, 2).map((row, rowIndex) => (
                               row.map((tag, photoIndex) => {
                                    const x = photoIndex === 0 ? x11 : x12;
-                                   const y = y1 + rowIndex * (calcedHeight + 22);
+                                   const y = y1 + rowIndex * (calcedHeight + 14);
                                    const crop = getCrop(
                                         { width: tag.width, height: tag.height },
                                         { width: calcedWidth, height: calcedHeight }
@@ -1213,14 +1213,14 @@ function Sticker() {
                const calcedHeight = calcedWidth * 1.13;
                const x11 = 20;
                const x12 = calcedWidth + x11 + 20;
-               const y1 = 40;
+               const y1 = 33;
 
                return imgTag.length === 0 ? <></> : (
                     <>
                          {chunkArray(imgTag, 2).map((row, rowIndex) => (
                               row.map((tag, photoIndex) => {
                                    const x = photoIndex === 0 ? x11 : x12;
-                                   const y = y1 + rowIndex * (calcedHeight + 12);
+                                   const y = y1 + rowIndex * (calcedHeight + 6);
                                    const crop = getCrop(
                                         { width: tag.width, height: tag.height },
                                         { width: calcedWidth, height: calcedHeight }
@@ -1249,9 +1249,9 @@ function Sticker() {
           else if (selectedFrame === "4-cutx2") {
                const calcedHeight = height / 2.4;
                const calcedWidth = calcedHeight * 1.33;
-               const x11 = 50;
-               const x12 = calcedWidth + x11 + 30;
-               const y1 = 22;
+               const x11 = 52;
+               const x12 = calcedWidth + x11 + 17;
+               const y1 = 26;
 
                return imgTag.length === 0 ? <></> : (
                     <>
@@ -1286,18 +1286,18 @@ function Sticker() {
 
           }
           else {
-               const calcedWidth = (width / 2.4) * 1.02;
+               const calcedWidth = (width / 2.4) * 1.0;
                const calcedHeight = width / 2.4;
-               const x11 = 16;
-               const x12 = calcedWidth + x11 + 20;
-               const y1 = 22;
+               const x11 = 20;
+               const x12 = calcedWidth + x11 + 11;
+               const y1 = 20;
 
                return imgTag.length === 0 ? <></> : (
                     <>
                          {chunkArray(imgTag, 2).map((row, rowIndex) => (
                               row.map((tag, photoIndex) => {
                                    const x = photoIndex === 0 ? x11 : x12;
-                                   const y = y1 + rowIndex * (calcedHeight + 12);
+                                   const y = y1 + rowIndex * (calcedHeight + 6);
                                    const crop = getCrop(
                                         { width: tag.width, height: tag.height },
                                         { width: calcedWidth, height: calcedHeight }

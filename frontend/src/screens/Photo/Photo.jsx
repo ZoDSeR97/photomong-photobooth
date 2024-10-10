@@ -1,22 +1,18 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import i18n from '../../translations/i18n';
 import Webcam from 'react-webcam';
 import "../../css/Photo.css";
 import countdownImg from '../../assets/Photo/Snap/countdown.png';
 import photocountImg from '../../assets/Photo/Snap/photocount.png';
-import frame from '../../assets/Photo/Snap/frame.png';
-
 import background_en from '../../assets/Photo/Snap/BG.png';
 import background_kr from '../../assets/Photo/Snap/kr/BG.png';
 import background_vn from '../../assets/Photo/Snap/vn/BG.png';
-
+import background_mn from '../../assets/Photo/Snap/mn/BG.png';
 import load_en from '../../assets/Photo/Load/BG.png';
 import load_kr from '../../assets/Photo/Load/kr/BG.png';
 import load_vn from '../../assets/Photo/Load/vn/BG.png';
 import load_mn from '../../assets/Photo/Load/mn/BG.png';
-
 import ok_button from '../../assets/Photo/Snap/OK.png';
 import ok_button_inactive from '../../assets/Photo/Snap/OkInactive.png';
 import take_again_button from '../../assets/Photo/Snap/TakeAgain.png';
@@ -24,11 +20,11 @@ import take_again_button_inactive from '../../assets/Photo/Snap/TakeAgainInactiv
 import { getAudio, getPhotos, deletePhoto, sendCaptureReq, startLiveView, videoFeedUrl } from '../../api/config';
 import Uid from "react-uuid"
 
-
 function Photo() {
-     const navigate = useNavigate();
      const { t } = useTranslation();
+     const navigate = useNavigate();
      const webcamRef = useRef(null);
+     const [cameraConnected, setCameraConnected] = useState(true);
      const [countdown, setCountdown] = useState(8);
      const [photoCount, setPhotoCount] = useState(0);
      const [flash, setFlash] = useState(false);
@@ -36,12 +32,7 @@ function Photo() {
      const [loadBgImage, setLoadBgImage] = useState(load_en);
      const [capturing, setCapturing] = useState(false);
      const [capturePhotos, setCapturePhotos] = useState([]);
-
-     const [hoveredImage, setHoveredImage] = useState(null);
-     const [intervalId, setIntervalId] = useState(null);
-     const [photos, setPhotos] = useState([]);
-     const [clickedButton, setClickedButton] = useState(false);
-     const [cameraConnected, setCameraConnected] = useState(false);
+     const [webphotos, setWebPhotos] = useState([]);
 
      const [showFirstSet, setShowFirstSet] = useState(true);
      const [uuid, setUuid] = useState(sessionStorage.getItem("uuid") || null);
@@ -58,8 +49,6 @@ function Photo() {
 
      const timerRef = useRef(null);
 
-     const rightCornerDivValue = (photoCount + 1) * (1 / 8);
-
      useEffect(() => {
           const newUuid = Uid().toString();
           setUuid(newUuid);
@@ -69,7 +58,9 @@ function Photo() {
                setSelectedFrame(storedSelectedFrame.frame);
           }
 
-          if (storedSelectedFrame.frame === '2cut-x2') {
+          if (storedSelectedFrame.frame === 'Stripx2') {
+               setTotalSnapshotPhoto(8);
+          } else if (storedSelectedFrame.frame === '2cut-x2') {
                setTotalSnapshotPhoto(2);
           } else if (storedSelectedFrame.frame === '4-cutx2') {
                setTotalSnapshotPhoto(4);
@@ -77,8 +68,6 @@ function Photo() {
                setTotalSnapshotPhoto(6);
           } else if (storedSelectedFrame.frame === '4.2-cutx2') {
                setTotalSnapshotPhoto(4);
-          } else {
-               setTotalSnapshotPhoto(8);
           }
 
           const sessionSelectedLayout = sessionStorage.getItem('selectedLayout');
@@ -99,80 +88,13 @@ function Photo() {
           }
      }, []);
 
-     const takePhoto = async () => {
-          await sleep(100);
-          setCapturing(true);
-          try {
-               setFlash(true);
-               await sendCaptureReq(uuid);
-               setPhotoCount((prevCount) => prevCount + 1);
-          } catch (error) {
-               console.error('Failed to capture image:', error);
-          }
-          setFlash(false);
-          setCapturing(false);
-     }
+     const handleRetakePhoto = (selectedId) => {
+          // console.log('Selected retake:', selectedId);
+          setTakeAgainButtonUrl(take_again_button);
 
-     const takeSnapshot = () => {
-          setFlash(true);
-          const imageSrc = webcamRef.current.getScreenshot();
-          const newPhotoArray = [...photos, imageSrc];
-          setPhotos(newPhotoArray);
-          setPhotoCount((prevCount) => prevCount + 1);
-
-          setTimeout(() => {
-               setFlash(false);
-          }, 100);
-
-          if (photoCount === totalSnapshotPhoto) {
-               const photosWithIds = newPhotoArray.map((photo, index) => ({
-                    id: index,
-                    url: photo
-               }));
-               sessionStorage.setItem("uuid", uuid);
-               sessionStorage.setItem('photos', JSON.stringify(photosWithIds));
-               navigate('/photo-choose')
-          } else {
-               setCountdown(8);
-          }
+          // only set one item selectedID for retake
+          setSelectedReTakePhotos([selectedId]);
      };
-
-     useEffect(() => {
-          const timer = setInterval(() => {
-               if (countdown > 0) {
-                    setCountdown(countdown - 1);
-               } else {
-                    if (!cameraConnected) {
-                         takeSnapshot();
-                    } else {
-                         takePhoto().then(() => {
-                              setCountdown(8);
-                         });
-                    }
-               }
-          }, 1000);
-
-          return () => clearInterval(timer); // Cleanup timer on unmount
-     }, [countdown]);
-
-     useEffect(() => {
-          const language = sessionStorage.getItem('language');
-          if (language === 'en') {
-               setBackgroundImage(background_en);
-          } else if (language === 'ko') {
-               setBackgroundImage(background_kr);
-          } else if (language === 'vi') {
-               setBackgroundImage(background_vn);
-          }
-     }, [])
-
-     const handleMouseEnter = (image) => {
-          setHoveredImage(image);
-     }
-
-     const handleMouseLeave = () => {
-          setHoveredImage(null);
-     }
 
      const sleep = (ms) => {
           return new Promise(resolve => setTimeout(resolve, ms));
@@ -261,17 +183,87 @@ function Photo() {
           return className;
      };
 
+     const takePhoto = () => {
+          setFlash(true);
+          setCapturing(true);
+          const imageSrc = webcamRef.current.getScreenshot();
+          const newPhotoArray = [...webphotos, imageSrc];
+          setWebPhotos(newPhotoArray);
+          setPhotoCount((prevCount) => prevCount + 1);
+
+          setTimeout(() => {
+               setFlash(false);
+               setCapturing(false);
+          }, 100);
+
+          if (photoCount == totalSnapshotPhoto) {
+               const photosWithIds = newPhotoArray.map((photo, index) => ({
+                    id: index,
+                    url: photo
+               }));
+               sessionStorage.setItem('photos', JSON.stringify(photosWithIds));
+               navigate('/photo-choose')
+          } else {
+               setCountdown(8);
+          }
+     }
+
+     const takeSnapshot = async () => {
+          await sleep(100);
+          setCapturing(true);
+          try {
+               setFlash(true);
+               await sendCaptureReq(uuid);
+               setPhotoCount((prevCount) => prevCount + 1);
+          } catch (error) {
+               console.error('Failed to capture image:', error);
+          }
+          setFlash(false);
+          setCapturing(false);
+     };
+
+     const startTimer = () => {
+          timerRef.current = setInterval(async () => {
+               setCountdown((prevCountdown) => {
+                    setTakeAgainButtonUrl(take_again_button_inactive);
+                    if (prevCountdown > 0) {
+                         return prevCountdown - 1;
+                    } else {
+                         clearInterval(timerRef.current);
+                         if (cameraConnected) {
+                              takeSnapshot().then(() => {
+                                   setCountdown(8);
+                                   if (status === "working") {
+                                        startTimer();
+                                   }
+                              });
+                         }
+                         return 8;
+                    }
+               });
+          }, 1000);
+     };
+
+     const reTakePhoto = () => {
+          // if retake button is inactive then do nothing
+          if (takeAgainButtonUrl === take_again_button_inactive) {
+               return;
+          }
+          setStatus("working");
+          setCountdown(8);
+     };
+
      const getLatestPhoto = async (currentPhotoCount) => {
           // console.log('currentPhotoCount>>>', currentPhotoCount)
           const photos = await getPhotos(uuid);
-          sessionStorage.setItem("photos", photos);
+          sessionStorage.setItem("getphotos", photos);
           if (photos && photos.images && photos.images.length > 0) {
                const latestImage = photos.images[photos.images.length - 1];
                // console.log('latestImage>>>', latestImage)
                const imageName = latestImage.url.split('/').pop();
                const formattedImage = {
                     ...latestImage,
-                    url: `${process.env.REACT_APP_BACKEND}/serve_photo/${uuid}/${imageName}`
+                    url: `${import.meta.env.VITE_REACT_APP_BACKEND}/serve_photo/${uuid}/${imageName}`
                };
                if (photos.videos != undefined) {
                     if (photos.videos.length != 0) {
@@ -506,7 +498,7 @@ function Photo() {
      };
 
      useEffect(() => {
-          if (cameraConnected) {
+          if (uuid && cameraConnected) {
                if (photoCount > 0) {
                     getLatestPhoto(photoCount - 1);
                }
@@ -514,7 +506,7 @@ function Photo() {
                     setShowFirstSet(false);
                }
           }
-     }, [photoCount, cameraConnected]);
+     }, [photoCount, uuid]);
 
      useEffect(() => {
           if (capturePhotos.length > 0 && capturePhotos.length === totalSnapshotPhoto) {
@@ -524,6 +516,50 @@ function Photo() {
                // goToFilter();
           }
      }, [capturePhotos, navigate]);
+
+     const goToFilter = async () => {
+          // if ok button is inactive, do not go to filter
+          if (okButtonUrl === ok_button_inactive) {
+               return;
+          }
+          if (capturePhotos.length > 0 && capturePhotos.length === totalSnapshotPhoto) {
+               sessionStorage.setItem("uuid", uuid);
+
+               sessionStorage.setItem('photos', JSON.stringify(capturePhotos));
+               // log capturePhotos
+               // console.log("Capture photos >>", capturePhotos);
+
+
+               sessionStorage.setItem('choosePhotos', JSON.stringify(capturePhotos.map(photo => photo.id)));
+               // log capturePhotos id
+               // console.log("Capture photos >>", capturePhotos.map(photo => photo.id));
+
+               const result = await copyImageApi();
+               navigate("/photo-choose");
+          }
+     };
+
+     useEffect(() => {
+          const language = sessionStorage.getItem('language');
+          if (language === 'en') {
+               setBackgroundImage(background_en);
+               setLoadBgImage(load_en);
+          } else if (language === 'ko') {
+               setBackgroundImage(background_kr);
+               setLoadBgImage(load_kr);
+          } else if (language === 'vi') {
+               setBackgroundImage(background_vn);
+               setLoadBgImage(load_vn);
+          } else if (language === 'mn') {
+               setBackgroundImage(background_mn);
+               setLoadBgImage(load_mn);
+          }
+     }, []);
+
+
+     const togglePreviewSet = () => {
+          setShowFirstSet((prevShowFirstSet) => !prevShowFirstSet);
+     };
 
      const displayClassNameForBackground = () => {
           if (selectedFrame === '2cut-x2') {
@@ -550,16 +586,25 @@ function Photo() {
      };
 
      useEffect(() => {
-          if (uuid && status === "working") {
-               const initializeLiveView = async () => {
-                    try {
-                         await startLiveView().then(setCameraConnected(true));
-                    } catch (error) {
-                         console.error("No Camera detected!", error);
+          if (!cameraConnected) {
+               const timer = setInterval(() => {
+                    if (countdown > 0) {
+                         setCountdown(countdown - 1);
+                    } else {
+                         takePhoto();
                     }
+               }, 1000);
+               return () => clearInterval(timer); // Cleanup timer on unmount
+          }
+     }, [countdown]);
+
+     useEffect(() => {
+          if (uuid && status === 'working' && cameraConnected) {
+               const initializeLiveView = async () => {
+                    await startLiveView();
                };
                initializeLiveView();
-               //startTimer();
+               startTimer();
           }
 
           return () => {
@@ -567,8 +612,42 @@ function Photo() {
           };
      }, [uuid, status]);
 
+     const copyImageApi = async () => {
+          const sessionSelectedLayout = sessionStorage.getItem('selectedLayout');
+          if (!sessionSelectedLayout) {
+               return;
+          }
+
+          const parsedSelectedLayout = [JSON.parse(sessionSelectedLayout)];
+          const layoutData = parsedSelectedLayout[0];
+
+          const copyImageUrl = `${import.meta.env.VITE_REACT_APP_BACKEND}/frames/api/copy-image`;
+          const copyImageData = {
+               photo_url: layoutData.photo,
+               photo_cover: layoutData.photo_cover
+          };
+
+          try {
+               const response = await fetch(copyImageUrl, {
+                    method: 'POST',
+                    headers: {
+                         'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(copyImageData)
+               });
+               const data = await response.json();
+               sessionStorage.setItem('copiedPhoto', data.photo_path);
+               sessionStorage.setItem('copiedPhotoCover', data.photo_cover_path);
+               return true;
+          } catch (error) {
+               console.error(`Failed to copy image: ${error}`);
+               return false;
+          }
+     };
+
      const getLiveStyle = () => {
           const frame = JSON.parse(sessionStorage.getItem('selectedFrame')).frame;
+
 
           if (frame === "6-cutx2") {
                const baseStyle = {
@@ -626,29 +705,34 @@ function Photo() {
                          </div>
                          <div className={displayClassNameForLayout()} style={{ backgroundImage: `url(${selectedLayout})` }}></div>
                          {showClickArea()}
+                         <div className='ok-photo-button' style={{ backgroundImage: `url(${okButtonUrl})` }} onClick={goToFilter}></div>
+                         <div className='take-again-button' style={{ backgroundImage: `url(${takeAgainButtonUrl})` }} onClick={reTakePhoto}></div>
                     </div>
                     <div className="middle-photo-div">
-                         {!cameraConnected ?
-                              <Webcam
-                                   audio={false}
-                                   ref={webcamRef}
-                                   forceScreenshotSourceSize={true}
-                                   videoConstraints={{
-                                        height: 720,
-                                        width: 1280
-                                   }}
-                                   screenshotFormat='image/jpeg' //Cannot swap to png due to quota
-                                   screenshotQuality={1}
-                                   className='photo-webcam'
-                              />
-                              :
+                         {(!capturing &&
                               <img
                                    src={videoFeedUrl}
                                    style={getLiveStyle()}
                                    alt="Live View"
                                    className='photo-webcam'
                               />
-                         }
+                         ) || ( setCameraConnected(false) &&
+                                   <Webcam
+                                        audio={false}
+                                        ref={webcamRef}
+                                        forceScreenshotSourceSize={true}
+                                        videoConstraints={{
+                                             height: 720,
+                                             width: 1280
+                                        }}
+                                        style={{
+                                             width: 900,
+                                             height: 500,
+                                        }}
+                                        screenshotFormat='image/jpeg'
+                                        className='photo-webcam'
+                                   />
+                              )}
                     </div>
                </div>
           )

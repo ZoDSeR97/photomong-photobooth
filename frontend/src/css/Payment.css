@@ -18,8 +18,8 @@
 
 .go-back {
      position: absolute;
-     top: 4.1%;
-     left: 11.6%;
+     top: 4.5%;
+    left: 7.6%;
      width: 9%;
      height: 10%;
      /* Set height of the div */
@@ -48,6 +48,7 @@
      display: flex;
      justify-content: center;
 }
+
 .payment-number-center {
      position: absolute;
      top: 27%;
@@ -140,7 +141,7 @@
      height: 35%;
      background-size: contain;
      background-repeat: no-repeat;
-     background-position: center;     
+     background-position: center;
 }
 
 .done-result-button {
@@ -151,7 +152,7 @@
      height: 35%;
      background-size: contain;
      background-repeat: no-repeat;
-     background-position: center;     
+     background-position: center;
 }
 
 /** Cash **/
@@ -300,7 +301,7 @@
 }
 
 /** Result **/
-.payment-number-container{
+.payment-number-container {
 
      position: relative;
      width: 100vw;
@@ -318,7 +319,8 @@
      align-items: center;
      /* background-color: red; */
 }
-.minus-default{
+
+.minus-default {
      position: absolute;
      top: 20%;
      left: 0%;
@@ -335,7 +337,7 @@
      transition: background-image 0.3s;
 }
 
-.plus-default{
+.plus-default {
      z-index: 999;
      cursor: pointer;
      position: absolute;
@@ -351,12 +353,13 @@
      /* Cover the entire div */
      transition: background-image 0.3s;
 }
-.num-field{
+
+.num-field {
      font-family: fantasy;
      display: flex;
      position: absolute;
      top: 0%;
-    left: 30%;
+     left: 30%;
      width: 50%;
      height: 75%;
      /* Set height of the div */
@@ -365,12 +368,13 @@
      background-size: contain;
      background-repeat: no-repeat;
      /* Cover the entire div */
-     transition: background-image 0.3s; 
+     transition: background-image 0.3s;
 }
-.price-field{
+
+.price-field {
      position: absolute;
      top: 80%;
-    left: 30%;
+     left: 30%;
      width: 60%;
      height: 20%;
      /* Set height of the div */
@@ -379,13 +383,29 @@
      background-size: contain;
      background-repeat: no-repeat;
      /* Cover the entire div */
-     transition: background-image 0.3s; 
+     transition: background-image 0.3s;
 }
-.check-box{
+
+.price-field-total {
+     position: absolute;
+     top: 50%;
+     left: 10%;
+     width: 80%;
+     height: 80%;
+     /* Set height of the div */
+     background-image: url('../assets/Common/price-field.png');
+     /* Specify the path to your initial background image */
+     background-size: contain;
+     background-repeat: no-repeat;
+     /* Cover the entire div */
+     transition: background-image 0.3s;
+}
+
+.check-box {
      cursor: pointer;
      position: absolute;
      top: 105%;
-    left: -10%;
+     left: -10%;
      width: 60%;
      height: 16%;
      /* background-color: red; */
@@ -395,12 +415,23 @@
      background-size: contain;
      background-repeat: no-repeat;
      /* Cover the entire div */
-     transition: background-image 0.3s; 
+     transition: background-image 0.3s;
 }
-.check{
+
+.payment-countdown {
+     text-align: center;
+     left: 20px;
+     top: 31%;
+     position: relative;
+     font-size: 50px;
+     color: #606060;
+     font-family: fantasy;
+}
+
+.check {
      position: absolute;
-     top: 16%;
-    left: 21%;
+     top: 12%;
+     left: 5%;
      width: 60%;
      height: 60%;
      /* Set height of the div */
@@ -409,9 +440,11 @@
      background-size: contain;
      background-repeat: no-repeat;
      /* Cover the entire div */
-     transition: background-image 0.3s; 
+     transition: background-image 0.3s;
 }
-.num{ font-size: 100px;
+
+.num {
+     font-size: 100px;
      position: absolute;
      color: #606060;
      top: 31%;
@@ -421,7 +454,8 @@
      text-align: center;
      /* background-color: red; */
 }
-.price{
+
+.price {
      width: 70%;
      height: 100%;
      color: #606060;
@@ -430,7 +464,18 @@
      text-align: center;
      /* left: 0%;   */
 }
-.payment-number-confirm-layout-button{
+
+.price-total {
+     width: 88%;
+     height: 100%;
+     color: #606060;
+     font-size: 100px;
+     position: absolute;
+     text-align: center;
+     /* left: 0%;   */
+}
+
+.payment-number-confirm-layout-button {
      position: absolute;
      bottom: 0px;
      right: 10%;

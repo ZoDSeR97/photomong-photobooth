@@ -275,12 +275,12 @@ function Layout() {
                setConfirmHoverButton(confirm_vn_hover);
           }
      }, []);
-     const playAudio = async () => {
+     /* const playAudio = async () => {
           const res = await getAudio({ file_name: "choose_frame_style.wav" })
      }
      useEffect(() => {
           playAudio()
-     }, [])
+     }, []) */
      return (
           <div className='layout-container'
                // onDragStart={onDrag}

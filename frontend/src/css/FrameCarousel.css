@@ -1,5 +1,5 @@
 .frame-carousel-container {
-    width: calc(100% - 300px); /* 30px씩 공백을 고려한 너비 */
+    width: calc(100% - 500px); /* 30px씩 공백을 고려한 너비 */
     margin: 0 150px; /* 왼쪽과 오른쪽 공백 */
     overflow: hidden;
     position: relative;
@@ -35,7 +35,30 @@
     box-sizing: border-box;
     border-radius: 10px;
 }
-.frame-carousel-img:hover {
+
+.layout-carousel-img {
+    width: calc(100% / 5 - 30px); /* 한 캐러셀에 5개의 이미지가 보이도록 설정 */
+    height:auto;
+    /* object-fit: contain; */
+    user-drag: none;
+    user-select: none;
+    -moz-user-select: none;
+    -webkit-user-drag: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+/*  */
+        -webkit-user-select: none;
+        -khtml-user-select: none;
+        -moz-user-select: none;
+        -o-user-select: none;
+        user-select: none;
+}
+.layout-carousel-img.clicked {
+    border: 6px solid red;
+    box-sizing: border-box;
+    border-radius: 10px;
+}
+.layout-carousel-img:hover {
     border: 6px solid red;
     box-sizing: border-box;
     border-radius: 10px;
