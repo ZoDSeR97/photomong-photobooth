@@ -3,14 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import i18n from '../translations/i18n';
 import "../css/Sticker.css";
-import frame from '../assets/Sticker/frame.png';
 import sticker_frame from '../assets/Sticker/sticker_frame.png';
 import sticker_taskbar from '../assets/Sticker/sticker_taskbar.png';
 import { Image as KonvaImage, Layer, Stage, Rect, Transformer } from 'react-konva';
-import Konva from 'konva';
-import useImage from 'use-image';
 import { StickerItem } from '../screens/StickerItem';
-import axios from 'axios';
 // Sticker
 import { stickers } from './stickers.data';
 

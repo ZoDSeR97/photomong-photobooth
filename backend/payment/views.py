@@ -29,6 +29,30 @@ from datetime import datetime as dt
 def random_string_generator(size=10, chars=string.ascii_lowercase + string.digits):
     return ''.join(random.choice(chars) for _ in range(size))
 
+@csrf_extempt
+# Function to read the bill acceptor in a separate thread
+def read_bill_acceptor():
+    global inserted_money
+    logging.info("Starting to read from bill acceptor...")
+    while True:
+        try:
+            if ser.in_waiting > 0:
+                line = ser.readline().decode('utf-8').strip()
+                if line.isdigit():
+                    money = int(line)
+                    with lock:
+                        inserted_money += money
+                        logging.info(f"Total inserted money: {inserted_money}")
+                        if inserted_money >= amount_to_pay:
+                            logging.info("Payment amount reached or exceeded.")
+                            break
+        except serial.SerialException as e:
+            logging.error(f"Serial error: {e}")
+            break
+        except Exception as e:
+            logging.error(f"Unexpected error: {e}")
+            break
+
 @csrf_exempt
 def start_cash_pay(request):
     url = settings.API_CASH_READER + '/api/start/'

@@ -4,20 +4,24 @@
 cat > requirements.txt << EOL
 asgiref
 certifi
+cffi
 charset-normalizer
 cloudinary
 Django
 django-cors-headers
 djangorestframework
 idna
+milksnake
 mysqlclient
 pillow
 python-dotenv
+pycparser
 pytz
 requests
 six
 sqlparse
 tzdata
+urlquote
 urllib3
 whitenoise
 opencv-python

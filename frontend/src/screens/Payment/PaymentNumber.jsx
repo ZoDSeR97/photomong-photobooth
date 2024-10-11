@@ -87,17 +87,17 @@ function PaymentNumber(props) {
     setCheck(p => !p)
   }
   const onAdd = () => {
-    getClickAudio()
+    //getClickAudio()
     setPhotoNum(p => (p < 10 ? p + 1 : p));
   };
 
   const onMinus = () => {
-    getClickAudio()
+    //getClickAudio()
     setPhotoNum(p => (p > 1 ? p - 1 : p));
   };
 
   const goToPayment = async (dongNum, checkCoupon) => {
-    getClickAudio()
+    //getClickAudio()
     sessionStorage.setItem("photoNum", dongNum)
     //const res = await sendDongNum(dongNum, checkCoupon === true ? 1 : 0) // work on this later
     navigate('/payment');
@@ -140,6 +140,9 @@ function PaymentNumber(props) {
     else {
       amount = 100000
     }
+    const sales = sessionStorage.setItem("sales", amount + 50000 * (photoNum - 1));
+    const test = sessionStorage.getItem('sales')
+    sessionStorage.setItem("totalPayMoney", amount + 50000 * (photoNum - 1));
 
     return amount + 50000 * (photoNum - 1)
   }
@@ -150,7 +153,7 @@ function PaymentNumber(props) {
       style={{ backgroundImage: `url(${background})` }}
     >
       <div className="go-back" style={{ backgroundImage: `url(${goBackBg})` }} onClick={() => {
-        getClickAudio()
+        //getClickAudio()
         navigate("/layout")
       }} onMouseEnter={() => hoverGoBackBtn(language)} onMouseLeave={() => hoverGoBackBtn(language)}></div>
 
