@@ -1,18 +1,18 @@
-from django.conf.urls import url
+from django.urls import path
 from .views import (
     index,
     payment,
     payment_ipn,
     payment_return,
     query,
-    refund   
+    refund
 )
 
 urlpatterns = [
-    url(r'^$', index, name='index'),
-    url(r'^payment$', payment, name='payment'),
-    url(r'^payment_ipn$', payment_ipn, name='payment_ipn'),
-    url(r'^payment_return$', payment_return, name='payment_return'),
-    url(r'^query$', query, name='query'),
-    url(r'^refund$', refund, name='refund'),
+    path('', index, name='index'),
+    path('payment/', payment, name='payment'),
+    path('payment_ipn/', payment_ipn, name='payment_ipn'),
+    path('payment_return/', payment_return, name='payment_return'),
+    path('query/', query, name='query'),
+    path('refund/', refund, name='refund'),
 ]
