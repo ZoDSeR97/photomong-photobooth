@@ -12,6 +12,8 @@ from django.views import View
 from .forms import FrameForm
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
+from django.core.files.uploadedfile import TemporaryUploadedFile
+from django.core.files.uploadedfile import InMemoryUploadedFile
 import os
 from django.conf import settings
 from django.http import JsonResponse
@@ -56,16 +58,12 @@ def upload_full(request):
     else:
         return JsonResponse({'error': 'Image not provided'}, status=status.HTTP_400_BAD_REQUEST)
 
-
-
-from django.core.files.uploadedfile import TemporaryUploadedFile
-
 @api_view(['POST'])
 def print_photo(request):
     if request.method == 'POST':
         try:
             print("print_photo")
-            folder_path = r"C:\\Users\\USER\\Desktop\\DeepSoft\\Project\\포토키오스크\\photomong\\photomong\\print_files"
+            folder_path = f"{os.getcwd()}\\print_files"
             if not os.path.exists(folder_path):
                 os.makedirs(folder_path)
 
@@ -106,10 +104,11 @@ def print_photo(request):
             print(f"Type of image_file: {type(image_file)}")
             print(f"Content of image_file: {image_file[:100] if isinstance(image_file, str) else 'Not a string'}")
 
-            if isinstance(image_file, TemporaryUploadedFile):
+            if isinstance(image_file, TemporaryUploadedFile) or isinstance(image_file, InMemoryUploadedFile):
                 image_content = image_file.read()
             else:
                 image_content = base64.b64decode(image_file)
+
 
             with open(file_path, 'wb') as destination:
                 destination.write(image_content)

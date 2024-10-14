@@ -24,7 +24,7 @@ function Photo() {
      const { t } = useTranslation();
      const navigate = useNavigate();
      const webcamRef = useRef(null);
-     const [cameraConnected, setCameraConnected] = useState(true);
+     const [cameraConnected, setCameraConnected] = useState(false);
      const [countdown, setCountdown] = useState(8);
      const [photoCount, setPhotoCount] = useState(0);
      const [flash, setFlash] = useState(false);
@@ -708,15 +708,7 @@ function Photo() {
                          <div className='take-again-button' style={{ backgroundImage: `url(${takeAgainButtonUrl})` }} onClick={reTakePhoto}></div>
                     </div>
                     <div className="middle-photo-div">
-                         {(!capturing &&
-                              <img
-                                   src={videoFeedUrl}
-                                   style={getLiveStyle()}
-                                   alt="Live View"
-                                   className='photo-webcam'
-                              />
-                         ) || (setCameraConnected(false) &&
-                              <Webcam
+                         {<Webcam
                                    audio={false}
                                    ref={webcamRef}
                                    forceScreenshotSourceSize={true}
@@ -731,7 +723,7 @@ function Photo() {
                                    screenshotFormat='image/jpeg'
                                    className='photo-webcam'
                               />
-                              )}
+                              }
                     </div>
                </div>
           )

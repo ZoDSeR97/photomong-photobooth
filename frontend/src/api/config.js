@@ -10,7 +10,7 @@ import axios from "axios";
 // export const videoFeedUrl=`http://127.0.0.1:5000/video_feed`//Photo.js live view url
 const audioBaseURL = "http://127.0.0.1:8001"
 const checkBaseUrl = "http://3.26.21.10:9000"
-const OriginBaseURL = "http://3.26.21.10:8000"
+const OriginBaseURL = "http://127.0.0.1:8000"
 export const startCashUrl = "http://127.0.0.1:8002/api/start/"
 export const BaseURL = "http://127.0.0.1:5000"
 export const videoFeedUrl = `http://127.0.0.1:5000/video_feed`//Photo.js live view url

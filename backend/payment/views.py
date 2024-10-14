@@ -115,8 +115,7 @@ def get_mac_address(request):
     return JsonResponse({"mac_address": mac_address}, status=200)
 
 # Print image using rundll32
-
-
+@csrf_exempt
 def print_image_with_rundll32(image_path, frame_type):
     try:
         printer_name = 'DS-RX1 (Photostrips)' if frame_type == 'stripx2' else 'DS-RX1'
@@ -132,8 +131,6 @@ def print_image_with_rundll32(image_path, frame_type):
         raise
 
 # Switch printer and print image
-
-
 @csrf_exempt
 def switch_printer(request, printer_model, frame_type):
     if request.method == 'POST':
@@ -144,18 +141,17 @@ def switch_printer(request, printer_model, frame_type):
         if file.name == '':
             return JsonResponse({'error': 'No selected file'}, status=400)
 
-        temp_dir = tempfile.gettempdir()
-        file_path = os.path.join(temp_dir, file.name)
+        file_path = os.path.join(f"{os.getcwd()}\\print_files", file.name)
 
-        with open(file_path, 'wb+') as f:
+        """ with open(file_path, 'wb+') as f:
             for chunk in file.chunks():
-                f.write(chunk)
+                f.write(chunk) """
 
         try:
             print_image_with_rundll32(file_path, frame_type)
         except Exception as e:
             logging.error(f"Error processing print job: {e}")
-            return JsonResponse({'error': str(e)}, status=500)
+            return JsonResponse({'error in rundll': str(e)}, status=500)
         finally:
             if os.path.exists(file_path):
                 os.remove(file_path)
