@@ -65,13 +65,4 @@ export default defineConfig({
       ],
     },
   },
-  
-  server: {
-    proxy: {
-      '/get_photo/': {
-        target: 'http://3.26.21.10:8000',
-        changeOrigin: true,
-      }
-    }
-  }
 })
