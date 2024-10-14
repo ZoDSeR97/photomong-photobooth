@@ -7,7 +7,7 @@ class PaymentConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'payment'
     
-    def ready(self):
+    """ def ready(self):
         self.initialize_arduino()
 
     def initialize_arduino(self):
@@ -28,4 +28,4 @@ class PaymentConfig(AppConfig):
             logging.info(f"Arduino connected on {arduino_port}")
         else:
             logging.error("Arduino not found. Please check the connection.")
-            raise Exception("Arduino not found")
+            raise Exception("Arduino not found") """

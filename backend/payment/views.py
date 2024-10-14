@@ -7,7 +7,7 @@ import json
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import logging
-from payments.apps import ser  # Import the globally initialized serial object
+#from payments.apps import ser  # Import the globally initialized serial object
 
 # Setup logger
 logging.basicConfig(level=logging.DEBUG)
@@ -122,8 +122,7 @@ def print_image_with_rundll32(image_path, frame_type):
         printer_name = 'DS-RX1 (Photostrips)' if frame_type == 'stripx2' else 'DS-RX1'
         logging.info(f"Printing to {printer_name}")
 
-        print_command = f'rundll32.exe C:\\Windows\\System32\\shimgvw.dll,ImageView_PrintTo /pt "{
-            image_path}" "{printer_name}"'
+        print_command = f'rundll32.exe C:\\Windows\\System32\\shimgvw.dll,ImageView_PrintTo /pt "{image_path}" "{printer_name}"'
         logging.debug(f"Executing print command: {print_command}")
 
         subprocess.run(print_command, check=True, shell=True)
