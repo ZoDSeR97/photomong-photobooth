@@ -11,6 +11,7 @@ echo cloudinary
 echo Django
 echo django-cors-headers
 echo djangorestframework
+echo django-cleanup
 echo idna
 echo milksnake
 echo mysqlclient

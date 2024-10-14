@@ -90,6 +90,7 @@ INSTALLED_APPS = [
     'zalopay',    
     'redeem',
     'get_photo',
+    'django_cleanup.apps.CleanupConfig',
 ]
 
 MIDDLEWARE = [
