@@ -257,7 +257,7 @@ def upload_file(filename, uuid, content_type):
     try:
         with open(filename, 'rb') as f:
             files = {'file': (filename, f, content_type)}
-            response = requests.post(f"http://your-upload-service.com/upload/{uuid}", files=files)
+            response = requests.post(f"http://172.30.160.1:8000/upload/{uuid}", files=files)
             logging.info(f"File upload response: {response.status_code}")
     except Exception as e:
         logging.error(f"Failed to upload file: {str(e)}")

@@ -63,7 +63,9 @@ def print_photo(request):
     if request.method == 'POST':
         try:
             print("print_photo")
-            folder_path = f"{os.getcwd()}\\print_files"
+            folder_path = os.path.join(f"{os.getcwd()}/payment/print_files")
+            folder_path = os.path.abspath(folder_path)
+            print(folder_path)
             if not os.path.exists(folder_path):
                 os.makedirs(folder_path)
 
@@ -127,15 +129,15 @@ def print_photo(request):
                 response = requests.post(print_url, files={'file': f})
 
             print(response.status_code)
-            print(response.text)
+            #print(response.text)
         
             if response.status_code == 200:
                 return JsonResponse({'message': 'Print job started successfully.'}, status=status.HTTP_200_OK)
             else:
                 return JsonResponse({'error': 'Failed to send print request'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         except Exception as e:
-            print(f"Error in print_photo: {str(e)}")
-            print(f"Error type: {type(e)}")
+            #print(f"Error in print_photo: {str(e)}")
+            #print(f"Error type: {type(e)}")
             return JsonResponse({'error': 'Internal server error'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     else:
         return JsonResponse({'error': 'Invalid request method'}, status=status.HTTP_400_BAD_REQUEST)

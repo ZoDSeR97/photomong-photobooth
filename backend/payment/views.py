@@ -1,12 +1,15 @@
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from PIL import Image, ImageWin
 import os
 import subprocess
 import tempfile
 import threading
 import uuid
 import json
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
 import logging
+import win32print
+import win32ui
 #from payments.apps import ser  # Import the globally initialized serial object
 
 # Setup logger
@@ -118,7 +121,7 @@ def get_mac_address(request):
 @csrf_exempt
 def print_image_with_rundll32(image_path, frame_type):
     try:
-        printer_name = 'DS-RX1 (Photostrips)' if frame_type == 'stripx2' else 'DS-RX1'
+        printer_name = 'DS-RX1 (Photostrips)' #if frame_type == 'stripx2' else 'DS-RX1'
         logging.info(f"Printing to {printer_name}")
 
         print_command = f'rundll32.exe C:\\Windows\\System32\\shimgvw.dll,ImageView_PrintTo /pt "{image_path}" "{printer_name}"'
@@ -141,20 +144,20 @@ def switch_printer(request, printer_model, frame_type):
         if file.name == '':
             return JsonResponse({'error': 'No selected file'}, status=400)
 
-        file_path = os.path.join(f"{os.getcwd()}\\print_files", file.name)
+        file_path = os.path.join(f"{os.getcwd()}\\payment\\print_files", file.name)
 
-        """ with open(file_path, 'wb+') as f:
+        with open(file_path, 'wb+') as f:
             for chunk in file.chunks():
-                f.write(chunk) """
+                f.write(chunk)
 
         try:
             print_image_with_rundll32(file_path, frame_type)
         except Exception as e:
-            logging.error(f"Error processing print job: {e}")
+            #logging.error(f"Error processing print job: {e}")
             return JsonResponse({'error in rundll': str(e)}, status=500)
-        finally:
+        """ finally:
             if os.path.exists(file_path):
-                os.remove(file_path)
+                os.remove(file_path) """
 
         return JsonResponse({'status': 'success', 'message': 'Print job started successfully.'}, status=200)
 

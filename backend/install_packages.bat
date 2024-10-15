@@ -14,11 +14,12 @@ echo djangorestframework
 echo django-cleanup
 echo idna
 echo milksnake
-echo mysqlclient
 echo pillow
 echo python-dotenv
 echo pycparser
 echo pytz
+echo pywin32
+echo pyserial
 echo requests
 echo six
 echo sqlparse

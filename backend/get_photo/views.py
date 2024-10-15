@@ -11,7 +11,7 @@ from datetime import datetime
 def get_photos(request):
     if request.method == 'GET':
         uuid = request.GET.get('uuid', None)
-        upload_dir = os.path.join('uploads',uuid.split("uploads/")[-1].replace("\\","/"))  # 파일을 저장할 디렉터리 경로 설정
+        upload_dir = os.path.join('upload/uploads',uuid.split("uploads/")[-1].replace("\\","/"))  # 파일을 저장할 디렉터리 경로 설정
         print("###########")
         print("upload_dir")
         print(upload_dir)
@@ -32,6 +32,7 @@ def get_photos(request):
             print("###########")
             return JsonResponse({'status': 'success', 'images': image_urls})
         except Exception as e:
+            print(e)
             return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
     else:
         return JsonResponse({'status': 'error', 'message': 'Invalid request'}, status=400)
@@ -45,7 +46,7 @@ def download(request):
     uuid = request.GET.get('uuid', '123')    
 
     try:
-        upload_dir = os.path.join(settings.BASE_DIR, 'uploads', uuid)            
+        upload_dir = os.path.join(settings.BASE_DIR, 'upload/uploads', uuid)            
         image_urls = [image_path]
         for filename in os.listdir(upload_dir):
             if filename.lower().endswith(('.png', '.jpg', '.jpeg')):
@@ -65,7 +66,7 @@ def download(request):
 
 @csrf_exempt    
 def serve_photo(request, file_path):
-    file_path = os.path.join('uploads', file_path.replace("\\","/"))
+    file_path = os.path.join('upload/uploads', file_path.replace("\\","/"))
     if os.path.exists(file_path):
         with open(file_path, 'rb') as f:
             response = HttpResponse(f.read(), content_type="image/jpeg")

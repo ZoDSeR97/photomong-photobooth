@@ -24,7 +24,7 @@ function Photo() {
      const { t } = useTranslation();
      const navigate = useNavigate();
      const webcamRef = useRef(null);
-     const [cameraConnected, setCameraConnected] = useState(false);
+     const [cameraConnected, setCameraConnected] = useState(true);
      const [countdown, setCountdown] = useState(8);
      const [photoCount, setPhotoCount] = useState(0);
      const [flash, setFlash] = useState(false);
@@ -256,14 +256,16 @@ function Photo() {
           // console.log('currentPhotoCount>>>', currentPhotoCount)
           const photos = await getPhotos(uuid);
           sessionStorage.setItem("getphotos", photos);
+          console.log("photots: ", photos);
           if (photos && photos.images && photos.images.length > 0) {
                const latestImage = photos.images[photos.images.length - 1];
                // console.log('latestImage>>>', latestImage)
-               const imageName = latestImage.url.split('/').pop();
+               const imageName = latestImage.url.replace(/\\/g, '/').split('/').pop();
                const formattedImage = {
                     ...latestImage,
                     url: `${import.meta.env.VITE_REACT_APP_BACKEND}/serve_photo/${uuid}/${imageName}`
                };
+               console.log("url: ",imageName);
                if (photos.videos != undefined) {
                     if (photos.videos.length != 0) {
                          const videoUrl = photos.videos[0].url.replace("get_photo", "download_photo")
@@ -708,7 +710,14 @@ function Photo() {
                          <div className='take-again-button' style={{ backgroundImage: `url(${takeAgainButtonUrl})` }} onClick={reTakePhoto}></div>
                     </div>
                     <div className="middle-photo-div">
-                         {<Webcam
+                         {!capturing && (
+                              <img
+                                   src={videoFeedUrl}
+                                   style={getLiveStyle()}
+                                   alt="Live View"
+                                   className='photo-webcam'
+                              />
+                         ) || (<Webcam
                                    audio={false}
                                    ref={webcamRef}
                                    forceScreenshotSourceSize={true}
@@ -722,8 +731,8 @@ function Photo() {
                                    }}
                                    screenshotFormat='image/jpeg'
                                    className='photo-webcam'
-                              />
-                              }
+                              />)
+                         }
                     </div>
                </div>
           )
