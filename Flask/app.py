@@ -1,19 +1,26 @@
 from flask import Flask, jsonify, Response, request
-import subprocess
-from datetime import datetime
-import time
-import requests
+from PIL import Image
 from flask_cors import CORS, cross_origin
+from datetime import datetime
+import os
+import subprocess
+import tempfile
+import werkzeug
+import logging
+import requests
+import time
 import threading
 import queue
-import os
-import logging
 import io
-import tempfile
 import shutil
 import atexit
 import cv2
 import numpy as np
+import uuid
+import serial
+import serial.tools.list_ports
+import sys
+import winsound
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True, resources={r"/*": {"origins": "*"}})
@@ -37,6 +44,27 @@ fourcc = cv2.VideoWriter_fourcc(*'mp4v')
 fps = 10.0
 frame_size = (640, 480)  # Adjustable
 video_filename = None
+
+lock = threading.Lock()  # For thread safety on shared resources
+inserted_money = 0
+amount_to_pay = 0
+
+# Find Arduino port
+def find_arduino_port():
+    ports = list(serial.tools.list_ports.comports())
+    for p in ports:
+        if 'Arduino' in p.description:
+            return p.device
+    return None
+
+# Initialize serial communication with Arduino
+arduino_port = find_arduino_port()
+if arduino_port:
+    ser = serial.Serial(arduino_port, 9600, timeout=1)
+    logging.info(f"Arduino connected on {arduino_port}")
+else:
+    logging.error("Arduino not found. Please check the connection.")
+    sys.exit("Arduino not found")
 
 def start_video_capture():
     global video_file, video_filename
@@ -231,7 +259,7 @@ def capture_image():
     if result['status'] == 'success':
         capture_count += 1
         image_filename = result['file_saved_as']
-        async_upload_file(image_filename, uuid, 'image/jpeg')
+        async_upload_file(image_filename, uuid, 'image/png')
 
         if capture_count == 1:
             video_filename = start_video_capture()
@@ -262,10 +290,161 @@ def upload_file(filename, uuid, content_type):
     except Exception as e:
         logging.error(f"Failed to upload file: {str(e)}")
 
+# Function to read the bill acceptor in a separate thread
+def read_bill_acceptor():
+    global inserted_money
+    logging.info("Starting to read from bill acceptor...")
+    while True:
+        try:
+            if ser.in_waiting > 0:
+                line = ser.readline().decode('utf-8').strip()
+                if line.isdigit():
+                    money = int(line)
+                    with lock:
+                        inserted_money += money
+                        logging.info(f"Total inserted money: {inserted_money}")
+                        if inserted_money >= amount_to_pay:
+                            logging.info("Payment amount reached or exceeded.")
+                            break
+        except serial.SerialException as e:
+            logging.error(f"Serial error: {e}")
+            break
+        except Exception as e:
+            logging.error(f"Unexpected error: {e}")
+            break
+
+# Start cash payment route
+@app.route('/api/start', methods=['POST'])
+def start_cash_payment():
+    global inserted_money, amount_to_pay
+    data = request.get_json()
+    amount_to_pay = data.get('amount', 0)
+    
+    ser.write(b'RESET\n')
+    
+    with lock:
+        inserted_money = 0  # Reset the inserted money
+    
+    threading.Thread(target=read_bill_acceptor, daemon=True).start()
+    return jsonify({"message": "Cash payment started"}), 200
+
+# Check payment status
+@app.route('/api/status', methods=['GET'])
+def check_payment_status():
+    ser.write(b'CHECK\n')
+    response = ser.readline().decode('utf-8').strip()
+    
+    try:
+        total_money = int(response)
+    except ValueError:
+        total_money = 0
+    
+    logging.info(f"Current inserted money: {total_money}")
+    return jsonify({"total_money": total_money}), 200
+
+# Reset bill acceptor
+@app.route('/api/reset', methods=['POST'])
+def reset_bill_acceptor():
+    ser.write(b'RESET\n')
+    response = ser.readline().decode('utf-8').strip()
+    logging.info("Bill acceptor reset")
+    return jsonify({"message": response}), 200
+
+# Stop cash payment
+@app.route('/api/stop', methods=['POST'])
+def stop_cash_payment():
+    ser.write(b'STOP\n')
+    response = ser.readline().decode('utf-8').strip()
+    logging.info("Cash payment stopped")
+    return jsonify({"message": response}), 200
+
+# Create a cash payment
+@app.route('/payments/api/cash/create', methods=['GET'])
+def create_cash_payment():
+    device = request.args.get('device')
+    amount = request.args.get('amount')
+    order_code = f"{device}_{amount}"
+    return jsonify({"order_code": order_code}), 200
+
+# Get MAC address
+@app.route('/get-mac-address', methods=['GET'])
+def get_mac_address():
+    mac = uuid.UUID(int=uuid.getnode()).hex[-12:]
+    mac_address = ':'.join(mac[i:i+2] for i in range(0, 12, 2))
+    return mac_address
+
+# Print image using rundll32
+def print_image_with_rundll32(image_path, frame_type):
+    try:
+        printer_name = 'DS-RX1 (Photostrips)' if frame_type == 'stripx2' else 'DS-RX1'
+        logging.info(f"Printing to {printer_name}")
+        
+        # Print the image using rundll32
+        print_command = f'rundll32.exe C:\\Windows\\System32\\shimgvw.dll,ImageView_PrintTo /pt "{image_path}" "{printer_name}"'
+        logging.debug(f"Executing print command: {print_command}")
+        
+        subprocess.run(print_command, check=True, shell=True)
+        logging.info(f"Print command sent for file: {image_path}")
+    except subprocess.CalledProcessError as e:
+        logging.error(f"Error printing file: {e}")
+        raise
+
+# Switch printer
+@app.route('/api/switch-printer/<printer_model>/<frame_type>/', methods=['POST'])
+def switch_printer(printer_model, frame_type):
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file part'}), 400
+    
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'error': 'No selected file'}), 400
+
+    safe_filename = werkzeug.utils.secure_filename(file.filename)
+    temp_dir = tempfile.gettempdir()
+    file_path = os.path.join(temp_dir, safe_filename)
+    file.save(file_path)
+
+    try:
+        print_image_with_rundll32(file_path, frame_type)
+    except Exception as e:
+        logging.error(f"Error processing print job: {e}")
+        return jsonify({'error': str(e)}), 500
+    finally:
+        if os.path.exists(file_path):
+            os.remove(file_path)  # Cleanup after use
+    
+    return jsonify({'status': 'success', 'message': 'Print job started successfully.'})
+
+# Play sound
+@app.route('/api/play_sound/', methods=['POST'])
+def play_sound():
+    data = request.get_json()
+    if not data or 'file_name' not in data:
+        return jsonify({"error": "File name is required"}), 400
+
+    file_name = data['file_name']
+    sound_files_directory = "playsound/"
+    file_path = os.path.join(sound_files_directory, file_name)
+
+    if not os.path.isfile(file_path):
+        return jsonify({"error": "File not found"}), 404
+
+    threading.Thread(target=play_sound_thread, args=(file_path,), daemon=True).start()
+
+    return jsonify({"status": "Playing sound", "file_name": file_name}), 200
+
+# Function to play sound in a separate thread
+def play_sound_thread(file_path):
+    try:
+        winsound.PlaySound(file_path, winsound.SND_FILENAME)
+    except Exception as e:
+        logging.error(f"Failed to play sound: {str(e)}")
+
 def cleanup_temp_dir():
     shutil.rmtree(temp_dir)
 
 atexit.register(cleanup_temp_dir)
 
+# Run the Flask app
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
