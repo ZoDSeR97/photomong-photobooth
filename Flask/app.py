@@ -21,6 +21,7 @@ import serial
 import serial.tools.list_ports
 import sys
 import winsound
+import cloudinary.uploader
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True, resources={r"/*": {"origins": "*"}})
@@ -114,7 +115,7 @@ def generate():
         if frame is None:
             break
         yield (b'--frame\r\n'
-               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
+               b'Content-Type: image/png\r\n\r\n' + frame + b'\r\n\r\n')
 
 def start_live_view():
     global live_view_process, timer, captured_frames, live_view_thread
@@ -150,16 +151,16 @@ def stop_live_view():
     frame_buffer.clear()
     captured_frames.clear()
 
-@app.route('/video_feed', methods=['GET'])
+@app.route('/api/video_feed', methods=['GET'])
 def video_feed():
     return Response(generate(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
-@app.route('/start_live_view', methods=['GET'])
+@app.route('/api/start_live_view', methods=['GET'])
 def start_live_view_route():
     start_live_view()
     return jsonify(status="Live view started")
 
-@app.route('/stop_live_view', methods=['GET'])
+@app.route('/api/stop_live_view', methods=['GET'])
 def stop_live_view_route():
     stop_live_view()
     return jsonify(status="Live view stopped")
@@ -215,7 +216,7 @@ def kill_process_using_device(vendor_id, product_id):
 def capture_image_with_retries(uuid, retries=5, delay=10):
     current_directory = os.path.dirname(os.path.abspath(__file__))
     date_str = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
-    filename = os.path.join(current_directory, f'{date_str}.jpeg')
+    filename = os.path.join(current_directory, f'{date_str}.png')
     debug_logfile = os.path.join(current_directory, 'gphoto2_debug.log')
 
     vendor_id = '04a9'  # Canon vendor ID
@@ -244,7 +245,7 @@ def capture_image_with_retries(uuid, retries=5, delay=10):
 
     return {'status': 'error', 'message': result.stderr}
 
-@app.route('/capture', methods=['POST'])
+@app.route('/api/capture', methods=['POST'])
 @cross_origin()
 def capture_image():
     global capture_count, video_filename
@@ -359,7 +360,7 @@ def stop_cash_payment():
     return jsonify({"message": response}), 200
 
 # Create a cash payment
-@app.route('/payments/api/cash/create', methods=['GET'])
+@app.route('/api/cash/create', methods=['GET'])
 def create_cash_payment():
     device = request.args.get('device')
     amount = request.args.get('amount')
@@ -367,7 +368,7 @@ def create_cash_payment():
     return jsonify({"order_code": order_code}), 200
 
 # Get MAC address
-@app.route('/get-mac-address', methods=['GET'])
+@app.route('/api/get-mac-address', methods=['GET'])
 def get_mac_address():
     mac = uuid.UUID(int=uuid.getnode()).hex[-12:]
     mac_address = ':'.join(mac[i:i+2] for i in range(0, 12, 2))
@@ -414,6 +415,24 @@ def switch_printer(printer_model, frame_type):
             os.remove(file_path)  # Cleanup after use
     
     return jsonify({'status': 'success', 'message': 'Print job started successfully.'})
+
+@app.post('/api/upload_cloud')
+def uploadPhotoCloud(request):
+    file = request.data.get('photo')
+    
+    upload_data = cloudinary.uploader.upload(file)     
+    
+    # Update order's photo_url_done
+    order_code = request.data.get('order_code')
+    if (order_code):
+        order = Order.objects.filter(order_code=order_code).first()
+        if order:
+            order.photo_url_done = upload_data.get('url')
+            order.save()                    
+        
+    return Response({
+        'photo_url': upload_data.get('url')
+    }, status=201)
 
 # Play sound
 @app.route('/api/play_sound/', methods=['POST'])

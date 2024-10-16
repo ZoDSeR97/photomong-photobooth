@@ -509,15 +509,16 @@ function Sticker() {
           );
 
           console.log('Print response:', response.data);
+          console.log(response.data);
 
           const printUrl = response.data.print_url;
           const printData = response.data.print_data;
-          const uploadsDataPath = response.data.print_data.file_path;
+          /* const uploadsDataPath = response.data.print_data.file_path;
 
           console.log(uploadsDataPath)
           console.log(uploadsDataPath)
           console.log(uploadsDataPath)
-          console.log(uploadsDataPath)
+          console.log(uploadsDataPath) */
 
           const res = await getPhotos(uuid);
           console.log(res)

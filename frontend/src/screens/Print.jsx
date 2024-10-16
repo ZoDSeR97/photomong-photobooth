@@ -34,12 +34,12 @@ function Print() {
           }
      }, []);
 
-     const playAudio = async() => {
+     /* const playAudio = async() => {
           const res=await getAudio({file_name:"thank_being.wav"})
             }
       useEffect(()=>{
       playAudio()
-      },[])
+      },[]) */
   
      const handleMouseEnter = (image) => {
           setHoveredImage(image);
