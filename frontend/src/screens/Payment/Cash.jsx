@@ -105,7 +105,7 @@ function Cash() {
         const framePrice = sessionStorage.getItem('framePrice');
         setAmountToPay(framePrice);
 
-        const response = await fetch(`${import.meta.env.VITE_REACT_APP_BACKEND}/payments/api/cash/create?device=${deviceNumber}&amount=${framePrice}`)
+        const response = await fetch(`${import.meta.env.VITE_REACT_APP_API}/api/cash/create?device=${deviceNumber}&amount=${framePrice}`)
 
         const responseData = await response.json();
         if (responseData) {
@@ -125,7 +125,7 @@ function Cash() {
   useEffect(() => {
     const checkPaymentStatus = async (orderCodeNum) => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_REACT_APP_BACKEND}/payments/api/cash/webhook?order=${orderCodeNum}`)
+        const response = await fetch(`${import.meta.env.VITE_REACT_APP_API}/api/cash/webhook?order=${orderCodeNum}`)
         const responseData = await response.json();
         setInsertedMoney(responseData.total_money);
         if (parseInt(responseData.total_money) >= parseInt(amountToPay)) {
@@ -153,7 +153,7 @@ function Cash() {
     if (orderCode) {
       if (parseInt(insertedMoney) >= parseInt(amountToPay)) {
         axios.post(
-          `${import.meta.env.VITE_REACT_APP_BACKEND}/payments/api/cash/stop`,
+          `${import.meta.env.VITE_REACT_APP_API}/api/cash/stop`,
           {}
         );
         navigate("/payment-result");

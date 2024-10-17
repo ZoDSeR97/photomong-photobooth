@@ -496,10 +496,10 @@ function Sticker() {
           formData.append("uuid", uuid);
           formData.append("frame", selectedFrame);
           // formData.append("photoNum", newPhotoNum);
-
+          console.log(formData.keys);
           // try {
           const response = await originAxiosInstance.post(
-               `${import.meta.env.VITE_REACT_APP_BACKEND}/frames/api/print`,
+               `${import.meta.env.VITE_REACT_APP_API}/api/print`,
                formData,
                {
                     headers: {
@@ -881,7 +881,7 @@ function Sticker() {
                          tempImg.src = photo.url;
 
                          tempImg.onload = () => {
-                              applyStyles(tempImg, { width: 2400, height: 1600, filter: filterEffect });
+                              applyStyles(tempImg, { width: 2400, height: 1600, filter: filterEffect});
                               // tempImg.style.filter= photo.filter
                               resolve(tempImg);
                          };
@@ -902,37 +902,7 @@ function Sticker() {
 
           loadImages();
      }, [selectedPhotos]);
-     // useEffect(() => {
-     //     const loadImages = () => {
-     //         const imagePromises = selectedPhotos.map(index => {
-     //             return new Promise((resolve, reject) => {
-     //                 const photo = photos[index];
-     //                 const tempImg = new Image();
-     //                 tempImg.crossOrigin = 'Anonymous';
-     //                 tempImg.src = photo.url;
 
-     //                 tempImg.onload = () => {
-     //                     // 필터 적용
-     //                     // const filteredImg = applyFilters(tempImg, photo.filter);
-     //                     // resolve(filteredImg);
-     //                 };
-
-     //                 tempImg.onerror = (err) => reject(err);
-     //             });
-     //         });
-
-     //         Promise.all(imagePromises)
-     //             .then((tempImgs) => {
-     //                 setTempImage(tempImgs);
-     //                 console.log("이미지 로딩 끝", tempImgs);
-     //             })
-     //             .catch((error) => {
-     //                 console.error("Error loading images:", error);
-     //             });
-     //     };
-
-     //     loadImages();
-     // }, [selectedPhotos]);
      useEffect(() => {
           if (frameSize.width === "" || frameSize.height === "") return;
 
@@ -1285,7 +1255,7 @@ function Sticker() {
           else {
                const calcedWidth = (width / 2.4) * 1.0;
                const calcedHeight = width / 2.4;
-               const x11 = 20;
+               const x11 = 155;
                const x12 = calcedWidth + x11 + 11;
                const y1 = 20;
 
@@ -1313,6 +1283,7 @@ function Sticker() {
                                              y={y * ratio}
                                              image={tag}
                                              key={photoIndex}
+                                             scaleX={-1}
                                         />
                                    );
                               })

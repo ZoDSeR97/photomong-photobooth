@@ -68,8 +68,8 @@ export default defineConfig({
   
   server: {
     proxy: {
-      '/get_photo/': {
-        target: 'http://127.0.0.1:8000',
+      '/api': {
+        target: 'http://172.30.174.2:5000',
         changeOrigin: true,
       }
     }

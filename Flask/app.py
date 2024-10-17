@@ -1,7 +1,8 @@
-from flask import Flask, jsonify, Response, request
+from flask import Flask, jsonify, Response, request, send_file
 from PIL import Image
 from flask_cors import CORS, cross_origin
 from datetime import datetime
+from dotenv import load_dotenv
 import os
 import subprocess
 import tempfile
@@ -20,10 +21,11 @@ import uuid
 import serial
 import serial.tools.list_ports
 import sys
-import winsound
 import cloudinary.uploader
+import base64
 
 app = Flask(__name__)
+load_dotenv()  # take environment variables from .env.
 CORS(app, supports_credentials=True, resources={r"/*": {"origins": "*"}})
 
 # Optimization changes applied
@@ -58,14 +60,14 @@ def find_arduino_port():
             return p.device
     return None
 
-# Initialize serial communication with Arduino
+""" # Initialize serial communication with Arduino
 arduino_port = find_arduino_port()
 if arduino_port:
     ser = serial.Serial(arduino_port, 9600, timeout=1)
     logging.info(f"Arduino connected on {arduino_port}")
 else:
     logging.error("Arduino not found. Please check the connection.")
-    sys.exit("Arduino not found")
+    sys.exit("Arduino not found") """
 
 def start_video_capture():
     global video_file, video_filename
@@ -216,11 +218,11 @@ def kill_process_using_device(vendor_id, product_id):
 def capture_image_with_retries(uuid, retries=5, delay=10):
     current_directory = os.path.dirname(os.path.abspath(__file__))
     date_str = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
-    filename = os.path.join(current_directory, f'{date_str}.png')
+    filename = os.path.join(current_directory, f'{uuid}/{date_str}.png')
     debug_logfile = os.path.join(current_directory, 'gphoto2_debug.log')
 
     vendor_id = '04a9'  # Canon vendor ID
-    product_id = '330d'  # Example product ID, replace with your camera's product ID
+    product_id = 'r50'  # Example product ID, replace with your camera's product ID
 
     for attempt in range(retries):
         stop_related_processes()
@@ -260,7 +262,7 @@ def capture_image():
     if result['status'] == 'success':
         capture_count += 1
         image_filename = result['file_saved_as']
-        async_upload_file(image_filename, uuid, 'image/png')
+        #async_upload_file(image_filename, uuid, 'image/png')
 
         if capture_count == 1:
             video_filename = start_video_capture()
@@ -268,7 +270,7 @@ def capture_image():
         if capture_count == 8:
             stop_video_capture()
             if video_filename and os.path.exists(video_filename):
-                async_upload_file(video_filename, uuid, 'video/mp4')
+                #async_upload_file(video_filename, uuid, 'video/mp4')
                 response = jsonify({'status': 'success', 'message': 'All images captured and video uploaded'})
             else:
                 response = jsonify({'status': 'success', 'message': 'All images captured, but no video to upload'})
@@ -381,16 +383,15 @@ def print_image_with_rundll32(image_path, frame_type):
         logging.info(f"Printing to {printer_name}")
         
         # Print the image using rundll32
-        print_command = f'rundll32.exe C:\\Windows\\System32\\shimgvw.dll,ImageView_PrintTo /pt "{image_path}" "{printer_name}"'
+        print_command = f"powershell.exe Start-Process 'rundll32.exe' -ArgumentList 'C:\\Windows\\System32\\shimgvw.dll,ImageView_PrintTo /pt \"{image_path}\" \"{printer_name}\"'"
         logging.debug(f"Executing print command: {print_command}")
-        
+
         subprocess.run(print_command, check=True, shell=True)
         logging.info(f"Print command sent for file: {image_path}")
     except subprocess.CalledProcessError as e:
         logging.error(f"Error printing file: {e}")
         raise
 
-# Switch printer
 @app.route('/api/switch-printer/<printer_model>/<frame_type>/', methods=['POST'])
 def switch_printer(printer_model, frame_type):
     if 'file' not in request.files:
@@ -401,8 +402,11 @@ def switch_printer(printer_model, frame_type):
         return jsonify({'error': 'No selected file'}), 400
 
     safe_filename = werkzeug.utils.secure_filename(file.filename)
-    temp_dir = tempfile.gettempdir()
+    temp_dir = os.path.join(f"{os.getcwd()}/print_files")
     file_path = os.path.join(temp_dir, safe_filename)
+    file_path = file_path.replace('/','\\')
+    print(file_path)
+    file_path = f"\\\wsl$\\Ubuntu{file_path}"
     file.save(file_path)
 
     try:
@@ -415,6 +419,87 @@ def switch_printer(printer_model, frame_type):
             os.remove(file_path)  # Cleanup after use
     
     return jsonify({'status': 'success', 'message': 'Print job started successfully.'})
+
+@app.route("/api/print", methods=['POST'])
+def print_photo():
+    try:
+        print("print_photo")
+        folder_path = os.path.join(f"{os.getcwd()}/print_files")
+        folder_path = os.path.abspath(folder_path)
+        print(folder_path)
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
+        frame = request.form['frame']
+        # image_file = request.form['photo'] #cannot assign blob here
+        
+        #if image_file and (image_file.mimetype.startswith('image/')):
+            #image_content = image_file.read()
+        #else:
+            #image_content = base64.b64decode(image_file)
+        if request.files['photo'] and (request.files['photo'].mimetype.startswith('image/')):
+            image_content = request.files['photo'].read()
+        else:
+            image_content = base64.b64decode(request.files['photo'])
+
+        if not request.files['photo'] or not frame:
+            return jsonify({'error': 'Invalid input'}), 400
+        
+        print_url = ''
+        print_file_name = ''
+        if frame == 'Stripx2':
+            print_file_name = 'stripx2.png'
+            print_url = os.getenv("API_PRINTER_CUT")
+        elif frame == '2cut-x2':
+            print_file_name = 'cutx2.png'
+            print_url = os.getenv("API_PRINTER_2")
+        elif frame == '3-cutx2':
+            print_file_name = 'cutx3.png'
+            print_url = os.getenv("API_PRINTER_3")
+        elif frame == '4-cutx2':
+            print_file_name = 'cutx4.png'
+            print_url = os.getenv("API_PRINTER_4")
+        elif frame == '5-cutx2':
+            print_file_name = 'cutx5.png'
+            print_url = os.getenv("API_PRINTER_5")
+        elif frame == '6-cutx2':
+            print_file_name = 'cutx6.png'
+            print_url = os.getenv("API_PRINTER_6")
+        
+        file_path = os.path.join(folder_path, print_file_name)
+
+        print(111)
+        print("file_path")
+        print(file_path)
+        print(111)
+
+        #print(f"Type of image_file: {type(image_file)}")
+        #print(f"Content of image_file: {image_file[:100] if isinstance(image_file, str) else 'Not a string'}")
+
+        with open(file_path, 'wb') as destination:
+            destination.write(image_content)
+
+        # 파일이 제대로 저장되었는지 확인
+        if not os.path.exists(file_path):
+            return jsonify({'status':'error', 'message': 'Failed to save the file'}), 500
+        
+        # 파일 크기 확인
+        file_size = os.path.getsize(file_path)
+        if file_size == 0:
+            return jsonify({'status':'error', 'message': 'Saved file is empty'}), 500
+        
+        # Call POST method to printer                
+        with open(file_path, 'rb') as f:
+            response = requests.post(print_url, files={'file': f})
+
+        print(response.status_code)
+        #print(response.text)
+        if response.status_code == 200:
+            return jsonify({'status':'success', 'message': 'Print job started successfully.'}), 200
+        else:
+            return jsonify({'status':'error', 'message': 'Failed to send print request'}), 500
+    except Exception as e:
+        print(e)
+        return jsonify({'status':'error', 'message': 'Failed to send print request'}), 500
 
 @app.post('/api/upload_cloud')
 def uploadPhotoCloud(request):
@@ -434,30 +519,40 @@ def uploadPhotoCloud(request):
         'photo_url': upload_data.get('url')
     }, status=201)
 
-# Play sound
-@app.route('/api/play_sound/', methods=['POST'])
-def play_sound():
-    data = request.get_json()
-    if not data or 'file_name' not in data:
-        return jsonify({"error": "File name is required"}), 400
-
-    file_name = data['file_name']
-    sound_files_directory = "playsound/"
-    file_path = os.path.join(sound_files_directory, file_name)
-
-    if not os.path.isfile(file_path):
-        return jsonify({"error": "File not found"}), 404
-
-    threading.Thread(target=play_sound_thread, args=(file_path,), daemon=True).start()
-
-    return jsonify({"status": "Playing sound", "file_name": file_name}), 200
-
-# Function to play sound in a separate thread
-def play_sound_thread(file_path):
+# Route to download a file
+@app.route('/api/get_photo', methods=['GET'])
+def download_file():
+    # Assuming the files are stored in a specific directory on WSL
+    uuid = request.args.get('uuid')
+    if (not uuid):
+        return jsonify({'status': 'error', 'message': 'No uuid'}), 200
+    file_directory = os.path.join(os.path.dirname(os.path.abspath(__file__)),  uuid)
     try:
-        winsound.PlaySound(file_path, winsound.SND_FILENAME)
+        file_list = os.listdir(file_directory)
+        print("###########")
+        print("file_list")
+        print(file_list)
+        print("###########")
+        images = [file for file in file_list if file.lower().endswith(('.png', '.jpg', '.jpeg','.mp4'))]
+        image_urls = [
+            {
+                'id': idx, 
+                'url': f"{request.scheme}://{request.host}/api/get_photo/uploads"+os.path.join(f"/{uuid}", image.replace("\\","/"))
+            } for idx, image in enumerate(images)
+        ]
+
+        return jsonify({'status': 'success', 'images': image_urls})
     except Exception as e:
-        logging.error(f"Failed to play sound: {str(e)}")
+        print(e)
+        return jsonify({'status': 'error', 'message': 'File not found'}), 404
+
+@app.route('/api/get_photo/uploads/<path:file_path>', methods=['GET'])
+def serve_photo(file_path):
+    file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), file_path.replace("\\","/"))
+    if os.path.exists(file_path):
+        return send_file(file_path, mimetype="image/png")
+    else:
+        return jsonify({'status': 'error', 'message': 'File not found'}), 404
 
 def cleanup_temp_dir():
     shutil.rmtree(temp_dir)
@@ -466,4 +561,4 @@ atexit.register(cleanup_temp_dir)
 
 # Run the Flask app
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=5000, debug=True)

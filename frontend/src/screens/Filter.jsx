@@ -485,7 +485,7 @@ function Filter() {
                     <div className="choose-photo-row">
                          <div
                               className="choose-photo-item-3cut-top-line"
-                              style={{ backgroundImage: `url(${photos[selectedPhotos[0]].url})`, transform:"scaleX(-1)", filter: getImageStyle() }}
+                              style={{ backgroundImage: `url(${photos[selectedPhotos[0]].url})`, filter: getImageStyle() }}
                          />
                     </div>
                )
@@ -497,7 +497,7 @@ function Filter() {
                                    <div
                                         key={photoIndex}
                                         className={displayClassNameForPhoto(rowIndex, photoIndex)}
-                                        style={{ backgroundImage: `url(${photos[selectedIndex].url})`, transform:"scaleX(-1)", filter: getImageStyle() }}
+                                        style={{ backgroundImage: `url(${photos[selectedIndex].url})`, filter: getImageStyle() }}
                                    />
                               ))}
                          </div>
@@ -509,7 +509,7 @@ function Filter() {
                          <div className="choose-photo-row">
                               <div
                                    className="choose-photo-item-5cut-last-line"
-                                   style={{ backgroundImage: `url(${photos[selectedPhotos[selectedPhotos.length - 1]].url})`, transform:"scaleX(-1)", filter: getImageStyle() }}
+                                   style={{ backgroundImage: `url(${photos[selectedPhotos[selectedPhotos.length - 1]].url})`, filter: getImageStyle() }}
                               />
                          </div>
                     )
@@ -521,7 +521,7 @@ function Filter() {
                                         <div
                                              key={photoIndex}
                                              className={displayClassNameForPhoto(rowIndex, photoIndex)}
-                                             style={{ backgroundImage: `url(${photos[selectedIndex].url})`, transform:"scaleX(-1)", filter: getImageStyle() }}
+                                             style={{ backgroundImage: `url(${photos[selectedIndex].url})`, filter: getImageStyle() }}
                                         />
                                    ))}
                               </div>
@@ -536,7 +536,7 @@ function Filter() {
                                         <div
                                              key={photoIndex}
                                              className={displayClassNameForPhoto(rowIndex, photoIndex)}
-                                             style={{ backgroundImage: `url(${photos[selectedIndex].url})`, transform:"scaleX(-1)", filter: getImageStyle() }}
+                                             style={{ backgroundImage: `url(${photos[selectedIndex].url})`, filter: getImageStyle() }}
                                         />
                                    ))}
                               </div>
@@ -552,7 +552,7 @@ function Filter() {
                                    <div
                                         key={photoIndex}
                                         className={displayClassNameForPhoto(rowIndex, photoIndex)}
-                                        style={{ backgroundImage: `url(${photos[selectedIndex].url})`, transform:"scaleX(-1)", filter: getImageStyle() }}
+                                        style={{ backgroundImage: `url(${photos[selectedIndex].url})`, filter: getImageStyle() }}
                                    />
                               ))}
                          </div>

@@ -39,7 +39,7 @@ function Photo() {
      const [selectedFrame, setSelectedFrame] = useState(null);
      const [myBackground, setMyBackground] = useState(null);
      const [selectedLayout, setSelectedLayout] = useState(null);
-     const [totalSnapshotPhoto, setTotalSnapshotPhoto] = useState(0);
+     const [totalSnapshotPhoto, setTotalSnapshotPhoto] = useState(8);
 
      const [okButtonUrl, setOkButtonUrl] = useState(ok_button_inactive);
      const [takeAgainButtonUrl, setTakeAgainButtonUrl] = useState(take_again_button_inactive);
@@ -58,7 +58,7 @@ function Photo() {
                setSelectedFrame(storedSelectedFrame.frame);
           }
 
-          if (storedSelectedFrame.frame === 'Stripx2') {
+          /* if (storedSelectedFrame.frame === 'Stripx2') {
                setTotalSnapshotPhoto(8);
           } else if (storedSelectedFrame.frame === '2cut-x2') {
                setTotalSnapshotPhoto(2);
@@ -68,7 +68,7 @@ function Photo() {
                setTotalSnapshotPhoto(6);
           } else if (storedSelectedFrame.frame === '4.2-cutx2') {
                setTotalSnapshotPhoto(4);
-          }
+          } */
 
           const sessionSelectedLayout = sessionStorage.getItem('selectedLayout');
           const parsedSelectedLayout = [JSON.parse(sessionSelectedLayout)];
@@ -263,9 +263,9 @@ function Photo() {
                const imageName = latestImage.url.replace(/\\/g, '/').split('/').pop();
                const formattedImage = {
                     ...latestImage,
-                    url: `${import.meta.env.VITE_REACT_APP_BACKEND}/serve_photo/${uuid}/${imageName}`
+                    url: `${import.meta.env.VITE_REACT_APP_API}/serve_photo/${uuid}/${imageName}`
                };
-               console.log("url: ",imageName);
+               console.log("url: ",formattedImage);
                if (photos.videos != undefined) {
                     if (photos.videos.length != 0) {
                          const videoUrl = photos.videos[0].url.replace("get_photo", "download_photo")
@@ -297,7 +297,7 @@ function Photo() {
                          if (photo.id === firstRetakePhotoIndex) {
                               return {
                                    ...photo,
-                                   url: formattedImage.url.replace(/\\/g, '/').replace('serve_photo', `get_photo/uploads`)
+                                   url: formattedImage.url.replace(/\\/g, '/').replace('serve_photo', `api/get_photo/uploads`)
                               };
                          }
                          return photo;
@@ -312,7 +312,7 @@ function Photo() {
                          const newPhotos = [...prevPhotos];
                          newPhotos[currentPhotoCount] = {
                               id: formattedImage.id,
-                              url: formattedImage.url.replace(/\\/g, '/').replace('serve_photo', `get_photo/uploads`)
+                              url: formattedImage.url.replace(/\\/g, '/').replace('serve_photo', `api/get_photo/uploads`)
                          };
                          return newPhotos;
                     });
@@ -329,7 +329,7 @@ function Photo() {
                     <div className="choose-photo-row">
                          <div
                               className="choose-photo-item-3cut-top-line"
-                              style={{ backgroundImage: `url(${capturePhotos[0].url})`, transform: "scaleX(-1)" }}
+                              style={{ backgroundImage: `url(${capturePhotos[0].url})`}}
                               onClick={() => handleRetakePhoto(0)}
                          />
                     </div>
@@ -343,7 +343,7 @@ function Photo() {
                                    <div
                                         key={photoIndex}
                                         className={displayClassNameForPhoto(rowIndex, photoIndex, selectedIndex)}
-                                        style={{ backgroundImage: `url(${capturePhotos[selectedIndex].url})`, transform: "scaleX(-1)" }}
+                                        style={{ backgroundImage: `url(${capturePhotos[selectedIndex].url})`}}
                                         onClick={() => handleRetakePhoto(selectedIndex)}
                                    />
                               ))}
@@ -356,7 +356,7 @@ function Photo() {
                          <div className="choose-photo-row">
                               <div
                                    className="choose-photo-item-5cut-last-line"
-                                   style={{ backgroundImage: `url(${capturePhotos[capturePhotos.length - 1].url})`, transform: "scaleX(-1)" }}
+                                   style={{ backgroundImage: `url(${capturePhotos[capturePhotos.length - 1].url})`}}
                                    onClick={() => handleRetakePhoto(capturePhotos.length - 1)}
                               />
                          </div>
@@ -369,7 +369,7 @@ function Photo() {
                                         <div
                                              key={photoIndex}
                                              className={displayClassNameForPhoto(rowIndex, photoIndex, selectedIndex)}
-                                             style={{ backgroundImage: `url(${capturePhotos[selectedIndex].url})`, transform: "scaleX(-1)" }}
+                                             style={{ backgroundImage: `url(${capturePhotos[selectedIndex].url})`}}
                                              onClick={() => handleRetakePhoto(selectedIndex)}
                                         />
                                    ))}
@@ -386,7 +386,7 @@ function Photo() {
                                         <div
                                              key={photoIndex}
                                              className={displayClassNameForPhoto(rowIndex, photoIndex, selectedIndex)}
-                                             style={{ backgroundImage: `url(${capturePhotos[selectedIndex].url})`, transform: "scaleX(-1)" }}
+                                             style={{ backgroundImage: `url(${capturePhotos[selectedIndex].url})`}}
                                              onClick={() => handleRetakePhoto(selectedIndex)}
                                         />
                                    ))}
@@ -405,7 +405,7 @@ function Photo() {
                                         key={photoIndex}
                                         className={displayClassNameForPhoto(rowIndex, photoIndex, selectedIndex)}
                                         style={{
-                                             backgroundImage: `url(${selectedPhotoHere ? selectedPhotoHere.url : ''})`, transform: "scaleX(-1)"
+                                             backgroundImage: `url(${selectedPhotoHere ? selectedPhotoHere.url : ''})`
                                         }}
                                         onClick={() => handleRetakePhoto(selectedIndex)}
                                    />
@@ -654,7 +654,6 @@ function Photo() {
                const baseStyle = {
                     objectFit: "cover",
                     position: "absolute",
-                    transform: "scaleX(-1)",
                     top: "15%", // Adjust this value to move the element down
                };
                return { ...baseStyle, width: "714px", height: "700px", left: "12%" };
@@ -662,7 +661,6 @@ function Photo() {
                const baseStyle = {
                     objectFit: "cover",
                     position: "absolute",
-                    transform: "scaleX(-1)",
                     top: "20%", // Adjust this value to move the element down
                };
                return { ...baseStyle, width: "882px", height: "600px", left: "2%" };
@@ -670,7 +668,6 @@ function Photo() {
                const baseStyle = {
                     objectFit: "cover",
                     position: "absolute",
-                    transform: "scaleX(-1)",
                     top: "15%", // Adjust this value to move the element down
                };
                return { ...baseStyle, width: "600px", height: "678px", left: "18%" };
@@ -678,7 +675,6 @@ function Photo() {
                const baseStyle = {
                     objectFit: "cover",
                     position: "absolute",
-                    transform: "scaleX(-1)",
                     top: "20%", // Adjust this value to move the element down
                };
                return { ...baseStyle, width: "798px", height: "600px", left: "6%" };

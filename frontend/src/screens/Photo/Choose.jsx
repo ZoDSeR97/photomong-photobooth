@@ -345,7 +345,7 @@ function Choose() {
                     <div className="choose-photo-row">
                          <div
                               className="choose-photo-item-3cut-top-line"
-                              style={{ backgroundImage: `url(${photos[selectedPhotos[0]].url})`, transform: "scaleX(-1)" }}
+                              style={{ backgroundImage: `url(${photos[selectedPhotos[0]].url})`}}
                          />
                     </div>
                )
@@ -357,7 +357,7 @@ function Choose() {
                                    <div
                                         key={photoIndex}
                                         className={displayClassNameForPhoto(rowIndex, photoIndex)}
-                                        style={{ backgroundImage: `url(${photos[selectedIndex].url})`, transform: "scaleX(-1)" }}
+                                        style={{ backgroundImage: `url(${photos[selectedIndex].url})`}}
                                    />
                               ))}
                          </div>
@@ -369,7 +369,7 @@ function Choose() {
                          <div className="choose-photo-row">
                               <div
                                    className="choose-photo-item-5cut-last-line"
-                                   style={{ backgroundImage: `url(${photos[selectedPhotos[selectedPhotos.length - 1]].url})`, transform: "scaleX(-1)" }}
+                                   style={{ backgroundImage: `url(${photos[selectedPhotos[selectedPhotos.length - 1]].url})`}}
                               />
                          </div>
                     )
@@ -381,7 +381,7 @@ function Choose() {
                                         <div
                                              key={photoIndex}
                                              className={displayClassNameForPhoto(rowIndex, photoIndex)}
-                                             style={{ backgroundImage: `url(${photos[selectedIndex].url})`, transform: "scaleX(-1)" }}
+                                             style={{ backgroundImage: `url(${photos[selectedIndex].url})`}}
                                         />
                                    ))}
                               </div>
@@ -396,7 +396,7 @@ function Choose() {
                                         <div
                                              key={photoIndex}
                                              className={displayClassNameForPhoto(rowIndex, photoIndex)}
-                                             style={{ backgroundImage: `url(${photos[selectedIndex].url})`, transform: "scaleX(-1)" }}
+                                             style={{ backgroundImage: `url(${photos[selectedIndex].url})`}}
                                         />
                                    ))}
                               </div>
@@ -415,7 +415,7 @@ function Choose() {
                                    <div
                                         key={photoIndex}
                                         className={displayClassNameForPhoto(rowIndex, photoIndex)}
-                                        style={{ backgroundImage: `url(${photos[selectedIndex].url})`, transform: "scaleX(-1)" }}
+                                        style={{ backgroundImage: `url(${photos[selectedIndex].url})`}}
                                    />
                               ))}
                          </div>
@@ -431,7 +431,7 @@ function Choose() {
                                    <div
                                         key={photoIndex}
                                         className={displayClassNameForPhoto(rowIndex, photoIndex)}
-                                        style={{ backgroundImage: `url(${photos[selectedIndex].url})`, transform: "scaleX(-1)" }}
+                                        style={{ backgroundImage: `url(${photos[selectedIndex].url})`}}
                                    />
                               ))}
                          </div>
@@ -470,7 +470,7 @@ function Choose() {
                                    <div
                                         key={photoIndex}
                                         className={`choose-image ${selectedPhotos.includes(photo.id) ? "clicked" : ""}`}
-                                        style={{ backgroundImage: `url(${photo.url})`, transform: "scaleX(-1)" }}
+                                        style={{ backgroundImage: `url(${photo.url})`}}
                                         onClick={() => toggleSelection(photo.id)}
                                    />
                               ))}
