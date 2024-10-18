@@ -8,8 +8,7 @@ import Layout from './screens/Frame/Layout';
 import PaymentNumber from './screens/Payment/PaymentNumber';
 import Payment from './screens/Payment/Payment';
 import Cash from './screens/Payment/Cash';
-import QR_Momo from './screens/Payment/QR_Momo';
-import QR_Zalopay from './screens/Payment/QR_Zalopay';
+import QRPayment from './screens/Payment/QR';
 import Promo from './screens/Payment/Promo';
 import Result from './screens/Payment/Result';
 import Photo from './screens/Photo/Photo';
@@ -32,8 +31,9 @@ function App() {
         <Route path="/payment" element={<Payment />} />
         <Route path="/payment-result" element={<Result />} />
         <Route path="/payment-cash" element={<Cash />} />
-        <Route path="/payment-momo" element={<QR_Momo />} />
-        <Route path="/payment-zalopay" element={<QR_Zalopay />} />
+        <Route path="/payment-vnpay" element={<QRPayment method="vnpay" />} />
+        <Route path="/payment-momo" element={<QRPayment method="momo"  />} />
+        <Route path="/payment-zalopay" element={<QRPayment method="zalopay" />} />
         <Route path="/payment-promo" element={<Promo />} />
         <Route path="/photo" element={<Photo />} />
         <Route path="/photo-choose" element={<Choose />} />

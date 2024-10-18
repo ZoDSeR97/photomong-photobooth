@@ -154,9 +154,9 @@ function Payment() {
   const goToPay = (method) => {
     if (method === 'cash') {
       navigate('/payment-cash');
+    } else if (method === 'vnpay') {
+      navigate('/payment-vnpay');
     } else if (method === 'momo') {
-      navigate('/payment-momo');
-    }else if (method === 'vnpay') {
       navigate('/payment-momo');
     } else if (method === 'zalopay') {
       navigate('/payment-zalopay');

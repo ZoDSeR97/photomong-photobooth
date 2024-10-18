@@ -1136,12 +1136,12 @@ function Sticker() {
                );
           }
           else if (selectedFrame === "Stripx2") {
-               const calcedHeight = height / 5.1;
+               const calcedHeight = height / 5.;
                const calcedWidth = calcedHeight * 1.45;
 
-               const x11 = 18;
+               const x11 = 174;
                const x12 = calcedWidth + x11 + 26;
-               const y1 = 30;
+               const y1 = 20;
 
                return imgTag.length === 0 ? <></> : (
                     <>
@@ -1167,6 +1167,7 @@ function Sticker() {
                                              y={y * ratio}
                                              image={tag}
                                              key={photoIndex}
+                                             scaleX={-1}
                                         />
                                    );
                               })
@@ -1176,9 +1177,9 @@ function Sticker() {
           }
 
           if (selectedFrame === "2cut-x2") {
-               const calcedWidth = width / 2.2;
+               const calcedWidth = width / 2.1;
                const calcedHeight = calcedWidth * 1.13;
-               const x11 = 20;
+               const x11 = 220;
                const x12 = calcedWidth + x11 + 7;
                const y1 = 29;
 
@@ -1197,7 +1198,7 @@ function Sticker() {
                                              crop={{
                                                   x: crop.x,
                                                   y: crop.y,
-                                                  width: crop.width - 0.1 * crop.x,
+                                                  width: crop.width - (-1.) * crop.x,
                                                   height: crop.height
                                              }}
                                              width={calcedWidth * ratio}
@@ -1206,6 +1207,7 @@ function Sticker() {
                                              y={y * ratio}
                                              image={tag}
                                              key={photoIndex}
+                                             scaleX={-1}
                                         />
                                    );
                               })
@@ -1216,9 +1218,9 @@ function Sticker() {
           else if (selectedFrame === "4-cutx2") {
                const calcedHeight = height / 2.4;
                const calcedWidth = calcedHeight * 1.33;
-               const x11 = 52;
+               const x11 = 220;
                const x12 = calcedWidth + x11 + 17;
-               const y1 = 20;
+               const y1 = 22;
 
                return imgTag.length === 0 ? <></> : (
                     <>
@@ -1235,7 +1237,7 @@ function Sticker() {
                                              crop={{
                                                   x: crop.x,
                                                   y: crop.y,
-                                                  width: crop.width - 0.2 * crop.x,
+                                                  width: crop.width - (-1) * crop.x,
                                                   height: crop.height
                                              }}
                                              width={calcedWidth * ratio}
@@ -1244,6 +1246,7 @@ function Sticker() {
                                              y={y * ratio}
                                              image={tag}
                                              key={photoIndex}
+                                             scaleX={-1}
                                         />
                                    );
                               })
@@ -1253,8 +1256,8 @@ function Sticker() {
 
           }
           else {
-               const calcedWidth = (width / 2.4) * 1.0;
-               const calcedHeight = width / 2.4;
+               const calcedWidth = (width / 2.3) * 1.0;
+               const calcedHeight = width / 2.3;
                const x11 = 155;
                const x12 = calcedWidth + x11 + 11;
                const y1 = 20;
@@ -1274,7 +1277,7 @@ function Sticker() {
                                              crop={{
                                                   x: crop.x,
                                                   y: crop.y,
-                                                  width: crop.width - 0.3 * crop.x,
+                                                  width: crop.width - (-1.) * crop.x,
                                                   height: crop.height - crop.y
                                              }}
                                              width={calcedWidth * ratio}

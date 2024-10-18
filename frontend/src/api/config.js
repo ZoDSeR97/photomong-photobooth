@@ -10,7 +10,7 @@ import axios from "axios";
 // export const videoFeedUrl=`http://127.0.0.1:5000/video_feed`//Photo.js live view url
 const audioBaseURL = "http://127.0.0.1:8001"
 const checkBaseUrl = "http://127.0.0.1:8000"
-const OriginBaseURL = "http://127.0.0.1:5000"
+const OriginBaseURL = "http://127.0.0.1:8000"
 export const startCashUrl = "http://127.0.0.1:5000/api/start/"
 export const BaseURL = "http://127.0.0.1:5000"
 export const videoFeedUrl = `http://127.0.0.1:5000/api/video_feed`//Photo.js live view url
@@ -59,7 +59,7 @@ export const checkPromotionCode = async (payload) => {
 // Photo.js
 export const getPhotos = async (uuid) => {
   try {
-    const { data, status } = await originAxiosInstance.get(`/api/get_photo`, {
+    const { data, status } = await axiosInstance.get(`/api/get_photo`, {
       params: { uuid: uuid }
     });
     return data;
@@ -71,7 +71,7 @@ export const getPhotos = async (uuid) => {
 
 export const deletePhoto = async (uuid, photoName) => {
   try {
-    const { data, status } = await originAxiosInstance.get(`/api/get_photo/delete/${uuid}/${photoName}`);
+    const { data, status } = await axiosInstance.get(`/api/get_photo/delete/${uuid}/${photoName}`);
     return data;
   } catch (error) {
     console.error("Error deleting photo:", error);

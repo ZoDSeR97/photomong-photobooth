@@ -3,6 +3,7 @@ from PIL import Image
 from flask_cors import CORS, cross_origin
 from datetime import datetime
 from dotenv import load_dotenv
+from pathlib import PureWindowsPath, PurePosixPath
 import os
 import subprocess
 import tempfile
@@ -383,7 +384,7 @@ def print_image_with_rundll32(image_path, frame_type):
         logging.info(f"Printing to {printer_name}")
         
         # Print the image using rundll32
-        print_command = f"powershell.exe Start-Process 'rundll32.exe' -ArgumentList 'C:\\Windows\\System32\\shimgvw.dll,ImageView_PrintTo /pt \"{image_path}\" \"{printer_name}\"'"
+        print_command = f"powershell.exe Start-Process 'rundll32.exe' -ArgumentList 'C:\\Windows\\System32\\shimgvw.dll,ImageView_PrintTo', '\"/pt\"', '{image_path}', '{printer_name}'"
         logging.debug(f"Executing print command: {print_command}")
 
         subprocess.run(print_command, check=True, shell=True)
