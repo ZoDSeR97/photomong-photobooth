@@ -152,7 +152,7 @@ function PaymentNumber(props) {
       className='payment-number-container'
       style={{ backgroundImage: `url(${background})` }}
     >
-      <div className="go-back" style={{ backgroundImage: `url(${goBackBg})` }} onClick={() => {
+      <div className="go-back" style={{ backgroundImage: `url(${goBackBg})`, top:`4.2%`, left: `11%`}} onClick={() => {
         //getClickAudio()
         navigate("/layout")
       }} onMouseEnter={() => hoverGoBackBtn(language)} onMouseLeave={() => hoverGoBackBtn(language)}></div>

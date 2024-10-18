@@ -20,11 +20,14 @@ import goback_kr from '../assets/Common/kr/goback.png';
 import goback_kr_hover from '../assets/Common/kr/gobackhover.png';
 import goback_vn from '../assets/Common/vn/goback.png';
 import goback_vn_hover from '../assets/Common/vn/gobackhover.png';
+import goback_mn from '../assets/Common/mn/goback.png';
+import goback_mn_hover from '../assets/Common/mn/gobackhover.png';
 
 // Background
 import background_en from '../assets/Filter/BG.png';
 import background_kr from '../assets/Filter/kr/BG.png';
 import background_vn from '../assets/Filter/vn/BG.png';
+import background_mn from '../assets/Filter/mn/BG.png';
 
 // Filter
 import personal_en from '../assets/Filter/personal.png';
@@ -33,6 +36,8 @@ import personal_kr from '../assets/Filter/kr/personality-default.png';
 import personal_kr_click from '../assets/Filter/kr/personality-pressed.png';
 import personal_vn from '../assets/Filter/vn/personality-default.png';
 import personal_vn_click from '../assets/Filter/vn/personality-pressed.png';
+import personal_mn from '../assets/Filter/mn/personality-default.png';
+import personal_mn_click from '../assets/Filter/mn/personality-pressed.png';
 
 import natural_en from '../assets/Filter/natural.png';
 import natural_en_click from '../assets/Filter/natural_click.png';
@@ -40,6 +45,8 @@ import natural_kr from '../assets/Filter/kr/natural-default.png';
 import natural_kr_click from '../assets/Filter/kr/natural-pressed.png';
 import natural_vn from '../assets/Filter/vn/natural-default.png';
 import natural_vn_click from '../assets/Filter/vn/natural-pressed.png';
+import natural_mn from '../assets/Filter/mn/natural-default.png';
+import natural_mn_click from '../assets/Filter/mn/natural-pressed.png';
 
 import pink_en from '../assets/Filter/pink.png';
 import pink_en_click from '../assets/Filter/pink_click.png';
@@ -47,6 +54,8 @@ import pink_kr from '../assets/Filter/kr/pink-default.png';
 import pink_kr_click from '../assets/Filter/kr/pink-pressed.png';
 import pink_vn from '../assets/Filter/vn/pink-default.png';
 import pink_vn_click from '../assets/Filter/vn/pink-pressed.png';
+import pink_mn from '../assets/Filter/mn/pink-default.png';
+import pink_mn_click from '../assets/Filter/mn/pink-pressed.png';
 
 import classic_en from '../assets/Filter/classic.png';
 import classic_en_click from '../assets/Filter/classic_click.png';
@@ -54,6 +63,9 @@ import classic_kr from '../assets/Filter/kr/classic-default.png';
 import classic_kr_click from '../assets/Filter/kr/classic-pressed.png';
 import classic_vn from '../assets/Filter/vn/classic-default.png';
 import classic_vn_click from '../assets/Filter/vn/classic-pressed.png';
+import classic_mn from '../assets/Filter/mn/classic-default.png';
+import classic_mn_click from '../assets/Filter/mn/classic-pressed.png';
+
 
 import bw_en from '../assets/Filter/bnw.png';
 import bw_en_click from '../assets/Filter/bnw_click.png';
@@ -61,6 +73,8 @@ import bw_kr from '../assets/Filter/kr/bw-default.png';
 import bw_kr_click from '../assets/Filter/kr/bw-pressed.png';
 import bw_vn from '../assets/Filter/vn/bw-default.png';
 import bw_vn_click from '../assets/Filter/vn/bw-pressed.png';
+import bw_mn from '../assets/Filter/mn/bw-default.png';
+import bw_mn_click from '../assets/Filter/mn/bw-pressed.png';
 
 import skin_en from '../assets/Filter/smooth.png';
 import skin_en_click from '../assets/Filter/smooth_click.png';
@@ -68,10 +82,13 @@ import skin_kr from '../assets/Filter/kr/smooth-default.png';
 import skin_kr_click from '../assets/Filter/kr/smooth-pressed.png';
 import skin_vn from '../assets/Filter/vn/smooth-default.png';
 import skin_vn_click from '../assets/Filter/vn/smooth-pressed.png';
+import skin_mn from '../assets/Filter/mn/smooth-default.png';
+import skin_mn_click from '../assets/Filter/mn/smooth-pressed.png';
 
 import intensity_en from '../assets/Filter/intensity.png';
 import intensity_kr from '../assets/Filter/kr/intensity.png';
 import intensity_vn from '../assets/Filter/vn/intensity.png';
+import intensity_mn from '../assets/Filter/mn/intensity.png';
 
 // Continue
 import continue_en from '../assets/Common/continue.png';
@@ -80,6 +97,8 @@ import continue_kr from '../assets/Common/kr/continue.png';
 import continue_kr_hover from '../assets/Common/kr/continue_click.png';
 import continue_vn from '../assets/Common/vn/continue.png';
 import continue_vn_hover from '../assets/Common/vn/continue_click.png';
+import continue_mn from '../assets/Common/mn/continue.png';
+import continue_mn_hover from '../assets/Common/mn/continue_click.png';
 
 function Filter() {
      const { t } = useTranslation();
@@ -169,15 +188,15 @@ function Filter() {
 
      const handlePhotoClick = (selectedIndex) => {
           if (selectedId.includes(selectedIndex)) {
-              const filteredIds = selectedId.filter((id) => id !== selectedIndex);
-              setSelectedId(filteredIds);
-      
-              const { [selectedIndex]: _, ...rest } = filterEffect;
-              setFilterEffect(rest);
+               const filteredIds = selectedId.filter((id) => id !== selectedIndex);
+               setSelectedId(filteredIds);
+
+               const { [selectedIndex]: _, ...rest } = filterEffect;
+               setFilterEffect(rest);
           } else {
-              setSelectedId([selectedIndex]);
+               setSelectedId([selectedIndex]);
           }
-      };
+     };
 
      const chunkArray = (arr, size) => {
           return arr.reduce((acc, _, i) => (i % size ? acc : [...acc, arr.slice(i, i + size)]), []);
@@ -222,6 +241,17 @@ function Filter() {
                     setContinueButton(continue_vn);
                     setIntensity(intensity_vn);
                     setGoBackButton(goback_vn);
+               } else if (storedLanguage === 'mn') {
+                    setBackground(background_mn);
+                    setPersonality(personal_mn);
+                    setNatural(natural_mn);
+                    setPink(pink_mn);
+                    setClassic(classic_mn);
+                    setBw(bw_mn);
+                    setSmooth(skin_mn);
+                    setContinueButton(continue_mn);
+                    setIntensity(intensity_mn);
+                    setGoBackButton(goback_mn);
                }
           }
 
@@ -580,6 +610,8 @@ function Filter() {
                     setPersonality(personality == personal_vn ? personal_vn_click : personal_vn);
                } else if (language == 'ko') {
                     setPersonality(personality == personal_kr ? personal_kr_click : personal_kr);
+               } else if (language === 'mn') {
+                    setPersonality(personality === personal_mn ? personal_mn_click : personal_mn);
                }
           } else if (effect == 'natural') {
                if (language == 'en') {
@@ -588,6 +620,8 @@ function Filter() {
                     setNatural(natural == natural_vn ? natural_vn_click : natural_vn);
                } else if (language == 'ko') {
                     setNatural(natural == natural_kr ? natural_kr_click : natural_kr);
+               } else if (language === 'mn') {
+                    setNatural(natural === natural_mn ? natural_mn_click : natural_mn);
                }
           } else if (effect == 'pink') {
                if (language == 'en') {
@@ -596,6 +630,8 @@ function Filter() {
                     setPink(pink == pink_vn ? pink_vn_click : pink_vn);
                } else if (language == 'ko') {
                     setPink(pink == pink_kr ? pink_kr_click : pink_kr);
+               } else if (language === 'mn') {
+                    setPink(pink === pink_mn ? pink_mn_click : pink_mn);
                }
           } else if (effect == 'classic') {
                if (language == 'en') {
@@ -604,6 +640,8 @@ function Filter() {
                     setClassic(classic == classic_vn ? classic_vn_click : classic_vn);
                } else if (language == 'ko') {
                     setClassic(classic == classic_kr ? classic_kr_click : classic_kr);
+               } else if (language === 'mn') {
+                    setClassic(classic === classic_mn ? classic_mn_click : classic_mn);
                }
           } else if (effect == 'bw') {
                if (language == 'en') {
@@ -612,6 +650,8 @@ function Filter() {
                     setBw(bw == bw_vn ? bw_vn_click : bw_vn);
                } else if (language == 'ko') {
                     setBw(bw == bw_kr ? bw_kr_click : bw_kr);
+               } else if (language === 'mn') {
+                    setBw(bw === bw_mn ? bw_mn_click : bw_mn);
                }
           } else if (effect == 'smooth') {
                if (language == 'en') {
@@ -620,6 +660,8 @@ function Filter() {
                     setSmooth(smooth == skin_vn ? skin_vn_click : skin_vn);
                } else if (language == 'ko') {
                     setSmooth(smooth == skin_kr ? skin_kr_click : skin_kr);
+               } else if (language === 'mn') {
+                    setSmooth(smooth === skin_mn ? skin_mn_click : skin_mn);
                }
           }
      }
@@ -631,6 +673,8 @@ function Filter() {
                setGoBackButton(goBackButton == goback_vn_hover ? goback_vn : goback_vn_hover);
           } else if (language == 'ko') {
                setGoBackButton(goBackButton == goback_kr_hover ? goback_kr : goback_kr_hover);
+          } else if (language === 'mn') {
+               setGoBackButton(goBackButton === goback_mn_hover ? goback_mn : goback_mn_hover);
           }
      }
 
@@ -641,6 +685,8 @@ function Filter() {
                setContinueButton(continueButton == continue_vn_hover ? continue_vn : continue_vn_hover);
           } else if (language == 'ko') {
                setContinueButton(continueButton == continue_kr_hover ? continue_kr : continue_kr_hover);
+          } else if (language === 'mn') {
+               setContinueButton(continueButton === continue_mn_hover ? continue_mn : continue_mn_hover);
           }
      }
 
@@ -649,7 +695,7 @@ function Filter() {
 
      return (
           <div className='filter-container' style={{ backgroundImage: `url(${background})`, cursor: 'none' }}>
-               <div className="go-back" style={{ backgroundImage: `url(${goBackButton})` }} onClick={() => navigate("/photo-choose")} onMouseEnter={() => hoverGoBackButton()} onMouseLeave={() => hoverGoBackButton()}></div>
+               <div className="go-back" style={{ backgroundImage: `url(${goBackButton})`, top:`4.2%`, left: `11%` }} onClick={() => navigate("/photo-choose")} onMouseEnter={() => hoverGoBackButton()} onMouseLeave={() => hoverGoBackButton()}></div>
                <div className="left-big-frame">
                     <div className={displayClassNameForBackground()} style={{ backgroundImage: `url(${myBackground})` }}>
                          {showSelectedPhotos()}

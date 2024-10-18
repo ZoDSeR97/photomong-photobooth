@@ -223,7 +223,7 @@ def capture_image_with_retries(uuid, retries=5, delay=10):
     debug_logfile = os.path.join(current_directory, 'gphoto2_debug.log')
 
     vendor_id = '04a9'  # Canon vendor ID
-    product_id = 'r50'  # Example product ID, replace with your camera's product ID
+    product_id = '330d'  # Example product ID, replace with your camera's product ID
 
     for attempt in range(retries):
         stop_related_processes()
@@ -406,8 +406,8 @@ def switch_printer(printer_model, frame_type):
     temp_dir = os.path.join(f"{os.getcwd()}/print_files")
     file_path = os.path.join(temp_dir, safe_filename)
     file_path = file_path.replace('/','\\')
-    print(file_path)
     file_path = f"\\\wsl$\\Ubuntu{file_path}"
+    print(file_path)
     file.save(file_path)
 
     try:
@@ -431,12 +431,7 @@ def print_photo():
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
         frame = request.form['frame']
-        # image_file = request.form['photo'] #cannot assign blob here
         
-        #if image_file and (image_file.mimetype.startswith('image/')):
-            #image_content = image_file.read()
-        #else:
-            #image_content = base64.b64decode(image_file)
         if request.files['photo'] and (request.files['photo'].mimetype.startswith('image/')):
             image_content = request.files['photo'].read()
         else:
@@ -472,9 +467,6 @@ def print_photo():
         print("file_path")
         print(file_path)
         print(111)
-
-        #print(f"Type of image_file: {type(image_file)}")
-        #print(f"Content of image_file: {image_file[:100] if isinstance(image_file, str) else 'Not a string'}")
 
         with open(file_path, 'wb') as destination:
             destination.write(image_content)

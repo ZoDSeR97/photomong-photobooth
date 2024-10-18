@@ -292,7 +292,7 @@ function Layout() {
                     // backgroundColor:"red"
                }}
           >
-               <div className="go-back" style={{ backgroundImage: `url(${goBackBg})` }} onClick={() => navigate("/background")} onMouseEnter={() => hoverGoBackBtn(language)} onMouseLeave={() => hoverGoBackBtn(language)}></div>
+               <div className="go-back" style={{ backgroundImage: `url(${goBackBg})`, top:`4.2%`, left: `11%` }} onClick={() => navigate("/background")} onMouseEnter={() => hoverGoBackBtn(language)} onMouseLeave={() => hoverGoBackBtn(language)}></div>
                <div className="style-section"
                     draggable={false}
                     onDragStart={onDrag}

@@ -9,6 +9,8 @@ import start_vn from '../assets/Home/vn/start.png';
 import start_click_vn from '../assets/Home/vn/start_click.png';
 import start_kr from '../assets/Home/kr/start.png';
 import start_click_kr from '../assets/Home/kr/start_click.png';
+import start_mn from '../assets/Home/mn/start.png';
+import start_click_mn from '../assets/Home/mn/start_click.png';
 
 function App() {
   const [language, setLanguage] = useState('en');
@@ -33,6 +35,15 @@ function App() {
     setDisplayLanguage(t(`language.${selectedLanguage}`));
 
     changeButtonBackground(selectedLanguage);
+    if (selectedLanguage === 'en') {
+      setButtonBackground(buttonBackground === start_en ? start_click_en : start_en);
+    } else if (selectedLanguage === 'vi') {
+      setButtonBackground(buttonBackground === start_vn ? start_click_vn : start_vn);
+    } else if (selectedLanguage === 'ko') {
+      setButtonBackground(buttonBackground === start_kr ? start_click_kr : start_kr);
+    }else if(selectedLanguage === "mn"){
+      setButtonBackground(buttonBackground === start_mn ? start_click_mn : start_mn);
+    }
   };
 
   const toggleShowLangOption = () => {
@@ -46,6 +57,8 @@ function App() {
       setButtonBackground(buttonBackground === start_vn ? start_click_vn : start_vn);
     } else if (lang === 'ko') {
       setButtonBackground(buttonBackground === start_kr ? start_click_kr : start_kr);
+    } else if(lang ==="mn"){
+      setButtonBackground(buttonBackground === start_mn ? start_click_mn : start_mn);
     }
   }
 
@@ -58,6 +71,7 @@ function App() {
             <p className='language-text' onClick={() => handleChangeLanguage('en')}>{t('language.en')}</p>
             <p className='language-text' onClick={() => handleChangeLanguage('ko')}>{t('language.ko')}</p>
             <p className='language-text' onClick={() => handleChangeLanguage('vi')}>{t('language.vi')}</p>
+            <p className='language-text' onClick={() => handleChangeLanguage('mn')}>{t('language.mn')}</p>
           </div>
         }
       </div>

@@ -77,10 +77,10 @@
 .go-back-frame {
     position: absolute;
     /* Position div absolutely within the container */
-    top: 7.5%;
+    top: 13%;
     left: 11%;
     /* Distance from left of container */
-    width: 8%;
+    width: 9%;
     /* Set width of the div */
     height: 10%;
     /* Set height of the div */    

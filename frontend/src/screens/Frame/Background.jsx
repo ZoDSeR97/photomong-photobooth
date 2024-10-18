@@ -82,69 +82,69 @@ function Background() {
 
      const fetchBackgrounds = async () => {
           try {
-              // const response = await originAxiosInstance.get(`${import.meta.env.VITE_REACT_APP_BACKEND}/backgrounds/api`)
-              const response = await originAxiosInstance.get(`/backgrounds/api`);
-              const backgroundDatas = response.data;
-              const storedLanguage = sessionStorage.getItem('language');
-      
-              const newBackgrounds = backgroundDatas.map(item => {
-               let photo, photo_hover;
-               switch (storedLanguage) {
-                   case 'en':
-                       photo = import.meta.env.VITE_REACT_APP_BACKEND + item.photo;
-                       photo_hover = import.meta.env.VITE_REACT_APP_BACKEND + item.photo_hover;
-                       break;
-                   case 'ko':
-                       photo = import.meta.env.VITE_REACT_APP_BACKEND + item.photo_kr;
-                       photo_hover = import.meta.env.VITE_REACT_APP_BACKEND + item.photo_kr_hover;
-                       break;
-                   case 'vi':
-                       photo = import.meta.env.VITE_REACT_APP_BACKEND + item.photo_vn;
-                       photo_hover = import.meta.env.VITE_REACT_APP_BACKEND + item.photo_vn_hover;
-                       break;
-                   case 'mn':
-                       switch (item.title) {
-                           case 'Season':
-                               photo = season_default_mn;
-                               photo_hover=season_pressed_mn;
-                               break;
-                           case 'Party':
-                               photo = party_default_mn;
-                               photo_hover=party_pressed_mn
-                               break;
-                           case 'Cartoon':
-                               photo = cartoon_default_mn;
-                               photo_hover=cartoon_pressed_mn
-                               break;
-                               case 'Minimalism':
-                                   photo = minimalism_default_mn;
-                                   photo_hover=minimalism_pressed_mn
-                                   break;
-                           default:
-                               photo = season_default_mn; // default value if title is not Season, Party, or Cartoon
-                               photo_hover=season_pressed_mn
-                               break;
-                       }
-                    //    photo_hover = import.meta.env.VITE_REACT_APP_BACKEND + item.photo_mn_hover;
-                       break;
-                   default:
-                       photo = import.meta.env.VITE_REACT_APP_BACKEND + item.photo;
-                       photo_hover = import.meta.env.VITE_REACT_APP_BACKEND + item.photo_hover;
-               }
-           
-               return {
-                   title: item.title,
-                   photo: photo,
-                   photo_hover: photo_hover
-               };
-           });
-           
-              setBackgrounds(backgrounds.concat(newBackgrounds));
+               // const response = await originAxiosInstance.get(`${import.meta.env.VITE_REACT_APP_BACKEND}/backgrounds/api`)
+               const response = await originAxiosInstance.get(`/backgrounds/api`);
+               const backgroundDatas = response.data;
+               const storedLanguage = sessionStorage.getItem('language');
+
+               const newBackgrounds = backgroundDatas.map(item => {
+                    let photo, photo_hover;
+                    switch (storedLanguage) {
+                         case 'en':
+                              photo = import.meta.env.VITE_REACT_APP_BACKEND + item.photo;
+                              photo_hover = import.meta.env.VITE_REACT_APP_BACKEND + item.photo_hover;
+                              break;
+                         case 'ko':
+                              photo = import.meta.env.VITE_REACT_APP_BACKEND + item.photo_kr;
+                              photo_hover = import.meta.env.VITE_REACT_APP_BACKEND + item.photo_kr_hover;
+                              break;
+                         case 'vi':
+                              photo = import.meta.env.VITE_REACT_APP_BACKEND + item.photo_vn;
+                              photo_hover = import.meta.env.VITE_REACT_APP_BACKEND + item.photo_vn_hover;
+                              break;
+                         case 'mn':
+                              switch (item.title) {
+                                   case 'Season':
+                                        photo = season_default_mn;
+                                        photo_hover = season_pressed_mn;
+                                        break;
+                                   case 'Party':
+                                        photo = party_default_mn;
+                                        photo_hover = party_pressed_mn
+                                        break;
+                                   case 'Cartoon':
+                                        photo = cartoon_default_mn;
+                                        photo_hover = cartoon_pressed_mn
+                                        break;
+                                   case 'Minimalism':
+                                        photo = minimalism_default_mn;
+                                        photo_hover = minimalism_pressed_mn
+                                        break;
+                                   default:
+                                        photo = season_default_mn; // default value if title is not Season, Party, or Cartoon
+                                        photo_hover = season_pressed_mn
+                                        break;
+                              }
+                              //    photo_hover = import.meta.env.VITE_REACT_APP_BACKEND + item.photo_mn_hover;
+                              break;
+                         default:
+                              photo = import.meta.env.VITE_REACT_APP_BACKEND + item.photo;
+                              photo_hover = import.meta.env.VITE_REACT_APP_BACKEND + item.photo_hover;
+                    }
+
+                    return {
+                         title: item.title,
+                         photo: photo,
+                         photo_hover: photo_hover
+                    };
+               });
+
+               setBackgrounds(backgrounds.concat(newBackgrounds));
           } catch (error) {
-              console.error(error);
+               console.error(error);
           }
-      }
-      
+     }
+
 
      const handleMouseEnter = (image) => {
           setHoveredImage(image);
@@ -169,13 +169,13 @@ function Background() {
                setGoBackBg(goBackBg === goback_mn ? goback_mn_hover : goback_mn);
           }
 
-           else {
+          else {
                setGoBackBg(goBackBg === goback_en ? goback_en_hover : goback_en);
           }
      }
      return (
           <div className='style-container' style={{ backgroundImage: `url(${backgroundContainer})` }}>
-               <div className="go-back" style={{ backgroundImage: `url(${goBackBg})` }} onClick={() => navigate("/frame")} onMouseEnter={() => hoverGoBackBtn(language)} onMouseLeave={() => hoverGoBackBtn(language)}></div>
+               <div className="go-back" style={{ backgroundImage: `url(${goBackBg})`, top:`4.2%`, left: `11%`}} onClick={() => navigate("/frame")} onMouseEnter={() => hoverGoBackBtn(language)} onMouseLeave={() => hoverGoBackBtn(language)}></div>
                <div className="style-section">
                     {backgrounds.map((item, index) => (
                          <div key={index} className="style-column">

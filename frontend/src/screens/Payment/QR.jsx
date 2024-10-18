@@ -13,12 +13,14 @@ import goback_kr from '../../assets/Common/kr/goback.png';
 import goback_kr_hover from '../../assets/Common/kr/gobackhover.png';
 import goback_vn from '../../assets/Common/vn/goback.png';
 import goback_vn_hover from '../../assets/Common/vn/gobackhover.png';
+import goback_mn from '../../assets/Common/mn/goback.png';
+import goback_mn_hover from '../../assets/Common/mn/gobackhover.png';
 
 // Background
 import background_en from '../../assets/Payment/QR/BG.png';
 import background_vn from '../../assets/Payment/QR/vn/BG.png';
 import background_kr from '../../assets/Payment/QR/kr/BG.png';
-
+import background_mn from '../../assets/Payment/QR/mn/BG.png';
 
 QRPayment.propTypes = {
     method: PropTypes.string.isRequired,  // Ensures 'method' is a string and is required
@@ -42,7 +44,11 @@ function QRPayment({ method }) { // 'method' can be 'momo', 'vnpay', or 'zalopay
         } else if (storedLanguage === 'vi') {
             setGoBackBg(goback_vn);
             setBackground(background_vn);
-        } else {
+        } else if (storedLanguage === 'mn') {
+            setGoBackBg(goback_mn);
+            setBackground(background_mn);
+        }
+        else {
             setGoBackBg(goback_en);
             setBackground(background_en);
         }
@@ -109,7 +115,7 @@ function QRPayment({ method }) { // 'method' can be 'momo', 'vnpay', or 'zalopay
             <div className='qr-code'>
                 {qrCode && <QRCodeSVG value={qrCode} size={200} />}
             </div>
-            <div className="go-back" style={{ backgroundImage: `url(${goBackBg})` }} onClick={goBack}></div>
+            <div className="go-back" style={{ backgroundImage: `url(${goBackBg})`, top:`4.2%`, left: `11%` }} onClick={goBack}></div>
         </div>
     );
 };
