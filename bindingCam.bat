@@ -1,6 +1,6 @@
 REM
 echo Starting app.py in WSL with sudo...
-start wsl -e bash -c "sudo python3 /home/user/Flask/app.py; exec bash"
+start wsl -e bash -c "cd; sudo python3 /home/user/Flask/app.py; exec bash"
 
 @echo off
 echo Searching for Canon...
