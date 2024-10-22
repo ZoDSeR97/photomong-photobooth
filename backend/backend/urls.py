@@ -26,7 +26,9 @@ from payment import urls as payment_urls
 from revenue import urls as revenue_urls
 from dashboard import urls as dashboard_urls
 from account import urls as account_urls
+from momo import urls as momo_urls
 from zalopay import urls as zalopay_urls
+from qpay import urls as qpay_urls
 from redeem import urls as redeem_urls
 from upload import urls as upload_urls
 from get_photo import urls as get_photo_urls
@@ -48,6 +50,8 @@ urlpatterns = [
     path('', include(dashboard_urls)),
     path('account/', include(account_urls)),
     path('zalopay/', include(zalopay_urls)),
+    path('qpay/', include(qpay_urls)),
+    path('momo/', include(momo_urls)),
     path('redeem/', include(redeem_urls)),
     path('upload/', include(upload_urls)),  # upload 앱의 URL을 include
     path('get_photo/', include(get_photo_urls)),  # upload 앱의 URL을 include
