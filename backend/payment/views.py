@@ -1,192 +1,264 @@
+import requests
+from django.shortcuts import render, redirect
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework import permissions
+from .models import Payment
+from .serializers import PaymentSerializer
+from django.views import View
+from django.views.generic import ListView, DetailView, CreateView
+from django.http import HttpRequest, HttpResponse, JsonResponse
+from django.urls import reverse_lazy
+from .forms import PaymentForm
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib import messages
 from django.http import JsonResponse
+from revenue.models import Transaction, Order
+from redeem.models import Redeem
+import random
+import string
 from django.views.decorators.csrf import csrf_exempt
-from PIL import Image, ImageWin
+from device.models import Device
 import os
-import subprocess
-import tempfile
-import threading
-import uuid
-import json
-import logging
-import win32print
-import win32ui
-#from payments.apps import ser  # Import the globally initialized serial object
+from django.conf import settings
+import datetime
+from datetime import datetime as dt
 
-# Setup logger
-logging.basicConfig(level=logging.DEBUG)
+# Create your views here.
+def random_string_generator(size=10, chars=string.ascii_lowercase + string.digits):
+    return ''.join(random.choice(chars) for _ in range(size))
 
-# Global variables for payment handling
-inserted_money = 0
-amount_to_pay = 0
-lock = threading.Lock()
-
-# Function to read the bill acceptor in a separate thread
-
-
-def read_bill_acceptor():
-    global inserted_money
-    logging.info("Starting to read from bill acceptor...")
-    while True:
-        try:
-            if ser.in_waiting > 0:
-                line = ser.readline().decode('utf-8').strip()
-                if line.isdigit():
-                    money = int(line)
-                    with lock:
-                        inserted_money += money
-                        logging.info(f"Total inserted money: {inserted_money}")
-                        if inserted_money >= amount_to_pay:
-                            logging.info("Payment amount reached or exceeded.")
-                            break
-        except serial.SerialException as e:
-            logging.error(f"Serial error: {e}")
-            break
-        except Exception as e:
-            logging.error(f"Unexpected error: {e}")
-            break
-
-# Start cash payment
+@csrf_exempt
+def start_cash_pay(request):
+    url = settings.API_CASH_READER + '/api/cash/start/'
+    payload = {}
+    headers = {}
+    response = requests.request("POST", url, headers=headers, data=payload)
+    print(response.text)
 
 
 @csrf_exempt
-def start_cash_payment(request):
-    global inserted_money, amount_to_pay
-    if request.method == 'POST':
-        data = json.loads(request.body.decode('utf-8'))
-        amount_to_pay = data.get('amount', 0)
-
-        ser.write(b'RESET\n')  # Reset the bill acceptor
-
-        with lock:
-            inserted_money = 0  # Reset the inserted money
-
-        threading.Thread(target=read_bill_acceptor, daemon=True).start()
-        return JsonResponse({"message": "Cash payment started"}, status=200)
-
-# Check payment status
-
-
-@csrf_exempt
-def check_payment_status(request):
-    ser.write(b'CHECK\n')  # Send the CHECK command to the Arduino
-    response = ser.readline().decode('utf-8').strip()
-
+def stop_cash_pay(request):
     try:
-        total_money = int(response)
-    except ValueError:
-        total_money = 0
+        cash_url = settings.API_CASH_READER + '/api/cash/stop/'
+        response = requests.post(cash_url, {})
+        return JsonResponse({'message': 'Stop'}, status=status.HTTP_200_OK)                
+    except Payment.DoesNotExist:
+        return JsonResponse({'error': 'Payment not found'}, status=status.HTTP_404_NOT_FOUND)            
+    return JsonResponse({'error': 'Error Failed'}, status=status.HTTP_200_OK)           
+    
+@csrf_exempt
+def create_cash_order(request):
+        device_code = request.GET.get('device')
+        amount = request.GET.get("amount")
+        order_code = random_string_generator()        
 
-    logging.info(f"Current inserted money: {total_money}")
-    return JsonResponse({"total_money": total_money}, status=200)
-
-# Reset bill acceptor
-
+        order = Order.objects.create(
+            order_code=order_code,
+            device_id=Device.objects.filter(code=device_code).first(),
+            product_price=amount,
+            base_price=0,
+            tax=0,
+            total_price=amount,
+            status="Pending",
+        )    
+        return JsonResponse({'order_code': order_code})    
 
 @csrf_exempt
-def reset_bill_acceptor(request):
-    ser.write(b'RESET\n')  # Send RESET command to the Arduino
-    response = ser.readline().decode('utf-8').strip()
-    logging.info("Bill acceptor reset")
-    return JsonResponse({"message": response}, status=200)
-
-# Stop cash payment
-
-
-@csrf_exempt
-def stop_cash_payment(request):
-    ser.write(b'STOP\n')  # Send STOP command to the Arduino
-    response = ser.readline().decode('utf-8').strip()
-    logging.info("Cash payment stopped")
-    return JsonResponse({"message": response}, status=200)
-
-# Create a cash payment
-
-
-@csrf_exempt
-def create_cash_payment(request):
-    device = request.GET.get('device')
-    amount = request.GET.get('amount')
-    order_code = f"{device}_{amount}"
-    return JsonResponse({"order_code": order_code}, status=200)
-
-# Get MAC address
-
-
-def get_mac_address(request):
-    mac = uuid.UUID(int=uuid.getnode()).hex[-12:]
-    mac_address = ':'.join(mac[i:i+2] for i in range(0, 12, 2))
-    return JsonResponse({"mac_address": mac_address}, status=200)
-
-# Print image using rundll32
-@csrf_exempt
-def print_image_with_rundll32(image_path, frame_type):
-    try:
-        printer_name = 'DS-RX1 (Photostrips)' #if frame_type == 'stripx2' else 'DS-RX1'
-        logging.info(f"Printing to {printer_name}")
-
-        print_command = f'rundll32.exe C:\\Windows\\System32\\shimgvw.dll,ImageView_PrintTo /pt "{image_path}" "{printer_name}"'
-        logging.debug(f"Executing print command: {print_command}")
-
-        subprocess.run(print_command, check=True, shell=True)
-        logging.info(f"Print command sent for file: {image_path}")
-    except subprocess.CalledProcessError as e:
-        logging.error(f"Error printing file: {e}")
-        raise
-
-# Switch printer and print image
-@csrf_exempt
-def switch_printer(request, printer_model, frame_type):
-    if request.method == 'POST':
-        if 'file' not in request.FILES:
-            return JsonResponse({'error': 'No file part'}, status=400)
-
-        file = request.FILES['file']
-        if file.name == '':
-            return JsonResponse({'error': 'No selected file'}, status=400)
-
-        file_path = os.path.join(f"{os.getcwd()}\\payment\\print_files", file.name)
-
-        with open(file_path, 'wb+') as f:
-            for chunk in file.chunks():
-                f.write(chunk)
+def webhook_cash_api(request):
+        order_code = request.GET.get("order")
+        if order_code:
+            order = Order.objects.filter(order_code=order_code).first()
 
         try:
-            print_image_with_rundll32(file_path, frame_type)
+            total_money = 0
+            cash_url = settings.API_CASH_READER + '/api/cash/money/'
+            response = requests.get(cash_url)
+            
+            if True:
+                data = response.json()
+                total_money = data['total_money']
+                if (int(total_money) >= order.total_price):
+                    Transaction.objects.create(
+                        order_id=order,
+                        payment_id=Payment.objects.filter(code='Cash').first(),
+                        amount=order.total_price,
+                        transaction_status="Success"
+                    )
+                    return JsonResponse({'total_money': total_money, 'status': 'OK'}, status=status.HTTP_200_OK)           
+                return JsonResponse({'total_money': total_money, 'status': 'NOK'})    
+
+            return JsonResponse({'total_money': total_money, 'status': 'NOK'})
         except Exception as e:
-            #logging.error(f"Error processing print job: {e}")
-            return JsonResponse({'error in rundll': str(e)}, status=500)
-        """ finally:
-            if os.path.exists(file_path):
-                os.remove(file_path) """
-
-        return JsonResponse({'status': 'success', 'message': 'Print job started successfully.'}, status=200)
-
-# Play sound
-
-
+            return JsonResponse({'error': str(e)}, status=500)    
+        
 @csrf_exempt
-def play_sound(request):
-    data = json.loads(request.body.decode('utf-8'))
-    if 'file_name' not in data:
-        return JsonResponse({"error": "File name is required"}, status=400)
+def redeem_pay(request):
+    device_code = request.GET.get('device')
+    redeem_code = request.GET.get('code')
+    request_amount = request.GET.get('amount')
 
-    file_name = data['file_name']
-    sound_files_directory = "playsound/"
-    file_path = os.path.join(sound_files_directory, file_name)
+    if device_code and redeem_code:
+        try:
+            redeem = Redeem.objects.filter(code=redeem_code).first()
+            # For tesing purpose
+            if redeem_code == '12345' and settings.TEST_MODE == 1:
+                order_code = random_string_generator()
+                device = Device.objects.get(code=device_code)
+                amount = 100000
+                request_amount = int(request_amount)
 
-    if not os.path.isfile(file_path):
-        return JsonResponse({"error": "File not found"}, status=404)
+                order = Order.objects.create(
+                    order_code=order_code,
+                    device_id=device,
+                    product_price=amount,
+                    base_price=request_amount,
+                    tax=0,
+                    total_price=amount,
+                    status="Pending",
+                )
 
-    threading.Thread(target=play_sound_thread, args=(
-        file_path,), daemon=True).start()
+                if amount >= request_amount:
+                    Transaction.objects.create(
+                        order_id=order,
+                        payment_id=Payment.objects.get(code='REDEEM'),
+                        amount=request_amount,
+                        transaction_status="Success"
+                    )                                        
 
-    return JsonResponse({"status": "Playing sound", "file_name": file_name}, status=200)
+                    order.status = "Success"
+                    order.save()
 
-# Function to play sound in a separate thread
+                    return JsonResponse({'status': 'OK', 'order_code': order.order_code}, status=status.HTTP_200_OK)
+                else:
+                    return JsonResponse({'error': 'Redeem Amount not enough'}, status=status.HTTP_400_BAD_REQUEST)
+
+            elif redeem and not redeem.is_used and redeem.is_active:
+                order_code = random_string_generator()
+                device = Device.objects.get(code=device_code)
+                amount = int(redeem.amount)
+                request_amount = int(request_amount)
+
+                order = Order.objects.create(
+                    order_code=order_code,
+                    device_id=device,
+                    product_price=amount,
+                    base_price=request_amount,
+                    tax=0,
+                    total_price=amount,
+                    status="Pending",
+                )
+
+                if amount >= request_amount:
+                    Transaction.objects.create(
+                        order_id=order,
+                        payment_id=Payment.objects.get(code='REDEEM'),
+                        amount=request_amount,
+                        transaction_status="Success"
+                    )
+                    
+                    redeem.is_used = True   
+                    redeem.date_used = dt.now()                 
+                    redeem.save()
+
+                    order.status = "Success"
+                    order.save()
+
+                    return JsonResponse({'status': 'OK', 'order_code': order.order_code}, status=status.HTTP_200_OK)
+                else:
+                    return JsonResponse({'error': 'Redeem Amount not enough'}, status=status.HTTP_400_BAD_REQUEST)
+                
+            
+            return JsonResponse({'error': 'Redeem Already Used'}, status=status.HTTP_400_BAD_REQUEST)
+
+        except Redeem.DoesNotExist:
+            return JsonResponse({'error': 'Redeem Does Not Exist'}, status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class PaymentAPI(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        payments = Payment.objects.all()
+        serializer = PaymentSerializer(payments, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request, *args, **kwargs):
+        form = PaymentForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect("payments")
+        else:
+            messages.error(request, form.errors)
+        return render(request, "payments/add.html", {"form": form})
 
 
-def play_sound_thread(file_path):
-    try:
-        winsound.PlaySound(file_path, winsound.SND_FILENAME)
-    except Exception as e:
-        logging.error(f"Failed to play sound: {str(e)}")
+class PaymentDetailAPI(APIView):
+
+    def get(self, request, pk, *args, **kwargs):
+        if pk is None:
+            return Response({'error': 'Code is required'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            payment = Payment.objects.get(id=pk)
+        except Payment.DoesNotExist:
+            return Response({'error': 'Payment not found'}, status=status.HTTP_404_NOT_FOUND)    
+        serializer = PaymentSerializer(payment)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def put(self, request, pk, *args, **kwargs):
+        payment = Payment.objects.get(id=pk)
+        form = PaymentForm(request.POST, instance=payment)
+        if form.is_valid():
+            form.save()
+            return JsonResponse({'message': 'Payment updated successfully'}, status=status.HTTP_200_OK)
+        else:
+            messages.error(request, form.errors)
+        return JsonResponse({'error': 'Failed to update payment'}, status=status.HTTP_400_BAD_REQUEST)
+    
+
+class PaymentList(LoginRequiredMixin, ListView):
+    def get(self, request):
+        payments = Payment.objects.all()
+        return render(request, "payments/list.html", {"payments": payments})
+
+
+class PaymentCreateView(LoginRequiredMixin, View):
+    def get(self, request):
+        form = PaymentForm()
+        return render(request, "payments/add.html", {"form": form})
+
+    def post(self, request):
+        form = PaymentForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect("payments")
+        else:
+            messages.error(request, form.errors)
+        return render(request, "payments/add.html", {"form": form})
+
+
+class PaymentEditView(LoginRequiredMixin, View):
+    def get(self, request, pk):
+        payment = Payment.objects.get(id=pk)
+        form = PaymentForm(instance=payment)
+        return render(request, "payments/edit.html", {"form": form, "payment": payment})
+
+    def post(self, request, pk):
+        payment = Payment.objects.get(id=pk)
+        form = PaymentForm(request.POST, instance=payment)
+        if form.is_valid():
+            form.save()
+            return redirect("payments")
+        else:
+            messages.error(request, form.errors)
+        return render(request, "payments/edit.html", {"form": form, "payment": payment})
+    
+class PaymentDeleteView(LoginRequiredMixin, View):
+
+    def get(self, request, pk):
+        payment = Payment.objects.get(id=pk)
+        payment.delete()
+        return redirect("payments")

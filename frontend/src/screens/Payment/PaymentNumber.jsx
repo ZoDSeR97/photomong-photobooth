@@ -99,7 +99,7 @@ function PaymentNumber(props) {
   const goToPayment = async (dongNum, checkCoupon) => {
     //getClickAudio()
     sessionStorage.setItem("photoNum", dongNum)
-    //const res = await sendDongNum(dongNum, checkCoupon === true ? 1 : 0) // work on this later
+    const res = await sendDongNum(dongNum, checkCoupon === true ? 1 : 0) // work on this later
     navigate('/payment');
   }
 

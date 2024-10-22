@@ -52,6 +52,8 @@ video_filename = None
 lock = threading.Lock()  # For thread safety on shared resources
 inserted_money = 0
 amount_to_pay = 0
+counter = 0
+money = 0
 
 # Find Arduino port
 def find_arduino_port():
@@ -61,14 +63,14 @@ def find_arduino_port():
             return p.device
     return None
 
-""" # Initialize serial communication with Arduino
+# Initialize serial communication with Arduino
 arduino_port = find_arduino_port()
 if arduino_port:
     ser = serial.Serial(arduino_port, 9600, timeout=1)
     logging.info(f"Arduino connected on {arduino_port}")
 else:
     logging.error("Arduino not found. Please check the connection.")
-    sys.exit("Arduino not found") """
+    sys.exit("Arduino not found")
 
 def start_video_capture():
     global video_file, video_filename
@@ -296,20 +298,27 @@ def upload_file(filename, uuid, content_type):
 
 # Function to read the bill acceptor in a separate thread
 def read_bill_acceptor():
-    global inserted_money
+    global inserted_money, amount_to_pay, counter, money
     logging.info("Starting to read from bill acceptor...")
+    ser.flushInput()
     while True:
         try:
             if ser.in_waiting > 0:
                 line = ser.readline().decode('utf-8').strip()
+                print("Line:", line)
+                line = line.split(':').pop()
                 if line.isdigit():
                     money = int(line)
                     with lock:
-                        inserted_money += money
+                        inserted_money = (money - counter)*10000
                         logging.info(f"Total inserted money: {inserted_money}")
                         if inserted_money >= amount_to_pay:
                             logging.info("Payment amount reached or exceeded.")
+                            counter = int(line)
                             break
+                    time.sleep(0.5)
+                else:
+                    print("Line:", line)
         except serial.SerialException as e:
             logging.error(f"Serial error: {e}")
             break
@@ -318,36 +327,43 @@ def read_bill_acceptor():
             break
 
 # Start cash payment route
-@app.route('/api/start', methods=['POST'])
+@app.route('/api/cash/start', methods=['POST'])
 def start_cash_payment():
-    global inserted_money, amount_to_pay
+    global inserted_money, amount_to_pay, counter, money
     data = request.get_json()
-    amount_to_pay = data.get('amount', 0)
+    amount_to_pay = int(data.get('amount', 0))
     
     ser.write(b'RESET\n')
     
     with lock:
         inserted_money = 0  # Reset the inserted money
-    
+        counter = money if money > counter else counter
+
     threading.Thread(target=read_bill_acceptor, daemon=True).start()
     return jsonify({"message": "Cash payment started"}), 200
 
 # Check payment status
-@app.route('/api/status', methods=['GET'])
+@app.route('/api/cash/status', methods=['GET'])
 def check_payment_status():
-    ser.write(b'CHECK\n')
-    response = ser.readline().decode('utf-8').strip()
-    
-    try:
-        total_money = int(response)
-    except ValueError:
-        total_money = 0
-    
-    logging.info(f"Current inserted money: {total_money}")
-    return jsonify({"total_money": total_money}), 200
+    global inserted_money, amount_to_pay
+    with lock:  # Ensure thread-safe access to the serial port
+        try:
+            logging.info(f"Current inserted money: {inserted_money}, Current amount to pay: {amount_to_pay}")
+            if inserted_money < amount_to_pay:
+                return jsonify({"status": "in progress", "total_money": inserted_money}), 200
+            else:
+                return jsonify({"status": "complete", "total_money": inserted_money}), 200
+
+        except serial.SerialException as e:
+            logging.error(f"Serial communication error: {e}")
+            return jsonify({"error": "Communication error with Arduino"}), 500
+        except ValueError:
+            total_money = 0
+
+    return jsonify({"total_money": inserted_money}), 200
 
 # Reset bill acceptor
-@app.route('/api/reset', methods=['POST'])
+@app.route('/api/cash/reset', methods=['POST'])
 def reset_bill_acceptor():
     ser.write(b'RESET\n')
     response = ser.readline().decode('utf-8').strip()
@@ -355,7 +371,7 @@ def reset_bill_acceptor():
     return jsonify({"message": response}), 200
 
 # Stop cash payment
-@app.route('/api/stop', methods=['POST'])
+@app.route('/api/cash/stop', methods=['POST'])
 def stop_cash_payment():
     ser.write(b'STOP\n')
     response = ser.readline().decode('utf-8').strip()
@@ -406,8 +422,8 @@ def switch_printer(printer_model, frame_type):
     temp_dir = os.path.join(f"{os.getcwd()}/print_files")
     file_path = os.path.join(temp_dir, safe_filename)
     file_path = file_path.replace('/','\\')
-    file_path = f"\\\wsl$\\Ubuntu{file_path}"
     print(file_path)
+    file_path = f"\\\wsl$\\Ubuntu{file_path}"
     file.save(file_path)
 
     try:
@@ -467,6 +483,9 @@ def print_photo():
         print("file_path")
         print(file_path)
         print(111)
+
+        #print(f"Type of image_file: {type(image_file)}")
+        #print(f"Content of image_file: {image_file[:100] if isinstance(image_file, str) else 'Not a string'}")
 
         with open(file_path, 'wb') as destination:
             destination.write(image_content)
@@ -547,6 +566,16 @@ def serve_photo(file_path):
     else:
         return jsonify({'status': 'error', 'message': 'File not found'}), 404
 
+@app.route('/api/get_print_amount', methods=['GET'])
+def get_print_amount():
+    print_amount = request.args.get('printAmount', type=int)
+    check_coupon = request.args.get('checkCoupon', type=int)
+
+    if print_amount is not None:
+        return jsonify({'printAmountReceived': print_amount})
+    else:
+        return jsonify({'error': 'No print amount provided'}), 400
+
 def cleanup_temp_dir():
     shutil.rmtree(temp_dir)
 
@@ -554,4 +583,4 @@ atexit.register(cleanup_temp_dir)
 
 # Run the Flask app
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='127.0.0.1', port=5000, debug=True)

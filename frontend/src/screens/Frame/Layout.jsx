@@ -248,6 +248,7 @@ function Layout() {
                const languagePathMap = {
                     ko: `${basePath}/kr/BG.png`,
                     vi: `${basePath}/vn/BG.png`,
+                    mn: `${basePath}/mn/BG.png`,
                     default: `${basePath}/BG.png`
                };
 

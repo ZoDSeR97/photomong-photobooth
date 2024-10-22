@@ -34,7 +34,7 @@ axios.defaults.withCredentials = true;
 //PaymentNumber.js
 export const sendDongNum = async (dongNum, checkCoupon) => {
   try {
-    const { data } = await axiosInstance.get('/get_print_amount', {
+    const { data } = await axiosInstance.get('/api/get_print_amount', {
       params: {
         printAmount: dongNum,
         checkCoupon: checkCoupon

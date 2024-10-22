@@ -50,7 +50,7 @@ function Cash() {
   const [background, setBackground] = useState(background_en);
   const [insertedImage, setInsertedImage] = useState(inserted);
   const [paidImage, setPaidImage] = useState(null);
-  const [doneImage, setDoneImage] = useState(null);  
+  const [doneImage, setDoneImage] = useState(null);
 
   useEffect(() => {
     const storedLanguage = sessionStorage.getItem('language');
@@ -81,15 +81,21 @@ function Cash() {
   useEffect(() => {
     const startCashPayment = async () => {
       try {
+        const framePrice = sessionStorage.getItem('sales');
+        setAmountToPay(framePrice);
+
         const requestOptions = {
           method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ amount: framePrice }),
           redirect: "follow"
         };
 
-        fetch("http://127.0.0.1:8001/api/start/", requestOptions)
+        fetch(`${import.meta.env.VITE_REACT_APP_API}/api/cash/start`, requestOptions)
           .then((response) => response.text())
           .then((result) => console.log(result))
-          .catch((error) => console.error(error));
       } catch (error) {
         console.error(error);
       }
@@ -122,32 +128,44 @@ function Cash() {
     }
   }, []);
 
-  useEffect(() => {
-    const checkPaymentStatus = async (orderCodeNum) => {
-      try {
-        const response = await fetch(`${import.meta.env.VITE_REACT_APP_API}/api/cash/webhook?order=${orderCodeNum}`)
-        const responseData = await response.json();
-        setInsertedMoney(responseData.total_money);
-        if (parseInt(responseData.total_money) >= parseInt(amountToPay)) {
-          setHoveredImage(done);
-        }
-      } catch (error) {
-        console.error(error);
-      }
-    }
+  /* useEffect(() => {
+        const socket = new WebSocket('ws://127.0.0.1.5000'); // Adjust the URL as needed
 
+        socket.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            setTotalMoney(data.total_money); // Assuming data contains the total money
+        };
+
+        return () => {
+            socket.close();  // Clean up the socket connection
+        };
+    }, []); */
+
+  const checkPaymentStatus = async (orderCodeNum) => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_REACT_APP_API}/api/cash/status?order=${orderCodeNum}`)
+      const responseData = await response.json();
+      setInsertedMoney(responseData.total_money);
+      sessionStorage.setItem("paid", responseData.total_money);
+      if (parseInt(responseData.total_money) >= parseInt(amountToPay)) {
+        setHoveredImage(done);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  useEffect(() => {
     const intervalId = setInterval(() => {
       const ooCode = sessionStorage.getItem('orderCodeNum');
-      if (ooCode) {        
+      if (ooCode) {
         console.log(ooCode);
         checkPaymentStatus(ooCode);
       }
     }, 3000);
 
-    return () => {
-      clearInterval(intervalId);
-    }
-  }, []);
+    return () => clearInterval(intervalId);
+  }, [amountToPay]);
 
   const continuePay = () => {
     if (orderCode) {
@@ -191,7 +209,7 @@ function Cash() {
 
   return (
     <div className='cash-container' style={{ backgroundImage: `url(${background})` }}>
-      <div className="go-back" style={{ backgroundImage: `url(${goBackButton})`, top:`4.2%`, left: `11%` }} onClick={() => navigate("/payment")} onMouseEnter={() => hoverGoBackButton(language)} onMouseLeave={() => handleMouseLeave(language)}></div>
+      <div className="go-back" style={{ backgroundImage: `url(${goBackButton})`, top: `4.2%`, left: `11%` }} onClick={() => navigate("/payment")} onMouseEnter={() => hoverGoBackButton(language)} onMouseLeave={() => handleMouseLeave(language)}></div>
       <div className="paid-cash" style={{ backgroundImage: `url(${paidImage})` }}>
         <div className="paid-cash-text">{amountToPay}</div>
       </div>
