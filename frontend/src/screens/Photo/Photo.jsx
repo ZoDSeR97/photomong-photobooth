@@ -40,6 +40,7 @@ function Photo() {
      const [myBackground, setMyBackground] = useState(null);
      const [selectedLayout, setSelectedLayout] = useState(null);
      const [totalSnapshotPhoto, setTotalSnapshotPhoto] = useState(8);
+     const [totalNeededPhoto, setTotalNeededPhoto] = useState(8);
 
      const [okButtonUrl, setOkButtonUrl] = useState(ok_button_inactive);
      const [takeAgainButtonUrl, setTakeAgainButtonUrl] = useState(take_again_button_inactive);
@@ -69,6 +70,18 @@ function Photo() {
           } else if (storedSelectedFrame.frame === '4.2-cutx2') {
                setTotalSnapshotPhoto(4);
           } */
+
+          if (storedSelectedFrame.frame === 'Stripx2') {
+               setTotalNeededPhoto(8);
+          } else if (storedSelectedFrame.frame === '2cut-x2') {
+               setTotalNeededPhoto(2);
+          } else if (storedSelectedFrame.frame === '4-cutx2') {
+               setTotalNeededPhoto(4);
+          } else if (storedSelectedFrame.frame === '6-cutx2') {
+               setTotalNeededPhoto(6);
+          } else if (storedSelectedFrame.frame === '4.2-cutx2') {
+               setTotalNeededPhoto(4);
+          }
 
           const sessionSelectedLayout = sessionStorage.getItem('selectedLayout');
           const parsedSelectedLayout = [JSON.parse(sessionSelectedLayout)];
@@ -395,7 +408,7 @@ function Photo() {
                     ];
                }
           } else {
-               const selectedPhotoRows = chunkArray(capturePhotos, 2);
+               const selectedPhotoRows = chunkArray(capturePhotos.slice(0, totalNeededPhoto), 2);
                return selectedPhotoRows.map((row, rowIndex) => (
                     <div key={rowIndex} className="choose-photo-row">
                          {row.map((selectedIndex, photoIndex) => {
@@ -483,7 +496,7 @@ function Photo() {
                     ];
                }
           } else {
-               const selectedPhotoRows = chunkArray(capturePhotos, 2);
+               const selectedPhotoRows = chunkArray(capturePhotos.slice(0, totalNeededPhoto), 2);
                return selectedPhotoRows.map((row, rowIndex) => (
                     <div key={rowIndex} className="choose-photo-row">
                          {row.map((selectedIndex, photoIndex) => (
