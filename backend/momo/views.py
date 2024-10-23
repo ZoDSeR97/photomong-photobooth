@@ -119,7 +119,7 @@ class MomoWebhookAPI(APIView):
 
         params = {
             "storeSlug": "MOMOIQA420180417-storeid01",
-            "amount": order.total_price
+            "amount": order.total_price,
             "app_trans_id": order.order_code,  # Input your app_trans_id"
         }
 
