@@ -13,6 +13,11 @@ def request_qr_code(request):
         'Authorization': 'Basic YOUR_BASIC_AUTH_TOKEN',  # Add your basic token here
     }
 
+    config = {
+        "username": "TEST_MERCHANT",
+        "password": "123456",
+    }
+
     # Make the request to QPay
     response = requests.post(url, headers=headers)
 
