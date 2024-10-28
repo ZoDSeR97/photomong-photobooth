@@ -1,9 +1,7 @@
-from django.shortcuts import render
 from django.shortcuts import render, redirect
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
-from rest_framework import permissions
+from rest_framework import status, permissions
 from time import time
 from datetime import datetime
 from revenue.models import Transaction, Order
