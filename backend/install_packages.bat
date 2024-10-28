@@ -28,6 +28,8 @@ echo urllib3
 echo urlquote
 echo whitenoise
 echo opencv-python
+echo celery
+echo redis
 ) > requirements.txt
 
 echo Installing packages...

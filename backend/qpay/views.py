@@ -57,7 +57,7 @@ class QPayAPI(APIView):
             "sender_branch_code": "BRANCH1",
             "invoice_description": f"Order #{transID} Payment",
             "amount": request.GET.get("amount"),
-            "callback_url": "https://your-callback-url.com/payments?payment_id=12345678",
+            "callback_url": f"https://bd5492c3ee85.ngrok.io/payments?payment_id={str(transID)}",
         }
 
         # Send the authentication request to QPay

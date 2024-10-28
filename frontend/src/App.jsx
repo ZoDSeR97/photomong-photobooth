@@ -31,6 +31,7 @@ function App() {
         <Route path="/payment" element={<Payment />} />
         <Route path="/payment-result" element={<Result />} />
         <Route path="/payment-cash" element={<Cash />} />
+        <Route path="/payment-qpay" element={<QRPayment method="qpay" />} />
         <Route path="/payment-vnpay" element={<QRPayment method="vnpay" />} />
         <Route path="/payment-momo" element={<QRPayment method="momo"  />} />
         <Route path="/payment-zalopay" element={<QRPayment method="zalopay" />} />

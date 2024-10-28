@@ -301,6 +301,9 @@ def read_bill_acceptor():
     global inserted_money, amount_to_pay, counter, money
     logging.info("Starting to read from bill acceptor...")
     ser.flushInput()
+    baseV = 10000
+    if (os.getenv('REGION')) == 'MN':
+        baseV = 1000
     while True:
         try:
             if ser.in_waiting > 0:
@@ -310,7 +313,7 @@ def read_bill_acceptor():
                 if line.isdigit():
                     money = int(line)
                     with lock:
-                        inserted_money = (money - counter)*10000
+                        inserted_money = (money - counter)*baseV
                         logging.info(f"Total inserted money: {inserted_money}")
                         if inserted_money >= amount_to_pay:
                             logging.info("Payment amount reached or exceeded.")

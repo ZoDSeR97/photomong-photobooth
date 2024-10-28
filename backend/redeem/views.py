@@ -1,4 +1,3 @@
-import requests
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from rest_framework.views import APIView
@@ -11,6 +10,7 @@ from .serializers import RedeemSerializer
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, DetailView, CreateView
 from django.contrib import messages
+import requests
 
 # Create your views here.
 class RedeemView(LoginRequiredMixin, ListView):

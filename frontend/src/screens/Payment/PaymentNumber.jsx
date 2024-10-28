@@ -133,18 +133,27 @@ function PaymentNumber(props) {
 
   const getDong = () => {
     const storedSelectedFrame = JSON.parse(sessionStorage.getItem('selectedFrame'));
-    let amount = 0;
-    if (storedSelectedFrame.frame === "Stripx2") {
+    let amount = 0, add = 50000;
+    if(import.meta.env.VITE_BOOTH_TYPE == "REG"){
+      amount = 70000
+    } else {
+      amount = 100000
+    }
+    if (language === "mn") {
+      amount /= 10
+      add /= 10
+    }
+    /* if (storedSelectedFrame.frame === "Stripx2") {
       amount = 70000
     }
     else {
       amount = 100000
-    }
-    const sales = sessionStorage.setItem("sales", amount + 50000 * (photoNum - 1));
+    } */
+    const sales = sessionStorage.setItem("sales", amount + add * (photoNum - 1));
     const test = sessionStorage.getItem('sales')
-    sessionStorage.setItem("totalPayMoney", amount + 50000 * (photoNum - 1));
+    sessionStorage.setItem("totalPayMoney", amount + add * (photoNum - 1));
 
-    return amount + 50000 * (photoNum - 1)
+    return amount + add * (photoNum - 1)
   }
 
   return (

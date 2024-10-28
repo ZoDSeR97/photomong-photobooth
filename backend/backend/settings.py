@@ -207,3 +207,5 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5000"
 ]
+
+CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL')

@@ -1,5 +1,4 @@
 from django.shortcuts import render
-import requests
 from django.shortcuts import render, redirect
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -7,11 +6,12 @@ from rest_framework import status
 from rest_framework import permissions
 from time import time
 from datetime import datetime
-import json, hmac, hashlib, urllib.request, urllib, urllib.parse, random
 from revenue.models import Transaction, Order
 from device.models import Device
 from payment.models import Payment
 from django.conf import settings
+import json, hmac, hashlib, urllib.request, urllib, urllib.parse, random
+import requests
 
 
 # Create your views here.
