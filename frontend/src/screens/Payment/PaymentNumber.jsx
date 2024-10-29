@@ -191,7 +191,7 @@ function PaymentNumber(props) {
 
           <div
             className='price'
-          >{getDong()}đ</div>
+          >{getDong()}{language==="mn"?" mnt":" đ"}</div>
         </div>
         <div className="check-box" style={{
           // top: "106%",

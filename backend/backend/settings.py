@@ -25,6 +25,7 @@ BACKEND_ENV = os.getenv('ENVIRONMENT')
 
 # URI
 DEV_URL = os.getenv('DEVELOPMENT_URL')
+CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL')
 
 # API
 API_CASH_READER = os.getenv('API_CASH_READER')
@@ -47,6 +48,12 @@ cloudinary.config(
     api_key=CLOUDINARY_API_KEY,
     api_secret=CLOUDINARY_SECRET_KEY,    
 )
+
+# QPAY
+QPAY_AUTH_URL=os.getenv('QPAY_AUTH_URL')
+QPAY_INVO_URL=os.getenv('QPAY_INVO_URL')
+QPAY_USERNAME=os.getenv('QPAY_USERNAME')
+QPAY_PASSWORD=os.getenv('QPAY_PASSWORD')
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -207,5 +214,3 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5000"
 ]
-
-CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL')
