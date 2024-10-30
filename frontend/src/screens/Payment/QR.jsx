@@ -100,6 +100,30 @@ function QRPayment({ method }) { // 'method' can be 'momo', 'vnpay', or 'zalopay
         }
     }, [orderCode, method, navigate]);
 
+    // WebSocket setup to listen for payment status updates
+    /* useEffect(() => {
+        const socket = new WebSocket('ws://localhost:8000/ws/payment-status/'); // Adjust the URL for your production server
+
+        socket.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            console.log("Payment Status Update:", data);
+            if (data.order_code === orderCode) {
+                setPaymentStatus(data.status);
+                if (data.status === "Success") {
+                    navigate("/payment-result");
+                }
+            }
+        };
+
+        socket.onclose = () => {
+            console.log('WebSocket connection closed');
+        };
+
+        return () => {
+            socket.close();
+        };
+    }, [orderCode, navigate]); */
+
     useEffect(() => {
         if (paymentStatus === 'Success') {
             navigate("/payment-result");
@@ -115,7 +139,7 @@ function QRPayment({ method }) { // 'method' can be 'momo', 'vnpay', or 'zalopay
             <div className='qr-code'>
                 {qrCode && <QRCodeSVG value={qrCode} size={200} />}
             </div>
-            <div className="go-back" style={{ backgroundImage: `url(${goBackBg})`, top:`4.2%`, left: `11%` }} onClick={goBack}></div>
+            <div className="go-back" style={{ backgroundImage: `url(${goBackBg})`, top: `4.2%`, left: `11%` }} onClick={goBack}></div>
         </div>
     );
 };

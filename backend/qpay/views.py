@@ -90,11 +90,11 @@ class QPayAPI(APIView):
             ) """
             
             return Response({
+                    "order_code": transID,
                     "invoice_id": result.get("invoice_id"),
                     "qr_code": result.get("qr_text"),
                     "payment_url": result.get("invoice_url"),
                     "status": "success",
-                    "order_id": transID,
                 }, status=status.HTTP_200_OK)
         else:
             return Response({
@@ -124,13 +124,12 @@ class QPayWebhookAPI(APIView):
 
         # Create the order request data
         invoice_data = {
-            "invoice_code": "TEST_INVOICE",  # Provided invoice code
-            "sender_invoice_no": str(order_code),
-            "invoice_receiver_code": "terminal",
-            "sender_branch_code": "BRANCH1",
-            "invoice_description": f"Order #{order_code} Payment",
-            "amount": request.GET.get("amount"),
-            "callback_url": f"https://bd5492c3ee85.ngrok.io/payments?payment_id={str(order_code)}",
+            "object_type": "INVOICE",
+            "object_id"  : invoice_id,
+            "offset"     : {
+                "page_number": 1,
+                "page_limit" : 100
+	        }
         }
 
         # Send the authentication request to QPay
