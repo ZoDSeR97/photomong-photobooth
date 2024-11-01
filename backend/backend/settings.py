@@ -25,6 +25,7 @@ BACKEND_ENV = os.getenv('ENVIRONMENT')
 
 # URI
 DEV_URL = os.getenv('DEVELOPMENT_URL')
+DOMAIN_URL = os.getenv('DOMAIN_URL')
 CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL')
 
 # API
@@ -132,6 +133,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'backend.wsgi.application'
+ASGI_APPLICATION = 'backend.asgi.application'
 DATA_UPLOAD_MAX_MEMORY_SIZE = 2621440000  
 
 

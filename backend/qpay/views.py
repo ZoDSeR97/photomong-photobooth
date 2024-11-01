@@ -55,7 +55,7 @@ class QPayAPI(APIView):
             "sender_branch_code": "BRANCH1",
             "invoice_description": f"Order #{transID} Payment",
             "amount": request.GET.get("amount"),
-            "callback_url": f"https://bd5492c3ee85.ngrok.io/payments?payment_id={str(transID)}",
+            "callback_url":f"{settings.DOMAIN_URL}/qpay/api/webhook?payment_id={str(transID)}"
         }
 
         # Send the authentication request to QPay
@@ -80,12 +80,17 @@ class QPayAPI(APIView):
             result = invoice_response.json()
 
             """ orderObject = Order.objects.create(
-                order_code=order["app_trans_id"],
+                code="qpay",
+                method="QR",
+                appID="123456"
+                order_code="{:%y%m%d}_{}".format(
+                    datetime.today(), transID
+                ),
                 device_id=device,
-                product_price=order["amount"],
+                product_price=request.GET.get("amount"),
                 base_price=0,
                 tax=0,
-                total_price=order["amount"],
+                total_price=request.GET.get("amount"),
                 status="Pending",
             ) """
             
@@ -106,21 +111,27 @@ class QPayUpdateAPI(APIView):
     def post(self, request, order_code, *args, **kwargs):
         # Process and update the status of the order
         order_status = request.data.get("status")
-        # Update the order in database
+        if order_code:
+            order = Order.objects.filter(order_code=order_code).first()
+            if order:
+                order.status = order_status
+                order.save()
         return Response({
             "order_code": order_code,
-            "status": order_status,
+            "status": order.status,
         }, status=status.HTTP_200_OK)
-
 
 class QPayWebhookAPI(APIView):
     def get(self, request, *args, **kwargs):
         # Handle webhook notifications from QPay
         order_code = request.GET.get("order")
         invoice_id = request.GET.get("invoice_id")
-        if order_code:
-            order = Order.objects.filter(order_code=order_code).first()
+
+        if not order_code or not invoice_id:
+            return Response({"error": "Missing info"}, status=status.HTTP_400_BAD_REQUEST)
+
         # Implement logic to check order status and update database
+        order = Order.objects.filter(order_code=order_code).first()
 
         # Create the order request data
         invoice_data = {
@@ -153,6 +164,11 @@ class QPayWebhookAPI(APIView):
         if invoice_response.status_code == 200:
             result = invoice_response.json()
             
+            if result.get("rows"):
+                if result["rows"][0]["payment_status"] == "PAID":
+                    order.status = "Success"
+                    order.save()
+
             # Create Transaction if Success
             if (order.status == 'Success'):
                 Transaction.objects.create(
