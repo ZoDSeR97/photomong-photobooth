@@ -58,7 +58,7 @@ function QRPayment({ method }) { // 'method' can be 'momo', 'vnpay', or 'zalopay
         const fetchQRPayment = async () => {
             try {
                 const deviceNumber = import.meta.env.VITE_REACT_APP_DEVICE_NUMBER;
-                const framePrice = sessionStorage.getItem('framePrice');
+                const framePrice = sessionStorage.getItem('sales');
                 const response = await fetch(`${import.meta.env.VITE_REACT_APP_BACKEND}/${method}/api?device=${deviceNumber}&amount=${framePrice}`);
                 const qrCodeData = await response.json();
                 setQrCode(qrCodeData.qr_code);

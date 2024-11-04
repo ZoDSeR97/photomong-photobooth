@@ -25,6 +25,7 @@ function App() {
     sessionStorage.setItem('language', 'en');
     i18n.changeLanguage('en');
     setDisplayLanguage(t(`language.en`));
+    sessionStorage.clear();
   }, []);
 
   const handleChangeLanguage = (value) => {
