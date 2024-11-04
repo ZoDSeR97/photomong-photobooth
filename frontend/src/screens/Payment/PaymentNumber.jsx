@@ -132,7 +132,6 @@ function PaymentNumber(props) {
   }
 
   const getDong = () => {
-    const storedSelectedFrame = JSON.parse(sessionStorage.getItem('selectedFrame'));
     let amount = 0, add = 50000;
     if(import.meta.env.VITE_BOOTH_TYPE == "REG"){
       amount = 70000
@@ -143,12 +142,6 @@ function PaymentNumber(props) {
       amount /= 10
       add /= 10
     }
-    /* if (storedSelectedFrame.frame === "Stripx2") {
-      amount = 70000
-    }
-    else {
-      amount = 100000
-    } */
     const sales = sessionStorage.setItem("sales", amount + add * (photoNum - 1));
     const test = sessionStorage.getItem('sales')
     return amount + add * (photoNum - 1)
