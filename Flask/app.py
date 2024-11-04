@@ -296,6 +296,8 @@ def upload_file(filename, uuid, content_type):
     except Exception as e:
         logging.error(f"Failed to upload file: {str(e)}")
 
+stop_thread = False
+
 # Function to read the bill acceptor in a separate thread
 def read_bill_acceptor():
     global inserted_money, amount_to_pay, counter, money
@@ -304,7 +306,7 @@ def read_bill_acceptor():
     baseV = 10000
     if (os.getenv('REGION')) == 'MN':
         baseV = 1000
-    while True:
+    while not stop_thread:
         try:
             if ser.in_waiting > 0:
                 line = ser.readline().decode('utf-8').strip()
@@ -324,9 +326,11 @@ def read_bill_acceptor():
                     print("Line:", line)
         except serial.SerialException as e:
             logging.error(f"Serial error: {e}")
+            stop_thread = False
             break
         except Exception as e:
             logging.error(f"Unexpected error: {e}")
+            stop_thread = False
             break
 
 # Start cash payment route
@@ -341,6 +345,7 @@ def start_cash_payment():
     with lock:
         inserted_money = 0  # Reset the inserted money
         counter = money if money > counter else counter
+        stop_thread = False
 
     threading.Thread(target=read_bill_acceptor, daemon=True).start()
     return jsonify({"message": "Cash payment started"}), 200
@@ -377,6 +382,7 @@ def reset_bill_acceptor():
 @app.route('/api/cash/stop', methods=['POST'])
 def stop_cash_payment():
     ser.write(b'STOP\n')
+    stop_thread = True
     response = ser.readline().decode('utf-8').strip()
     logging.info("Cash payment stopped")
     return jsonify({"message": response}), 200
