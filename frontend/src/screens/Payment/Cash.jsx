@@ -122,7 +122,7 @@ function Cash() {
     const fetchCashPayment = async () => {
       try {
         const deviceNumber = import.meta.env.VITE_REACT_APP_DEVICE_NUMBER;
-        const framePrice = sessionStorage.getItem('totalPayMoney');
+        const framePrice = sessionStorage.getItem('sales');
         setAmountToPay(framePrice);
 
         const response = await fetch(`${import.meta.env.VITE_REACT_APP_API}/api/cash/create?device=${deviceNumber}&amount=${framePrice}`)

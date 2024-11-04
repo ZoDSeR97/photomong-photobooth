@@ -151,8 +151,6 @@ function PaymentNumber(props) {
     } */
     const sales = sessionStorage.setItem("sales", amount + add * (photoNum - 1));
     const test = sessionStorage.getItem('sales')
-    sessionStorage.setItem("totalPayMoney", amount + add * (photoNum - 1));
-
     return amount + add * (photoNum - 1)
   }
 
