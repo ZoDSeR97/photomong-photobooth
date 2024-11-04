@@ -300,7 +300,7 @@ stop_thread = False
 
 # Function to read the bill acceptor in a separate thread
 def read_bill_acceptor():
-    global inserted_money, amount_to_pay, counter, money
+    global inserted_money, amount_to_pay, counter, money, stop_thread
     logging.info("Starting to read from bill acceptor...")
     ser.flushInput()
     baseV = 10000
@@ -336,7 +336,7 @@ def read_bill_acceptor():
 # Start cash payment route
 @app.route('/api/cash/start', methods=['POST'])
 def start_cash_payment():
-    global inserted_money, amount_to_pay, counter, money
+    global inserted_money, amount_to_pay, counter, money, stop_thread
     data = request.get_json()
     amount_to_pay = int(data.get('amount', 0))
     
@@ -381,6 +381,7 @@ def reset_bill_acceptor():
 # Stop cash payment
 @app.route('/api/cash/stop', methods=['POST'])
 def stop_cash_payment():
+    global stop_thread
     ser.write(b'STOP\n')
     stop_thread = True
     response = ser.readline().decode('utf-8').strip()
