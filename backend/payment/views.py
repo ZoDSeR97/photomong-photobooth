@@ -71,16 +71,17 @@ def webhook_cash_api(request):
         if order_code:
             order = Order.objects.filter(order_code=order_code).first()
 
-        try:
-            Transaction.objects.create(
-                order_id=order,
-                payment_id=Payment.objects.filter(code='Cash').first(),
-                amount=order.total_price,
-                transaction_status="Success"
-            )
-            return JsonResponse({'total_money': total_money, 'status': 'OK'}, status=status.HTTP_200_OK)
-        except Exception as e:
-            return JsonResponse({'error': str(e)}, status=500)    
+            try:
+                Transaction.objects.create(
+                    order_id=order,
+                    payment_id=Payment.objects.filter(code='Cash').first(),
+                    amount=order.total_price,
+                    transaction_status="Success"
+                )
+                return JsonResponse({'total_money': order.total_price, 'status': 'Success'}, status=status.HTTP_200_OK)
+            except Exception as e:
+                return JsonResponse({'error': str(e)}, status == status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return JsonResponse({'status': 'Fail'}, status=status.HTTP_400_BAD_REQUEST)
         
 @csrf_exempt
 def redeem_pay(request):

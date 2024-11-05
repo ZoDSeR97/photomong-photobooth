@@ -19,6 +19,18 @@
       </ul>
     </nav>
   </div>
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <form method="GET" class="form-inline">
+        <div class="input-group">
+          <input type="date" name="start_date" class="form-control" value="{{ start_date|date:'Y-m-d' }}">
+          <span class="input-group-text">to</span>
+          <input type="date" name="end_date" class="form-control" value="{{ end_date|date:'Y-m-d' }}">
+          <button type="submit" class="btn btn-gradient-primary">Filter</button>
+        </div>
+      </form>
+    </div>
+  </div>
   <div class="row">
     <div class="col-md-4 stretch-card grid-margin">
       <div class="card bg-gradient-danger card-img-holder text-white">
@@ -33,13 +45,22 @@
       </div>
     </div>
     <div class="col-md-8 stretch-card grid-margin">
-        <div class="card bg-gradient-danger card-img-holder text-white">
-          <div class="card-body">
-            <img src="{% static 'images/dashboard/circle.svg' %}"
-              class="card-img-absolute" alt="circle-image" />
-            
+      <div class="card bg-gradient-danger card-img-holder text-white">
+        <div class="card-body">
+          <img src="{% static 'images/dashboard/circle.svg' %}" class="card-img-absolute" alt="circle-image" />
+          <div class="row">
+            <div class="col-md-4">
+              <canvas id="donutChart1"></canvas>
+            </div>
+            <div class="col-md-4">
+              <canvas id="donutChart2"></canvas>
+            </div>
+            <div class="col-md-4">
+              <canvas id="donutChart3"></canvas>
+            </div>
           </div>
         </div>
+      </div>
     </div>
   </div>
   <div class="row">
@@ -97,8 +118,72 @@
     </div>
   </div>
 </div>
-
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    let table = new DataTable('#order-table');
-  </script>
+  let table = new DataTable('#order-table');
+  // Parse data from Django template context
+  const data1 = JSON.parse('{{ pay_cash|safe }}');
+
+  const data2 = JSON.parse('{{ pay_QR|safe }}');
+
+  const data3 = JSON.parse('{{ pay_redeem|safe }}');
+
+  // Donut Chart 1
+  const ctx1 = document.getElementById('donutChart1').getContext('2d');
+  new Chart(ctx1, {
+    type: 'doughnut',
+    data: {
+      labels: ['By Cash', 'Other'],
+      datasets: [{
+        data: data1,
+        backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56']
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'bottom' }
+      }
+    }
+  });
+
+  // Donut Chart 2
+  const ctx2 = document.getElementById('donutChart2').getContext('2d');
+  new Chart(ctx2, {
+    type: 'doughnut',
+    data: {
+      labels: ['By QR', 'Other'],
+      datasets: [{
+        data: data2,
+        backgroundColor: ['#4BC0C0', '#FF9F40', '#FF6384']
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'bottom' }
+      }
+    }
+  });
+
+  // Donut Chart 3
+  const ctx3 = document.getElementById('donutChart3').getContext('2d');
+  new Chart(ctx3, {
+    type: 'doughnut',
+    data: {
+      labels: ['By Redeem', 'Other'],
+      datasets: [{
+        data: data3,
+        backgroundColor: ['#36A2EB', '#FF6384', '#4BC0C0']
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'bottom' }
+      }
+    }
+  });
+</script>
+
 {% endblock %}

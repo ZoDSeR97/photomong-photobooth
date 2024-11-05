@@ -2,6 +2,9 @@ from django.shortcuts import render
 from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Max, Min
+from django.utils import timezone
+from datetime import datetime, date
+from dateutil.relativedelta import relativedelta
 from revenue.models import Order, Transaction
 from device.models import Device
 from store.models import Store
@@ -20,30 +23,67 @@ class Dashboard(LoginRequiredMixin, View):
         return render(request, 'dashboard.html', {
             'stores': stores,
             'devices': devices,            
-        })            
+        })
         
 class DashboardStat(LoginRequiredMixin, View):    
     def get(self, request):
         
-        # List stores
-        stores = Store.objects.all()
+        # Get current date
+        today = timezone.now().date()
         
-        # List devices by store
-        devices = Device.objects.all()
-
-        transactions = Transaction.objects.all().order_by('-id')
-        start_period = Transaction.objects.aggregate(Min('created_at'))['created_at__min'].strftime('%d.%m.%Y')
-        end_period = Transaction.objects.aggregate(Max('created_at'))['created_at__max'].strftime('%d.%m.%Y')
-        total_amount = sum(t.amount for t in transactions)             
+        # Set default date range to current month
+        default_start_date = date(today.year, today.month, 1)
+        default_end_date = default_start_date + relativedelta(months=1, days=-1)
         
-        return render(request, 'statistic.html', {
-            'stores': stores,
-            'devices': devices,
+        # Get date range from request, or use defaults
+        start_date = request.GET.get('start_date', default_start_date.strftime('%Y-%m-%d'))
+        end_date = request.GET.get('end_date', default_end_date.strftime('%Y-%m-%d'))
+        
+        # Convert string dates to datetime objects
+        start_datetime = timezone.make_aware(datetime.strptime(start_date, '%Y-%m-%d'))
+        end_datetime = timezone.make_aware(datetime.strptime(end_date, '%Y-%m-%d').replace(hour=23, minute=59, second=59))
+        
+        # Filter transactions
+        transactions = Transaction.objects.filter(
+            created_at__gte=start_datetime,
+            created_at__lte=end_datetime
+        ).order_by('-id')
+        
+        # Calculate statistics based on filtered transactions
+        pay_cash = [
+            transactions.filter(payment_id__name="Cash").count(),
+            transactions.count()
+        ]
+        pay_QR = [
+            transactions.filter(payment_id__name="Zalopay").count(),
+            transactions.count()
+        ]
+        pay_redeem = [
+            transactions.filter(payment_id__name="REDEEM").count(),
+            transactions.count()
+        ]
+        
+        # Format dates for display
+        start_period = start_datetime.strftime('%d.%m.%Y')
+        end_period = end_datetime.strftime('%d.%m.%Y')
+        
+        total_amount = sum(t.amount for t in transactions)
+        
+        context = {
+            'stores': Store.objects.all(),
+            'devices': Device.objects.all(),
             'total_amount': total_amount,
             'transactions': transactions,
             "start_period": start_period,
-            "end_period": end_period
-        })
+            "end_period": end_period,
+            "pay_cash": pay_cash,
+            "pay_QR": pay_QR,
+            "pay_redeem": pay_redeem,
+            "start_date": start_datetime.date(),
+            "end_date": end_datetime.date(),
+        }
+        
+        return render(request, 'statistic.html', context)
 
 class DashboardStores(LoginRequiredMixin, View):
     def get(self, request, deviceID):

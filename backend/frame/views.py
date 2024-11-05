@@ -175,7 +175,7 @@ class UploadPhotoCloud(APIView):
     def post(request):
         file = request.data.get('photo')
         
-        upload_data = cloudinary.uploader.upload(file)     
+        upload_data = cloudinary.uploader.upload(file)
         
         # Update order's photo_url_done
         order_code = request.data.get('order_code')
@@ -183,8 +183,8 @@ class UploadPhotoCloud(APIView):
             order = Order.objects.filter(order_code=order_code).first()
             if order:
                 order.photo_url_done = upload_data.get('url')
-                order.save()                    
-           
+                order.save()
+                
         return Response({
             'photo_url': upload_data.get('url')
         }, status=201)

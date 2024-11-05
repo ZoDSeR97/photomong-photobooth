@@ -30,6 +30,7 @@ echo whitenoise
 echo opencv-python
 echo celery
 echo redis
+echo python-dateutil
 ) > requirements.txt
 
 echo Installing packages...
