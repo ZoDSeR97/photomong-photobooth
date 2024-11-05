@@ -22,7 +22,6 @@ import uuid
 import serial
 import serial.tools.list_ports
 import sys
-import cloudinary.uploader
 import base64
 
 app = Flask(__name__)
@@ -52,8 +51,8 @@ video_filename = None
 lock = threading.Lock()  # For thread safety on shared resources
 inserted_money = 0
 amount_to_pay = 0
-counter = 0
-money = 0
+#counter = 0
+#money = 0
 
 # Find Arduino port
 def find_arduino_port():
@@ -296,9 +295,9 @@ def upload_file(filename, uuid, content_type):
     except Exception as e:
         logging.error(f"Failed to upload file: {str(e)}")
 
-stop_thread = False
+#stop_thread = False
 
-# Function to read the bill acceptor in a separate thread
+""" # Function to read the bill acceptor in a separate thread
 def read_bill_acceptor():
     global inserted_money, amount_to_pay, counter, money, stop_thread
     logging.info("Starting to read from bill acceptor...")
@@ -331,12 +330,12 @@ def read_bill_acceptor():
         except Exception as e:
             logging.error(f"Unexpected error: {e}")
             stop_thread = False
-            break
+            break """
 
 # Start cash payment route
 @app.route('/api/cash/start', methods=['POST'])
 def start_cash_payment():
-    global inserted_money, amount_to_pay, counter, money, stop_thread
+    global inserted_money, amount_to_pay #stop_thread counter, money
     data = request.get_json()
     amount_to_pay = int(data.get('amount', 0))
     
@@ -344,31 +343,39 @@ def start_cash_payment():
     
     with lock:
         inserted_money = 0  # Reset the inserted money
-        counter = money if money > counter else counter
-        stop_thread = False
+        #counter = money if money > counter else counter
+        #stop_thread = False
 
-    threading.Thread(target=read_bill_acceptor, daemon=True).start()
+    #threading.Thread(target=read_bill_acceptor, daemon=True).start()
     return jsonify({"message": "Cash payment started"}), 200
 
 # Check payment status
 @app.route('/api/cash/status', methods=['GET'])
 def check_payment_status():
     global inserted_money, amount_to_pay
+    baseV = 10000
+    if (os.getenv('REGION')) == 'MN':
+        baseV = 1000
     with lock:  # Ensure thread-safe access to the serial port
         try:
-            logging.info(f"Current inserted money: {inserted_money}, Current amount to pay: {amount_to_pay}")
-            if inserted_money < amount_to_pay:
-                return jsonify({"status": "in progress", "total_money": inserted_money}), 200
-            else:
-                return jsonify({"status": "complete", "total_money": inserted_money}), 200
+            ser.write(b'CHECK\n')
+            line = ser.readline().decode('utf-8').strip().split(':').pop()
+            print(line)
+            if line.isdigit():
+                inserted_money = int(line)*baseV
+                logging.info(f"Current inserted money: {inserted_money}, Current amount to pay: {amount_to_pay}")
+                if inserted_money < amount_to_pay:
+                    return jsonify({"status": "in progress", "total_money": inserted_money}), 200
+                else:
+                    return jsonify({"status": "complete", "total_money": inserted_money}), 200
 
         except serial.SerialException as e:
             logging.error(f"Serial communication error: {e}")
             return jsonify({"error": "Communication error with Arduino"}), 500
         except ValueError:
-            total_money = 0
+            return jsonify({"status": "in progress", "total_money": inserted_money}), 200
 
-    return jsonify({"total_money": inserted_money}), 200
+    return jsonify({"status": "in progress", "total_money": inserted_money}), 200
 
 # Reset bill acceptor
 @app.route('/api/cash/reset', methods=['POST'])
@@ -522,24 +529,6 @@ def print_photo():
     except Exception as e:
         print(e)
         return jsonify({'status':'error', 'message': 'Failed to send print request'}), 500
-
-@app.post('/api/upload_cloud')
-def uploadPhotoCloud(request):
-    file = request.data.get('photo')
-    
-    upload_data = cloudinary.uploader.upload(file)     
-    
-    # Update order's photo_url_done
-    order_code = request.data.get('order_code')
-    if (order_code):
-        order = Order.objects.filter(order_code=order_code).first()
-        if order:
-            order.photo_url_done = upload_data.get('url')
-            order.save()                    
-        
-    return Response({
-        'photo_url': upload_data.get('url')
-    }, status=201)
 
 # Route to download a file
 @app.route('/api/get_photo', methods=['GET'])
