@@ -80,14 +80,10 @@ function Frame() {
       } else if (storedLanguage === 'vi') {
         setFrameBackground(background_vn);
         setGoBackBg(goback_vn);
-      }
-      else if (storedLanguage === "mn") {
+      } else if (storedLanguage === "mn") {
         setFrameBackground(background_mn);
         setGoBackBg(goback_mn);
-
-      }
-
-      else {
+      } else {
         setFrameBackground(background_en);
         setGoBackBg(goback_en);
       }

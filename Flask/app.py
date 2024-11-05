@@ -51,8 +51,6 @@ video_filename = None
 lock = threading.Lock()  # For thread safety on shared resources
 inserted_money = 0
 amount_to_pay = 0
-#counter = 0
-#money = 0
 
 # Find Arduino port
 def find_arduino_port():
@@ -295,43 +293,6 @@ def upload_file(filename, uuid, content_type):
     except Exception as e:
         logging.error(f"Failed to upload file: {str(e)}")
 
-#stop_thread = False
-
-""" # Function to read the bill acceptor in a separate thread
-def read_bill_acceptor():
-    global inserted_money, amount_to_pay, counter, money, stop_thread
-    logging.info("Starting to read from bill acceptor...")
-    ser.flushInput()
-    baseV = 10000
-    if (os.getenv('REGION')) == 'MN':
-        baseV = 1000
-    while not stop_thread:
-        try:
-            if ser.in_waiting > 0:
-                line = ser.readline().decode('utf-8').strip()
-                print("Line:", line)
-                line = line.split(':').pop()
-                if line.isdigit():
-                    money = int(line)
-                    with lock:
-                        inserted_money = (money - counter)*baseV
-                        logging.info(f"Total inserted money: {inserted_money}")
-                        if inserted_money >= amount_to_pay:
-                            logging.info("Payment amount reached or exceeded.")
-                            counter = int(line)
-                            break
-                    time.sleep(0.5)
-                else:
-                    print("Line:", line)
-        except serial.SerialException as e:
-            logging.error(f"Serial error: {e}")
-            stop_thread = False
-            break
-        except Exception as e:
-            logging.error(f"Unexpected error: {e}")
-            stop_thread = False
-            break """
-
 # Start cash payment route
 @app.route('/api/cash/start', methods=['POST'])
 def start_cash_payment():
@@ -343,10 +304,7 @@ def start_cash_payment():
     
     with lock:
         inserted_money = 0  # Reset the inserted money
-        #counter = money if money > counter else counter
-        #stop_thread = False
 
-    #threading.Thread(target=read_bill_acceptor, daemon=True).start()
     return jsonify({"message": "Cash payment started"}), 200
 
 # Check payment status
@@ -361,7 +319,7 @@ def check_payment_status():
             ser.write(b'CHECK\n')
             line = ser.readline().decode('utf-8').strip().split(':').pop()
             print(line)
-            if line.isdigit():
+            if line.strip().isdigit():
                 inserted_money = int(line)*baseV
                 logging.info(f"Current inserted money: {inserted_money}, Current amount to pay: {amount_to_pay}")
                 if inserted_money < amount_to_pay:
@@ -500,9 +458,6 @@ def print_photo():
         print("file_path")
         print(file_path)
         print(111)
-
-        #print(f"Type of image_file: {type(image_file)}")
-        #print(f"Content of image_file: {image_file[:100] if isinstance(image_file, str) else 'Not a string'}")
 
         with open(file_path, 'wb') as destination:
             destination.write(image_content)

@@ -125,7 +125,7 @@ function Cash() {
         const framePrice = sessionStorage.getItem('sales');
         setAmountToPay(framePrice);
 
-        const response = await fetch(`${import.meta.env.VITE_REACT_APP_BACKEND}/api/cash/create?device=${deviceNumber}&amount=${framePrice}`)
+        const response = await fetch(`${import.meta.env.VITE_REACT_APP_BACKEND}/payments/api/cash/create?device=${deviceNumber}&amount=${framePrice}`)
 
         const responseData = await response.json();
         if (responseData) {
@@ -157,7 +157,7 @@ function Cash() {
 
   const checkPaymentStatus = async (orderCodeNum) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_REACT_APP_API}/api/cash/status?order=${orderCodeNum}`)
+      const response = await fetch(`${import.meta.env.VITE_REACT_APP_API}/api/cash/status`)
       const responseData = await response.json();
       setInsertedMoney(responseData.total_money);
       sessionStorage.setItem("paid", responseData.total_money);
