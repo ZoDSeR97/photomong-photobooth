@@ -72,24 +72,13 @@ def webhook_cash_api(request):
             order = Order.objects.filter(order_code=order_code).first()
 
         try:
-            total_money = 0
-            cash_url = settings.API_CASH_READER + '/api/cash/money/'
-            response = requests.get(cash_url)
-            
-            if True:
-                data = response.json()
-                total_money = data['total_money']
-                if (int(total_money) >= order.total_price):
-                    Transaction.objects.create(
-                        order_id=order,
-                        payment_id=Payment.objects.filter(code='Cash').first(),
-                        amount=order.total_price,
-                        transaction_status="Success"
-                    )
-                    return JsonResponse({'total_money': total_money, 'status': 'OK'}, status=status.HTTP_200_OK)           
-                return JsonResponse({'total_money': total_money, 'status': 'NOK'})    
-
-            return JsonResponse({'total_money': total_money, 'status': 'NOK'})
+            Transaction.objects.create(
+                order_id=order,
+                payment_id=Payment.objects.filter(code='Cash').first(),
+                amount=order.total_price,
+                transaction_status="Success"
+            )
+            return JsonResponse({'total_money': total_money, 'status': 'OK'}, status=status.HTTP_200_OK)
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)    
         

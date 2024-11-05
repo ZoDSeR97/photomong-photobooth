@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import Max, Min
 from revenue.models import Order, Transaction
 from device.models import Device
 from store.models import Store
@@ -21,6 +22,28 @@ class Dashboard(LoginRequiredMixin, View):
             'devices': devices,            
         })            
         
+class DashboardStat(LoginRequiredMixin, View):    
+    def get(self, request):
+        
+        # List stores
+        stores = Store.objects.all()
+        
+        # List devices by store
+        devices = Device.objects.all()
+
+        transactions = Transaction.objects.all().order_by('-id')
+        start_period = Transaction.objects.aggregate(Min('created_at'))['created_at__min'].strftime('%d.%m.%Y')
+        end_period = Transaction.objects.aggregate(Max('created_at'))['created_at__max'].strftime('%d.%m.%Y')
+        total_amount = sum(t.amount for t in transactions)             
+        
+        return render(request, 'statistic.html', {
+            'stores': stores,
+            'devices': devices,
+            'total_amount': total_amount,
+            'transactions': transactions,
+            "start_period": start_period,
+            "end_period": end_period
+        })
 
 class DashboardStores(LoginRequiredMixin, View):
     def get(self, request, deviceID):

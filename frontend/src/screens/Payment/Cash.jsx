@@ -125,7 +125,7 @@ function Cash() {
         const framePrice = sessionStorage.getItem('sales');
         setAmountToPay(framePrice);
 
-        const response = await fetch(`${import.meta.env.VITE_REACT_APP_API}/api/cash/create?device=${deviceNumber}&amount=${framePrice}`)
+        const response = await fetch(`${import.meta.env.VITE_REACT_APP_BACKEND}/api/cash/create?device=${deviceNumber}&amount=${framePrice}`)
 
         const responseData = await response.json();
         if (responseData) {
@@ -163,6 +163,7 @@ function Cash() {
       sessionStorage.setItem("paid", responseData.total_money);
       if (parseInt(responseData.total_money) >= parseInt(amountToPay)) {
         setHoveredImage(done);
+        await fetch(`${import.meta.env.VITE_REACT_APP_BACKEND}/payments/api/cash/webhook?order=${orderCodeNum}`);
       }
     } catch (error) {
       console.error(error);
