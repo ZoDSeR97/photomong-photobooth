@@ -53,6 +53,7 @@ cloudinary.config(
 # QPAY
 QPAY_AUTH_URL=os.getenv('QPAY_AUTH_URL')
 QPAY_INVO_URL=os.getenv('QPAY_INVO_URL')
+QPAY_PAYM_URL=os.getenv('QPAY_PAYM_URL')
 QPAY_USERNAME=os.getenv('QPAY_USERNAME')
 QPAY_PASSWORD=os.getenv('QPAY_PASSWORD')
 
@@ -210,9 +211,13 @@ LOGIN_URL = '/account/login'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-CORS_ALLOW_ALL_ORIGINS = True
-
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
-    "http://127.0.0.1:5000"
+    "http://127.0.0.1:5000",
+    "http://127.0.0.1:5173",
+]
+
+CORS_ALLOW_METHODS = [
+    'GET',
+    'POST'
 ]

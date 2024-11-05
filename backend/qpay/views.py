@@ -43,6 +43,9 @@ def get_access_token():
 
 class QPayAPI(APIView):
     def get(self, request, *args, **kwargs):
+        device_code = request.GET.get("device")
+        if not device_code:
+            return Response({"error":"Missing info"}, status=status.HTTP_400_BAD_REQUEST)
 
         # Generate unique transaction ID
         transID = random.randrange(1000000)
@@ -79,23 +82,22 @@ class QPayAPI(APIView):
         if invoice_response.status_code == 200:
             result = invoice_response.json()
 
-            """ orderObject = Order.objects.create(
-                code="qpay",
-                method="QR",
-                appID="123456"
+            orderObject = Order.objects.create(
                 order_code="{:%y%m%d}_{}".format(
                     datetime.today(), transID
                 ),
-                device_id=device,
+                device_id=Device.objects.filter(code=device_code).first(),
                 product_price=request.GET.get("amount"),
                 base_price=0,
                 tax=0,
                 total_price=request.GET.get("amount"),
                 status="Pending",
-            ) """
+            )
             
             return Response({
-                    "order_code": transID,
+                    "order_code": "{:%y%m%d}_{}".format(
+                        datetime.today(), transID
+                    ),
                     "invoice_id": result.get("invoice_id"),
                     "qr_code": result.get("qr_text"),
                     "payment_url": result.get("invoice_url"),
@@ -104,6 +106,84 @@ class QPayAPI(APIView):
         else:
             return Response({
                 "error": "Failed to create invoice",
+                "details": invoice_response.text
+            }, status=invoice_response.status_code)
+    
+    def post(self, request, *args, **kwargs):
+        invoice_id = request.data.get("invoice_id")
+        order_code = request.data.get("order_code")
+
+        if not invoice_id:
+            return Response({"error":"Missing info"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Implement logic to check order status and update database
+        order = Order.objects.filter(order_code=order_code).first()
+
+        # Create the order request data
+        invoice_data = {
+            "object_type": "INVOICE",
+            "object_id"  : invoice_id,
+            "offset"     : {
+                "page_number": 1,
+                "page_limit" : 100
+	        }
+        }
+        # Send the authentication request to QPay
+        try:
+            access_token = get_access_token()
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        headers = {
+            'Authorization': f'Bearer {access_token}',
+            'Content-Type': 'application/json'
+        }
+
+        # Send invoice creation request
+        invoice_response = requests.post(
+            url=settings.QPAY_PAYM_URL,
+            headers=headers,
+            data=json.dumps(invoice_data),
+        )
+
+        if invoice_response.status_code == 200:
+            result = invoice_response.json()
+            
+            qpay = Payment.objects.filter(code='qpay').first()
+
+            if not qpay:
+                qpay = Payment.objects.create(
+                    method="QR",
+                    name="QPAY",
+                    code="qpay",
+                    appID="2554",
+                )
+                qpay.save()
+
+            if result.get("rows"):
+                if result["rows"][0]["payment_status"] == "PAID":
+                    order.status = "Success"
+                    order.save()
+                    # Create Transaction if Success
+                    Transaction.objects.create(
+                        order_id=order,
+                        payment_id=qpay,
+                        amount=order.total_price,
+                        transaction_status="Success",
+                    )
+
+                    return Response({
+                        "order_code": order_code,
+                        "status": "Success",
+                    }, status=status.HTTP_200_OK)
+            return Response({
+                "order_code": order_code,
+                "status": "Pending",
+            }, status=status.HTTP_200_OK)
+        else:
+            print(invoice_response.text)
+            return Response({
+                "error": "Failed to check invoice",
                 "details": invoice_response.text
             }, status=invoice_response.status_code)
 
@@ -124,74 +204,37 @@ class QPayUpdateAPI(APIView):
 class QPayWebhookAPI(APIView):
     def get(self, request, *args, **kwargs):
         # Handle webhook notifications from QPay
-        order_code = request.GET.get("order")
-        invoice_id = request.GET.get("invoice_id")
-
-        if not order_code or not invoice_id:
-            return Response({"error": "Missing info"}, status=status.HTTP_400_BAD_REQUEST)
+        payment_id = request.GET.get("payment_id")
+        order_code = "{:%y%m%d}_{}".format(datetime.today(), payment_id)
 
         # Implement logic to check order status and update database
         order = Order.objects.filter(order_code=order_code).first()
+        if order:
+            order.status = "Success"
+            order.save()
 
-        # Create the order request data
-        invoice_data = {
-            "object_type": "INVOICE",
-            "object_id"  : invoice_id,
-            "offset"     : {
-                "page_number": 1,
-                "page_limit" : 100
-	        }
-        }
+            qpay = Payment.objects.filter(code='qpay').first()
 
-        # Send the authentication request to QPay
-        try:
-            access_token = get_access_token()
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        headers = {
-            'Authorization': f'Bearer {access_token}',
-            'Content-Type': 'application/json'
-        }
-
-        # Send invoice creation request
-        invoice_response = requests.post(
-            url=settings.QPAY_INVO_URL,
-            headers=headers,
-            data=json.dumps(invoice_data),
-        )
-
-        if invoice_response.status_code == 200:
-            result = invoice_response.json()
-            
-            if result.get("rows"):
-                if result["rows"][0]["payment_status"] == "PAID":
-                    order.status = "Success"
-                    order.save()
-
-            # Create Transaction if Success
-            if (order.status == 'Success'):
-                Transaction.objects.create(
-                    order_id=order,
-                    payment_id=Payment.objects.filter(code='qpay').first(),
-                    amount=order.total_price,
-                    transaction_status="Success",
+            if not qpay:
+                qpay = Payment.objects.create(
+                    method="QR",
+                    name="QPAY",
+                    code="qpay",
+                    appID="2554",
                 )
+                qpay.save()
+
+            Transaction.objects.create(
+                order_id=order,
+                payment_id=qpay,
+                amount=order.total_price,
+                transaction_status="Success",
+            )
 
             return Response({
-                    "invoice_id": result.get["invoice_id"],
-                    "qr_code": result.get("qr_text"),
-                    "payment_url": result.get("invoice_url"),
-                    "status": "success",
-                    "order_id": transID,
-                }, status=status.HTTP_200_OK)
+                "Success",
+            }, status=status.HTTP_200_OK)
         else:
             return Response({
-                "error": "Failed to create invoice",
-                "details": invoice_response.text
-            }, status=invoice_response.status_code)
-
-        return Response({
-            "order_code": order_code,
-            "status": "Processed",
-        }, status=status.HTTP_200_OK)
+                "FAILURE",
+            }, status=status.status.HTTP_400_BAD_REQUEST)

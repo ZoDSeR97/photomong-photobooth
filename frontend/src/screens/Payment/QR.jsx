@@ -5,6 +5,7 @@ import i18n from '../../translations/i18n';
 import "../../css/Payment.css";
 import { QRCodeSVG } from 'qrcode.react';
 import PropTypes from 'prop-types';
+import axios from "axios";
 
 // Go Back
 import goback_en from '../../assets/Common/goback.png';
@@ -32,6 +33,7 @@ function QRPayment({ method }) { // 'method' can be 'momo', 'vnpay', or 'zalopay
     const [hoveredImage, setHoveredImage] = useState(null);
     const [qrCode, setQrCode] = useState(null);
     const [orderCode, setOrderCode] = useState(null);
+    const [invoice, setInvoice] = useState(null);
     const [paymentStatus, setPaymentStatus] = useState(null);
     const [goBackBg, setGoBackBg] = useState([]);
     const [background, setBackground] = useState(background_en);
@@ -63,6 +65,9 @@ function QRPayment({ method }) { // 'method' can be 'momo', 'vnpay', or 'zalopay
                 const qrCodeData = await response.json();
                 setQrCode(qrCodeData.qr_code);
                 setOrderCode(qrCodeData.order_code);
+                if (method === "qpay"){
+                    setInvoice(qrCodeData.invoice_id)
+                }
 
                 if (qrCodeData.return_code == 1) {
                     setPaymentStatus(qrCodeData.status);
@@ -78,11 +83,30 @@ function QRPayment({ method }) { // 'method' can be 'momo', 'vnpay', or 'zalopay
     useEffect(() => {
         const checkPaymentStatus = async (orderCodeNum) => {
             try {
-                const response = await fetch(`${import.meta.env.VITE_REACT_APP_BACKEND}/${method}/api/webhook?order=${orderCodeNum}`);
-                const paymentData = await response.json();
-                if (paymentData.status === "Success") {
-                    clearInterval(intervalId);
-                    navigate("/payment-result");
+                if (method === "qpay") {
+                    const response = await fetch(`${import.meta.env.VITE_REACT_APP_BACKEND}/${method}/api`, 
+                        {
+                            method:"POST",
+                            headers: {
+                                "Content-Type":"application/json"
+                            },
+                            body:JSON.stringify({
+                                "invoice_id":invoice,
+                                "order_code":orderCode,
+                            })
+                        });
+                    const paymentData = await response.json();
+                    if (paymentData.status === "Success") {
+                        clearInterval(intervalId);
+                        navigate("/payment-result");
+                    }
+                } else {
+                    const response = await fetch(`${import.meta.env.VITE_REACT_APP_BACKEND}/${method}/api/webhook?order=${orderCodeNum}`);
+                    const paymentData = await response.json();
+                    if (paymentData.status === "Success") {
+                        clearInterval(intervalId);
+                        navigate("/payment-result");
+                    }
                 }
             } catch (error) {
                 console.error(error);
