@@ -47,7 +47,7 @@ class DashboardStat(LoginRequiredMixin, View):
         transactions = Transaction.objects.filter(
             created_at__gte=start_datetime,
             created_at__lte=end_datetime
-        ).order_by('-id')
+        ).order_by('-created_at')
         
         # Calculate statistics based on filtered transactions
         pay_cash = [

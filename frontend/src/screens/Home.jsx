@@ -21,11 +21,11 @@ function App() {
   const [buttonBackground, setButtonBackground] = useState(start_en);
 
   useEffect(() => {
+    sessionStorage.clear();
     setLanguage('en');
     sessionStorage.setItem('language', 'en');
     i18n.changeLanguage('en');
     setDisplayLanguage(t(`language.en`));
-    sessionStorage.clear();
   }, []);
 
   const handleChangeLanguage = (value) => {
