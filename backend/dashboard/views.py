@@ -39,6 +39,9 @@ class DashboardStat(LoginRequiredMixin, View):
         start_date = request.GET.get('start_date', default_start_date.strftime('%Y-%m-%d'))
         end_date = request.GET.get('end_date', default_end_date.strftime('%Y-%m-%d'))
         
+        # Get filter parameters from GET request
+        store_id = request.GET.get('store_id')
+        
         # Convert string dates to datetime objects
         start_datetime = timezone.make_aware(datetime.strptime(start_date, '%Y-%m-%d'))
         end_datetime = timezone.make_aware(datetime.strptime(end_date, '%Y-%m-%d').replace(hour=23, minute=59, second=59))
@@ -49,18 +52,25 @@ class DashboardStat(LoginRequiredMixin, View):
             created_at__lte=end_datetime
         ).order_by('-created_at')
         
+        current_store = "All Stores"
+        
+        # Filter by store if selected
+        if store_id:
+            transactions = transactions.filter(order_id__device_id__store_id=store_id)
+            current_store = Store.objects.get(id=store_id).name
+        
         # Calculate statistics based on filtered transactions
         pay_cash = [
             transactions.filter(payment_id__name="Cash").count(),
-            transactions.count()
+            transactions.count()-transactions.filter(payment_id__name="Cash").count()
         ]
         pay_QR = [
-            transactions.filter(payment_id__name="Zalopay").count(),
-            transactions.count()
+            transactions.filter(payment_id__name="Zalopay").count()+transactions.filter(payment_id__name="Qpay").count()+transactions.filter(payment_id__name="Momo").count()+transactions.filter(payment_id__name="Vnpay").count(),
+            transactions.count()-transactions.filter(payment_id__name="Zalopay").count()+transactions.filter(payment_id__name="Qpay").count() + transactions.filter(payment_id__name="Momo").count()+transactions.filter(payment_id__name="Vnpay").count(),
         ]
         pay_redeem = [
             transactions.filter(payment_id__name="REDEEM").count(),
-            transactions.count()
+            transactions.count()-transactions.filter(payment_id__name="REDEEM").count()
         ]
         
         # Format dates for display
@@ -70,6 +80,7 @@ class DashboardStat(LoginRequiredMixin, View):
         total_amount = sum(t.amount for t in transactions)
         
         context = {
+            'current_store': current_store,
             'stores': Store.objects.all(),
             'devices': Device.objects.all(),
             'total_amount': total_amount,

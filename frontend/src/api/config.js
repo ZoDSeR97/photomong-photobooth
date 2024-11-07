@@ -1,23 +1,15 @@
 import axios from "axios";
 
 //urls
-
-// const audioBaseURL="http://127.0.0.1:8001"
-// const checkBaseUrl="http://13.54.234.18:9000"
-// const OriginBaseURL="http://13.54.234.18:8000"
-// export const startCashUrl="http://127.0.0.1:8002/api/start/"
-// export const BaseURL = "http://127.0.0.1:5000"
-// export const videoFeedUrl=`http://127.0.0.1:5000/video_feed`//Photo.js live view url
 const audioBaseURL = "http://127.0.0.1:8001"
-const checkBaseUrl = "http://127.0.0.1:8000"
-const OriginBaseURL = "http://127.0.0.1:8000"
-export const startCashUrl = "http://127.0.0.1:5000/api/start/"
-export const BaseURL = "http://127.0.0.1:5000"
-export const videoFeedUrl = `http://127.0.0.1:5000/api/video_feed`//Photo.js live view url
+const OriginBaseURL = import.meta.env.VITE_REACT_APP_BACKEND
+export const startCashUrl = `${import.meta.env.VITE_REACT_APP_API}/api/start/"`
+export const BaseURL = import.meta.env.VITE_REACT_APP_API
+export const videoFeedUrl = `${import.meta.env.VITE_REACT_APP_API}/api/video_feed`//Photo.js live view url
 
 //axios api
 const checkAxiosInstance = axios.create({
-  baseURL: checkBaseUrl,
+  baseURL: OriginBaseURL,
 });
 const audioAxiosInstance = axios.create({
   baseURL: audioBaseURL

@@ -22,11 +22,20 @@
   <div class="row mb-4">
     <div class="col-md-6">
       <form method="GET" class="form-inline">
-        <div class="input-group">
-          <input type="date" name="start_date" class="form-control" value="{{ start_date|date:'Y-m-d' }}">
-          <span class="input-group-text">to</span>
-          <input type="date" name="end_date" class="form-control" value="{{ end_date|date:'Y-m-d' }}">
-          <button type="submit" class="btn btn-gradient-primary">Filter</button>
+        <div class="flex">
+          <div class="input-group">
+            <select id="store_id" name="store_id" class="form-select" aria-label="Default select example">
+              <option value="">All</option>
+              {% for store in stores %}
+                <option value="{{ store.id }}">{{ store.name }}</option>
+              {% endfor %}
+          </div>
+          <div class="input-group">
+            <input type="date" name="start_date" class="form-control" value="{{ start_date|date:'Y-m-d' }}">
+            <span class="input-group-text">to</span>
+            <input type="date" name="end_date" class="form-control" value="{{ end_date|date:'Y-m-d' }}">
+            <button type="submit" class="btn btn-gradient-primary">Filter</button>
+          </div>
         </div>
       </form>
     </div>
@@ -38,7 +47,8 @@
           <img src="{% static 'images/dashboard/circle.svg' %}"
             class="card-img-absolute" alt="circle-image" />
           <h3 class="font-weight-normal mb-3">Revenues</h4>
-          <h4 class="mb-5">Viewing perioed: {{start_period}} - {{end_period}}</h4>
+          <h4 class="mb-5">Viewing {{current_store}}</h4>
+          <h4 class="mb-5">Viewing period: {{start_period}} - {{end_period}}</h4>
           <h2 class="mb-5">{{ total_amount|intcomma }}</h2>
           <!-- <h6 class="card-text">Increased by 60%</h6> -->
         </div>

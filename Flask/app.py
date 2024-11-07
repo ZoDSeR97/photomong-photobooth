@@ -288,7 +288,7 @@ def upload_file(filename, uuid, content_type):
     try:
         with open(filename, 'rb') as f:
             files = {'file': (filename, f, content_type)}
-            response = requests.post(f"http://172.30.160.1:8000/upload/{uuid}", files=files)
+            response = requests.post(f"{os.getenv("VITE_REACT_APP_BACKEND")}/upload/{uuid}", files=files)
             logging.info(f"File upload response: {response.status_code}")
     except Exception as e:
         logging.error(f"Failed to upload file: {str(e)}")
@@ -301,6 +301,7 @@ def start_cash_payment():
     amount_to_pay = int(data.get('amount', 0))
     
     ser.write(b'RESET\n')
+    response = ser.readline().decode('utf-8').strip()
     
     with lock:
         inserted_money = 0  # Reset the inserted money

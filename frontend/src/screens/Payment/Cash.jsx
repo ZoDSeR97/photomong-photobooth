@@ -163,7 +163,6 @@ function Cash() {
       sessionStorage.setItem("paid", responseData.total_money);
       if (parseInt(responseData.total_money) >= parseInt(amountToPay)) {
         setHoveredImage(done);
-        await fetch(`${import.meta.env.VITE_REACT_APP_BACKEND}/payments/api/cash/webhook?order=${orderCodeNum}`);
       }
     } catch (error) {
       console.error(error);
@@ -182,17 +181,25 @@ function Cash() {
     return () => clearInterval(intervalId);
   }, [amountToPay]);
 
-  const continuePay = () => {
-    if (orderCode) {
-      if (parseInt(insertedMoney) >= parseInt(amountToPay)) {
-        axios.post(
-          `${import.meta.env.VITE_REACT_APP_API}/api/cash/stop`,
-          {}
-        );
-        navigate("/payment-result");
+  const continuePay = async () => {
+    if (orderCode && parseInt(insertedMoney) >= parseInt(amountToPay)) {
+      try {
+        // Run both requests in parallel
+        await Promise.all([
+          axios.post(`${import.meta.env.VITE_REACT_APP_API}/api/cash/stop`, {}),
+          fetch(`${import.meta.env.VITE_REACT_APP_BACKEND}/payments/api/cash/webhook?order=${orderCode}`)
+            .then(response => {
+              if (!response.ok) throw new Error('Network response was not ok');
+            })
+        ]);
+
+        // Navigate to payment result page only after both requests complete successfully
+        navigate('/payment-result');
+      } catch (error) {
+        console.error('Error during payment process:', error);
       }
     }
-  }
+  };
 
   const handleMouseEnter = (image) => {
     setHoveredImage(image);

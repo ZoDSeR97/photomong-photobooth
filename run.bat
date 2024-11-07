@@ -1,6 +1,15 @@
 @echo off
-cd backend
-start cmd /k "pip install -r requirements.txt && python manage.py runserver 0.0.0.0:8000"
-cd ../frontend
-start cmd /k "bun install && bun run dev"
-start "C:\Program Files\Google\Chrome\Application\chrome.exe --allow-file-access-from-files -kiosk -fullscreen"
+set batch1="%~dp0bindingArduino.bat"
+set batch2="%~dp0bindingCam.bat"
+
+:: Execute each batch file with admin privileges
+PowerShell -Command "Start-Process cmd -ArgumentList '/c %batch1%' -Verb RunAs"
+PowerShell -Command "Start-Process cmd -ArgumentList '/c %batch2%' -Verb RunAs"
+
+:: Wait for the batch files to finish, if needed (optional delay or pause)
+timeout /t 5 > nul
+
+:: Run kiosk
+cd frontend
+start cmd /k "npm install -g bun && bun install && bun run dev"
+start chrome.exe --kiosk http://localhost:5173
