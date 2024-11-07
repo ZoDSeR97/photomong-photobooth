@@ -272,6 +272,12 @@ class FrameList(LoginRequiredMixin, View):
     
     def post(self, request, *args, **kwargs):
         devices = Device.objects.all()
+        
+        """ print("POST data:", request.POST)
+        print("FILES data:", request.FILES)
+        print("photo in FILES:", 'photo' in request.FILES)
+        print("photo_hover in FILES:", 'photo_hover' in request.FILES) """
+        
         form = FrameForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
