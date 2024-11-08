@@ -132,9 +132,9 @@ function PaymentNumber(props) {
   }
 
   const getDong = () => {
-    let amount = 0, add = 50000;
+    let amount = 0, add = 20000;
     if(import.meta.env.VITE_BOOTH_TYPE == "REG"){
-      amount = 70000
+      amount = 80000
     } else {
       amount = 100000
     }
