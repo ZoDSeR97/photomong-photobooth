@@ -140,7 +140,9 @@ function PaymentNumber(props) {
     }
     if (language === "mn" && import.meta.VITE_LOCATION == "MN") {
       amount /= 10
+      amount += 1000
       add /= 10
+      add += 2000
     }
     const sales = sessionStorage.setItem("sales", amount + add * (photoNum - 1));
     const test = sessionStorage.getItem('sales')
