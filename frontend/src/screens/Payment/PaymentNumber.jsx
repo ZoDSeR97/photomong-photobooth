@@ -132,15 +132,17 @@ function PaymentNumber(props) {
   }
 
   const getDong = () => {
-    let amount = 0, add = 50000;
+    let amount = 0, add = 20000;
     if(import.meta.env.VITE_BOOTH_TYPE == "REG"){
       amount = 70000
     } else {
       amount = 100000
     }
-    if (language === "mn") {
+    if (language === "mn" && import.meta.VITE_LOCATION == "MN") {
       amount /= 10
+      amount += 1000
       add /= 10
+      add += 2000
     }
     const sales = sessionStorage.setItem("sales", amount + add * (photoNum - 1));
     const test = sessionStorage.getItem('sales')
