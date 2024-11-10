@@ -163,7 +163,7 @@ function QRPayment({ method }) { // 'method' can be 'momo', 'vnpay', or 'zalopay
             <div className='qr-code'>
                 {qrCode && <QRCodeSVG value={qrCode} size={200} />}
             </div>
-            <div className="go-back" style={{ backgroundImage: `url(${goBackBg})`, top: `4.2%`, left: `11%` }} onClick={goBack}></div>
+            <div className="go-back" style={{ backgroundImage: `url(${goBackBg})`, top:`4.4%`, left: `6%` }} onClick={goBack}></div>
         </div>
     );
 };

@@ -695,7 +695,7 @@ function Filter() {
 
      return (
           <div className='filter-container' style={{ backgroundImage: `url(${background})`, cursor: 'none' }}>
-               <div className="go-back" style={{ backgroundImage: `url(${goBackButton})`, top:`4.2%`, left: `11%` }} onClick={() => navigate("/photo-choose")} onMouseEnter={() => hoverGoBackButton()} onMouseLeave={() => hoverGoBackButton()}></div>
+               <div className="go-back" style={{ backgroundImage: `url(${goBackButton})`, top:`4.4%`, left: `6%` }} onClick={() => navigate("/photo-choose")} onMouseEnter={() => hoverGoBackButton()} onMouseLeave={() => hoverGoBackButton()}></div>
                <div className="left-big-frame">
                     <div className={displayClassNameForBackground()} style={{ backgroundImage: `url(${myBackground})` }}>
                          {showSelectedPhotos()}

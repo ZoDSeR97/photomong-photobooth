@@ -235,7 +235,7 @@ function Cash() {
 
   return (
     <div className='cash-container' style={{ backgroundImage: `url(${background})` }}>
-      <div className="go-back" style={{ backgroundImage: `url(${goBackButton})`, top: `4.2%`, left: `11%` }} onClick={() => navigate("/payment")} onMouseEnter={() => hoverGoBackButton(language)} onMouseLeave={() => handleMouseLeave(language)}></div>
+      <div className="go-back" style={{ backgroundImage: `url(${goBackButton})`, top:`4.4%`, left: `6%` }} onClick={() => navigate("/payment")} onMouseEnter={() => hoverGoBackButton(language)} onMouseLeave={() => handleMouseLeave(language)}></div>
       <div className="paid-cash" style={{ backgroundImage: `url(${paidImage})` }}>
         <div className="paid-cash-text">{amountToPay}</div>
       </div>

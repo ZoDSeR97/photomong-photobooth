@@ -190,7 +190,7 @@ function Cash() {
 
      return (
           <div className='promo-container' style={{ backgroundImage: `url(${background})` }}>
-               <div className="go-back" style={{ backgroundImage: `url(${goBackButton})`, top:`4.2%`, left: `11%` }} onClick={() => navigate("/payment")}></div>
+               <div className="go-back" style={{ backgroundImage: `url(${goBackButton})`, top:`4.4%`, left: `6%`}} onClick={() => navigate("/payment")}></div>
                <div className="promo-form" style={{ backgroundImage: `url(${promoForm})` }}>
                     <div className="code-input" style={{ backgroundImage: `url(${promo_input})` }}></div>
                     <div className='code-input-code'>{redeemCode}</div>

@@ -1413,7 +1413,7 @@ function Sticker() {
 
      return (
           <div className='sticker-container' style={{ backgroundImage: `url(${backgroundImage})` }}>
-               <div className="go-back" style={{ backgroundImage: `url(${goBackButton})`, top:`4.2%`, left: `11%` }} onClick={() => navigate("/filter")} onMouseEnter={hoverGoBackButton} onMouseLeave={hoverGoBackButton}></div>
+               <div className="go-back" style={{ backgroundImage: `url(${goBackButton})`, top:`4.4%`, left: `6%`}} onClick={() => navigate("/filter")} onMouseEnter={hoverGoBackButton} onMouseLeave={hoverGoBackButton}></div>
                {/* 프린트용 */}
                <div className='print'>
                     <Stage

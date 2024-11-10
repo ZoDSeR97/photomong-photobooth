@@ -222,7 +222,7 @@ function Frame() {
         backgroundImage: `url(${frameBackground})`
       }}
     >
-      <div className="go-back-frame" style={{ backgroundImage: `url(${goBackBg})`,  top:`7.5%`, left: `11%`}} onClick={() => navigate("/")} onMouseEnter={() => hoverGoBackBtn(language)} onMouseLeave={() => hoverGoBackBtn(language)}></div>
+      <div className="go-back-frame" style={{ backgroundImage: `url(${goBackBg})`,  top:`7.6%`, left: `6%`}} onClick={() => navigate("/")} onMouseEnter={() => hoverGoBackBtn(language)} onMouseLeave={() => hoverGoBackBtn(language)}></div>
       <div className="style-section"
         draggable={false}
         onDragStart={onDrag}

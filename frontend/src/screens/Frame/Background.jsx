@@ -175,7 +175,7 @@ function Background() {
      }
      return (
           <div className='style-container' style={{ backgroundImage: `url(${backgroundContainer})` }}>
-               <div className="go-back" style={{ backgroundImage: `url(${goBackBg})`, top:`4.2%`, left: `11%`}} onClick={() => navigate("/frame")} onMouseEnter={() => hoverGoBackBtn(language)} onMouseLeave={() => hoverGoBackBtn(language)}></div>
+               <div className="go-back" style={{ backgroundImage: `url(${goBackBg})`, top:`4.4%`, left: `6%`}} onClick={() => navigate("/frame")} onMouseEnter={() => hoverGoBackBtn(language)} onMouseLeave={() => hoverGoBackBtn(language)}></div>
                <div className="style-section">
                     {backgrounds.map((item, index) => (
                          <div key={index} className="style-column">
