@@ -147,6 +147,7 @@ function Layout() {
                     const resAll = newBackgrounds
 
                     console.log("collab bg>>>", resAll)
+                    console.log(newBackgrounds)
 
                     if (frame === "4-cutx2") {
                          setLayouts(resAll.filter(r => r.title != "Cartoon-5cut-4"))

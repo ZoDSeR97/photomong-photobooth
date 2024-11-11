@@ -1,7 +1,7 @@
 import axios from "axios";
 
 //urls
-const audioBaseURL = "http://127.0.0.1:8001"
+const audioBaseURL = import.meta.env.VITE_REACT_APP_API
 const OriginBaseURL = import.meta.env.VITE_REACT_APP_BACKEND
 export const startCashUrl = `${import.meta.env.VITE_REACT_APP_API}/api/start/"`
 export const BaseURL = import.meta.env.VITE_REACT_APP_API

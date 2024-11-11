@@ -176,7 +176,7 @@ function Cash() {
         console.log(ooCode);
         checkPaymentStatus(ooCode);
       }
-    }, 3000);
+    }, 1000);
 
     return () => clearInterval(intervalId);
   }, [amountToPay]);

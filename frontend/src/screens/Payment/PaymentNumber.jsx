@@ -23,6 +23,7 @@ import goback_vn_hover from '../../assets/Common/vn/gobackhover.png';
 import goback_mn from '../../assets/Common/mn/goback.png';
 import goback_mn_hover from '../../assets/Common/mn/gobackhover.png';
 import { useNavigate } from 'react-router-dom';
+
 // Confirm
 import confirm_en from '../../assets/Frame/Layout/confirm.png';
 import confirm_en_hover from '../../assets/Frame/Layout/confirm_click.png';
@@ -138,7 +139,7 @@ function PaymentNumber(props) {
     } else {
       amount = 100000
     }
-    if (language === "mn" && import.meta.VITE_LOCATION == "MN") {
+    if (language === "mn" && import.meta.env.VITE_LOCATION == "MN") {
       amount /= 10
       amount += 1000
       add /= 10

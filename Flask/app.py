@@ -3,7 +3,8 @@ from PIL import Image
 from flask_cors import CORS, cross_origin
 from datetime import datetime
 from dotenv import load_dotenv
-from pathlib import PureWindowsPath, PurePosixPath
+from pydub import AudioSegment
+from pydub.playback import play
 import os
 import subprocess
 import tempfile
@@ -377,6 +378,7 @@ def print_image_with_rundll32(image_path, frame_type):
         
         # Print the image using rundll32
         print_command = f"powershell.exe Start-Process 'rundll32.exe' -ArgumentList 'C:\\Windows\\System32\\shimgvw.dll,ImageView_PrintTo', '\"/pt\"', '{image_path}', '{printer_name}'"
+        print(print_command)
         logging.debug(f"Executing print command: {print_command}")
 
         subprocess.run(print_command, check=True, shell=True)
@@ -535,6 +537,41 @@ def cleanup_temp_dir():
     shutil.rmtree(temp_dir)
 
 atexit.register(cleanup_temp_dir)
+
+@app.route('/api/play_sound/', methods=['POST'])
+def play_sound():
+    data = request.get_json()
+    if not data or 'file_name' not in data:
+        return jsonify({"error": "File name is required"}), 400
+
+    file_name = data['file_name']
+
+    print(file_name)
+
+    # Path to the directory containing the sound files
+    sound_files_directory = "playsound/"
+
+    # Construct the full file path
+    file_path = os.path.join(sound_files_directory, file_name)
+
+    print(file_path)
+
+    print(datetime.now())
+
+    # Check if the file exists
+    if not os.path.isfile(file_path):
+        return jsonify({"error": "File not found"}), 404
+
+    # Play the sound file using winsound in a separate thread
+    threading.Thread(target=play_sound_thread, args=(file_path,), daemon=True).start()
+
+    return jsonify({"status": "Playing sound", "file_name": file_name}), 200
+
+def play_sound_thread(file_path):
+    try:
+        play(AudioSegment.from_wav(file_path))
+    except Exception as e:
+        print(f"Failed to play sound: {str(e)}")
 
 # Run the Flask app
 if __name__ == '__main__':

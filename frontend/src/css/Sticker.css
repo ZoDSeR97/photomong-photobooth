@@ -103,7 +103,7 @@
 }
 
 .sticker-line-1 {
-     margin-top: 28%;
+     margin-top: 40%;
      display: flex;
      gap: 10px;
      margin-left: 25px;
@@ -131,7 +131,7 @@
      gap: 10px;
      margin-left: 25px;
      margin-right: 25px;
-     margin-top: 50%;
+     margin-top: 70%;
      flex-direction: column;
      justify-content: space-between;
 }
@@ -147,7 +147,7 @@
 
 .sticker-print-btn {
      position: absolute;
-     top: 68%;
+     top: 64%;
      right: 10%;
      width: 80%;
      height: 20%;
