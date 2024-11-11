@@ -22,6 +22,7 @@ import background_en from '../../assets/Payment/QR/BG.png';
 import background_vn from '../../assets/Payment/QR/vn/BG.png';
 import background_kr from '../../assets/Payment/QR/kr/BG.png';
 import background_mn from '../../assets/Payment/QR/mn/BG.png';
+import { getAudio, getClickAudio } from '../../api/config';
 
 QRPayment.propTypes = {
     method: PropTypes.string.isRequired,  // Ensures 'method' is a string and is required
@@ -56,6 +57,14 @@ function QRPayment({ method }) { // 'method' can be 'momo', 'vnpay', or 'zalopay
         }
     }, []);
 
+    const playAudio = async () => {
+        const res = await getAudio({ file_name: "scan_qr.wav" })
+    }
+
+    useEffect(() => {
+        playAudio()
+    }, [])
+
     useEffect(() => {
         const fetchQRPayment = async () => {
             try {
@@ -65,7 +74,7 @@ function QRPayment({ method }) { // 'method' can be 'momo', 'vnpay', or 'zalopay
                 const qrCodeData = await response.json();
                 setQrCode(qrCodeData.qr_code);
                 setOrderCode(qrCodeData.order_code);
-                if (method === "qpay"){
+                if (method === "qpay") {
                     setInvoice(qrCodeData.invoice_id)
                 }
 
@@ -84,15 +93,15 @@ function QRPayment({ method }) { // 'method' can be 'momo', 'vnpay', or 'zalopay
         const checkPaymentStatus = async (orderCodeNum) => {
             try {
                 if (method === "qpay") {
-                    const response = await fetch(`${import.meta.env.VITE_REACT_APP_BACKEND}/${method}/api`, 
+                    const response = await fetch(`${import.meta.env.VITE_REACT_APP_BACKEND}/${method}/api`,
                         {
-                            method:"POST",
+                            method: "POST",
                             headers: {
-                                "Content-Type":"application/json"
+                                "Content-Type": "application/json"
                             },
-                            body:JSON.stringify({
-                                "invoice_id":invoice,
-                                "order_code":orderCode,
+                            body: JSON.stringify({
+                                "invoice_id": invoice,
+                                "order_code": orderCode,
                             })
                         });
                     const paymentData = await response.json();
@@ -155,6 +164,7 @@ function QRPayment({ method }) { // 'method' can be 'momo', 'vnpay', or 'zalopay
     }, [paymentStatus, navigate]);
 
     const goBack = () => {
+        getClickAudio()
         navigate("/payment");
     }
 
@@ -163,7 +173,7 @@ function QRPayment({ method }) { // 'method' can be 'momo', 'vnpay', or 'zalopay
             <div className='qr-code'>
                 {qrCode && <QRCodeSVG value={qrCode} size={200} />}
             </div>
-            <div className="go-back" style={{ backgroundImage: `url(${goBackBg})`, top:`4.4%`, left: `6%` }} onClick={goBack}></div>
+            <div className="go-back" style={{ backgroundImage: `url(${goBackBg})`, top: `4.4%`, left: `6%` }} onClick={goBack}></div>
         </div>
     );
 };

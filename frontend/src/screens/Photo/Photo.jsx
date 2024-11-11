@@ -240,9 +240,11 @@ function Photo() {
                setCountdown((prevCountdown) => {
                     setTakeAgainButtonUrl(take_again_button_inactive);
                     if (prevCountdown > 0) {
+                         playCntSound();
                          return prevCountdown - 1;
                     } else {
                          clearInterval(timerRef.current);
+                         playTakePhotoAudio();
                          takeSnapshot()
                               .then(() => {
                                    setCountdown(8);
@@ -278,7 +280,7 @@ function Photo() {
                     ...latestImage,
                     url: `${import.meta.env.VITE_REACT_APP_API}/serve_photo/${uuid}/${imageName}`
                };
-               console.log("url: ",formattedImage);
+               console.log("url: ", formattedImage);
                if (photos.videos != undefined) {
                     if (photos.videos.length != 0) {
                          const videoUrl = photos.videos[0].url.replace("get_photo", "download_photo")
@@ -342,7 +344,7 @@ function Photo() {
                     <div className="choose-photo-row">
                          <div
                               className="choose-photo-item-3cut-top-line"
-                              style={{ backgroundImage: `url(${capturePhotos[0].url})`}}
+                              style={{ backgroundImage: `url(${capturePhotos[0].url})` }}
                               onClick={() => handleRetakePhoto(0)}
                          />
                     </div>
@@ -356,7 +358,7 @@ function Photo() {
                                    <div
                                         key={photoIndex}
                                         className={displayClassNameForPhoto(rowIndex, photoIndex, selectedIndex)}
-                                        style={{ backgroundImage: `url(${capturePhotos[selectedIndex].url})`}}
+                                        style={{ backgroundImage: `url(${capturePhotos[selectedIndex].url})` }}
                                         onClick={() => handleRetakePhoto(selectedIndex)}
                                    />
                               ))}
@@ -369,7 +371,7 @@ function Photo() {
                          <div className="choose-photo-row">
                               <div
                                    className="choose-photo-item-5cut-last-line"
-                                   style={{ backgroundImage: `url(${capturePhotos[capturePhotos.length - 1].url})`}}
+                                   style={{ backgroundImage: `url(${capturePhotos[capturePhotos.length - 1].url})` }}
                                    onClick={() => handleRetakePhoto(capturePhotos.length - 1)}
                               />
                          </div>
@@ -382,7 +384,7 @@ function Photo() {
                                         <div
                                              key={photoIndex}
                                              className={displayClassNameForPhoto(rowIndex, photoIndex, selectedIndex)}
-                                             style={{ backgroundImage: `url(${capturePhotos[selectedIndex].url})`}}
+                                             style={{ backgroundImage: `url(${capturePhotos[selectedIndex].url})` }}
                                              onClick={() => handleRetakePhoto(selectedIndex)}
                                         />
                                    ))}
@@ -399,7 +401,7 @@ function Photo() {
                                         <div
                                              key={photoIndex}
                                              className={displayClassNameForPhoto(rowIndex, photoIndex, selectedIndex)}
-                                             style={{ backgroundImage: `url(${capturePhotos[selectedIndex].url})`}}
+                                             style={{ backgroundImage: `url(${capturePhotos[selectedIndex].url})` }}
                                              onClick={() => handleRetakePhoto(selectedIndex)}
                                         />
                                    ))}
@@ -511,6 +513,22 @@ function Photo() {
           }
      };
 
+     const playCntSound = async () => {
+          await getAudio({ file_name: "count.wav" });
+     };
+
+     const playTakePhotoAudio = async () => {
+          await getAudio({ file_name: "take_photo.wav" });
+      };
+  
+      const playAudio = async () => {
+          await getAudio({ file_name: "look_up_smile.wav" });
+      };
+  
+      useEffect(() => {
+          playAudio();
+      }, []);
+
      useEffect(() => {
           if (uuid && cameraConnected) {
                if (photoCount > 0) {
@@ -603,8 +621,10 @@ function Photo() {
           if (!cameraConnected) {
                const timer = setInterval(() => {
                     if (countdown > 0) {
+                         playCntSound();
                          setCountdown(countdown - 1);
                     } else {
+                         playTakePhotoAudio();
                          takePhoto();
                     }
                }, 1000);
@@ -727,20 +747,20 @@ function Photo() {
                                    className='photo-webcam'
                               />
                          ) || (<Webcam
-                                   audio={false}
-                                   ref={webcamRef}
-                                   forceScreenshotSourceSize={true}
-                                   videoConstraints={{
-                                        height: 720,
-                                        width: 1280
-                                   }}
-                                   style={{
-                                        width: 900,
-                                        height: 500,
-                                   }}
-                                   screenshotFormat='image/jpeg'
-                                   className='photo-webcam'
-                              />)
+                              audio={false}
+                              ref={webcamRef}
+                              forceScreenshotSourceSize={true}
+                              videoConstraints={{
+                                   height: 720,
+                                   width: 1280
+                              }}
+                              style={{
+                                   width: 900,
+                                   height: 500,
+                              }}
+                              screenshotFormat='image/jpeg'
+                              className='photo-webcam'
+                         />)
                          }
                     </div>
                </div>

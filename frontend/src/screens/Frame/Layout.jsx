@@ -171,7 +171,7 @@ function Layout() {
           //라우팅 할 때 리스트 한번에 보내기
           // sessionStorage.setItem('selectedLayout', JSON.stringify(layouts));
           // setClickedIndex(index === clickedIndex ? null : index);
-          //getClickAudio()
+          getClickAudio()
           if (clickedTitles.includes(clickedTitle)) {
                setClickedTitles(prevTitles => prevTitles.filter(clickedTitle => clickedTitle != clickedTitle));
 
@@ -277,12 +277,14 @@ function Layout() {
                setConfirmHoverButton(confirm_vn_hover);
           }
      }, []);
-     /* const playAudio = async () => {
+
+     const playAudio = async () => {
           const res = await getAudio({ file_name: "choose_frame_style.wav" })
      }
      useEffect(() => {
           playAudio()
-     }, []) */
+     }, [])
+
      return (
           <div className='layout-container'
                // onDragStart={onDrag}
@@ -294,7 +296,9 @@ function Layout() {
                     // backgroundColor:"red"
                }}
           >
-               <div className="go-back" style={{ backgroundImage: `url(${goBackBg})`, top:`4.4%`, left: `6%` }} onClick={() => navigate("/background")} onMouseEnter={() => hoverGoBackBtn(language)} onMouseLeave={() => hoverGoBackBtn(language)}></div>
+               <div className="go-back" style={{ backgroundImage: `url(${goBackBg})`, top:`4.4%`, left: `6%` }} onClick={() => {
+                    getClickAudio()
+                    navigate("/background")}} onMouseEnter={() => hoverGoBackBtn(language)} onMouseLeave={() => hoverGoBackBtn(language)}></div>
                <div className="style-section"
                     draggable={false}
                     onDragStart={onDrag}

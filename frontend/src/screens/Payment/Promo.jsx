@@ -62,6 +62,7 @@ import goback_vn_hover from '../../assets/Common/vn/gobackhover.png';
 import goback_mn from '../../assets/Common/mn/goback.png';
 import goback_mn_hover from '../../assets/Common/mn/gobackhover.png';
 
+import { checkPromotionCode, getAudio, getClickAudio } from '../../api/config';
 
 function Cash() {
      const { t } = useTranslation();
@@ -70,7 +71,7 @@ function Cash() {
      const [hoveredRedeem, setHoveredRedeem] = useState(null);
      const [redeemCode, setRedeemCode] = useState('');
      const [frameAmount, setFrameAmount] = useState(0);
-     const [background, setBackground] = useState(background_en);       
+     const [background, setBackground] = useState(background_en);
      const [promoForm, setPromoForm] = useState(promo_form);
      const [redeemButton, setRedeemButton] = useState(redeem);
      const [language, setLanguage] = useState('en');
@@ -137,6 +138,7 @@ function Cash() {
                return;
           }
           if (buttonClick) {
+               getClickAudio()
                setRedeemCode(redeemCode + buttonClick);
           }
      }
@@ -146,6 +148,7 @@ function Cash() {
      }
 
      const redeemClick = () => {
+          getClickAudio()
           checkReedeem();
      }
 
@@ -188,9 +191,19 @@ function Cash() {
           }
      }
 
+     const playAudio = async () => {
+          const res = await getAudio({ file_name: "enter_pro.wav" })
+     }
+
+     useEffect(() => {
+          playAudio()
+     }, [])
+
      return (
           <div className='promo-container' style={{ backgroundImage: `url(${background})` }}>
-               <div className="go-back" style={{ backgroundImage: `url(${goBackButton})`, top:`4.4%`, left: `6%`}} onClick={() => navigate("/payment")}></div>
+               <div className="go-back" style={{ backgroundImage: `url(${goBackButton})`, top: `4.4%`, left: `6%` }} onClick={() => {
+                    getClickAudio()
+                    navigate("/payment")}}></div>
                <div className="promo-form" style={{ backgroundImage: `url(${promoForm})` }}>
                     <div className="code-input" style={{ backgroundImage: `url(${promo_input})` }}></div>
                     <div className='code-input-code'>{redeemCode}</div>

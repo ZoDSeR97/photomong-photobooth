@@ -45,6 +45,7 @@ import done_click_vn from '../../assets/Payment/Cash/vn/done_click.png';
 import done_click_mn from '../../assets/Payment/Cash/mn/done_click.png';
 
 import axios from 'axios';
+import { getAudio, getClickAudio} from '../../api/config';
 
 function Cash() {
   const { t } = useTranslation();
@@ -91,6 +92,14 @@ function Cash() {
       }
     }
   }, []);
+
+  const playAudio = async () => {
+    const res = await getAudio({ file_name: "insert_cash.wav" })
+  }
+
+  useEffect(() => {
+    playAudio()
+  }, [])
 
   useEffect(() => {
     const startCashPayment = async () => {
@@ -184,6 +193,7 @@ function Cash() {
   const continuePay = async () => {
     if (orderCode && parseInt(insertedMoney) >= parseInt(amountToPay)) {
       try {
+        getClickAudio()
         // Run both requests in parallel
         await Promise.all([
           axios.post(`${import.meta.env.VITE_REACT_APP_API}/api/cash/stop`, {}),
@@ -230,12 +240,14 @@ function Cash() {
       setDoneImage(doneImage == done_click_mn ? done_mn : done_click_mn);
     } else if (lang == 'vi') {
       setDoneImage(doneImage == done_click_vn ? done_vn : done_click_vn);
-    } 
+    }
   }
 
   return (
     <div className='cash-container' style={{ backgroundImage: `url(${background})` }}>
-      <div className="go-back" style={{ backgroundImage: `url(${goBackButton})`, top:`4.4%`, left: `6%` }} onClick={() => navigate("/payment")} onMouseEnter={() => hoverGoBackButton(language)} onMouseLeave={() => handleMouseLeave(language)}></div>
+      <div className="go-back" style={{ backgroundImage: `url(${goBackButton})`, top: `4.4%`, left: `6%` }} onClick={() => {
+        getClickAudio()
+        navigate("/payment")}} onMouseEnter={() => hoverGoBackButton(language)} onMouseLeave={() => handleMouseLeave(language)}></div>
       <div className="paid-cash" style={{ backgroundImage: `url(${paidImage})` }}>
         <div className="paid-cash-text">{amountToPay}</div>
       </div>

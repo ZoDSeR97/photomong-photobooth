@@ -100,6 +100,8 @@ import continue_vn_hover from '../assets/Common/vn/continue_click.png';
 import continue_mn from '../assets/Common/mn/continue.png';
 import continue_mn_hover from '../assets/Common/mn/continue_click.png';
 
+import { getAudio, getClickAudio } from '../api/config';
+
 function Filter() {
      const { t } = useTranslation();
      const navigate = useNavigate();
@@ -287,6 +289,7 @@ function Filter() {
      }
 
      const handleFilter = (index) => {
+          getClickAudio()
           setSliderChange(false);
           setPercentage(350);
           setFilterIndex(index);
@@ -296,6 +299,7 @@ function Filter() {
 
      const increasePercentage = () => {
           setSliderChange(true);
+          getClickAudio()
           if (percentage < 570) {
                setPercentage(percentage + 10);
           }
@@ -690,12 +694,22 @@ function Filter() {
           }
      }
 
+     const playAudio = async () => {
+          const res = await getAudio({ file_name: "choose_filter.wav" })
+     }
+
+     useEffect(() => {
+          playAudio()
+     }, [])
+
      // Chunk the selected photos array into arrays of 2 photos each
      const selectedPhotoRows = chunkArray(selectedPhotos, 2);
 
      return (
           <div className='filter-container' style={{ backgroundImage: `url(${background})`, cursor: 'none' }}>
-               <div className="go-back" style={{ backgroundImage: `url(${goBackButton})`, top:`4.4%`, left: `6%` }} onClick={() => navigate("/photo-choose")} onMouseEnter={() => hoverGoBackButton()} onMouseLeave={() => hoverGoBackButton()}></div>
+               <div className="go-back" style={{ backgroundImage: `url(${goBackButton})`, top: `4.4%`, left: `6%` }} onClick={() => {
+                    getClickAudio()
+                    navigate("/photo-choose")}} onMouseEnter={() => hoverGoBackButton()} onMouseLeave={() => hoverGoBackButton()}></div>
                <div className="left-big-frame">
                     <div className={displayClassNameForBackground()} style={{ backgroundImage: `url(${myBackground})` }}>
                          {showSelectedPhotos()}

@@ -20,7 +20,7 @@ function Print() {
      const [hoveredImage, setHoveredImage] = useState(null);
 
      const [background, setBackground] = useState(background_en);
-    
+
      useEffect(() => {
           const storedLanguage = sessionStorage.getItem('language');
           if (storedLanguage === 'en') {
@@ -29,18 +29,19 @@ function Print() {
                setBackground(background_kr);
           } else if (storedLanguage === 'vi') {
                setBackground(background_vn);
-          }else if (storedLanguage === 'mn') {
+          } else if (storedLanguage === 'mn') {
                setBackground(background_mn);
           }
      }, []);
 
-     /* const playAudio = async() => {
-          const res=await getAudio({file_name:"thank_being.wav"})
-            }
-      useEffect(()=>{
-      playAudio()
-      },[]) */
-  
+     const playAudio = async () => {
+          const res = await getAudio({ file_name: "thank_being.wav" })
+     }
+     
+     useEffect(() => {
+          playAudio()
+     }, [])
+
      const handleMouseEnter = (image) => {
           setHoveredImage(image);
      }

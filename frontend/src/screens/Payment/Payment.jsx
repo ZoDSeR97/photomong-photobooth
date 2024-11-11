@@ -64,6 +64,7 @@ import background_en from '../../assets/Payment/BG.png';
 import background_vn from '../../assets/Payment/Common/vn/BG.png';
 import backgrond_kr from '../../assets/Payment/Common/kr/BG.png';
 import background_mn from '../../assets/Payment/Common/mn/BG.png';
+import { getAudio, getClickAudio } from '../../api/config';
 
 function Payment() {
   const { t } = useTranslation();
@@ -116,6 +117,13 @@ function Payment() {
       setCashButton(cash_mn);
       setPromoButton(promo_mn);
     }
+  }, [])
+  const playAudio = async () => {
+    const res = await getAudio({ file_name: "choose_pay_method.wav" })
+  }
+
+  useEffect(() => {
+    playAudio()
   }, [])
 
   const hoverMouseEffect = (image) => {
@@ -181,25 +189,26 @@ function Payment() {
   }
 
   const goToPay = (method) => {
+    getClickAudio()
     navigate(`/payment-${method}`);
   }
 
   return (
-    <div className='payment-container' style={{ backgroundImage: `url(${background})`}}>
-      <div className="go-back" style={{ backgroundImage: `url(${goBackBg})`, top:`4.4%`, left: `6%` }} onClick={() => navigate("/layout")} onMouseEnter={() => hoverGoBackBtn(language)} onMouseLeave={() => hoverGoBackBtn(language)}></div>
+    <div className='payment-container' style={{ backgroundImage: `url(${background})` }}>
+      <div className="go-back" style={{ backgroundImage: `url(${goBackBg})`, top: `4.4%`, left: `6%` }} onClick={() => navigate("/layout")} onMouseEnter={() => hoverGoBackBtn(language)} onMouseLeave={() => hoverGoBackBtn(language)}></div>
       <div className="payment-line">
         <div className="payment-method" style={{ backgroundImage: `url(${cashButton})` }} onMouseEnter={() => hoverMouseEffect('cash')} onMouseLeave={() => hoverMouseEffect('cash')} onClick={() => goToPay('cash')}></div>
         {
-          language === 'mn'?
-            <div className="payment-method" style={{ backgroundImage: `url(${qpayButton})` }} onMouseEnter={() => hoverMouseEffect('qpay')} onMouseLeave={() => hoverMouseEffect('qpay')} onClick={() => goToPay('qpay')}/>
-          : 
-          <>
-            <div className="payment-method" style={{ backgroundImage: `url(${vnpayButton})` }} onMouseEnter={() => hoverMouseEffect('vnpay')} onMouseLeave={() => hoverMouseEffect('vnpay')} onClick={() => goToPay('vnpay')}/>
-            <div className="payment-method" style={{ backgroundImage: `url(${momoButton})` }} onMouseEnter={() => hoverMouseEffect('momo')} onMouseLeave={() => hoverMouseEffect('momo')} onClick={() => goToPay('momo')}/>
-            <div className="payment-method" style={{ backgroundImage: `url(${zalopayButton})` }} onMouseEnter={() => hoverMouseEffect('zalopay')} onMouseLeave={() => hoverMouseEffect('zalopay')} onClick={() => goToPay('zalopay')}/>
-          </>
+          language === 'mn' ?
+            <div className="payment-method" style={{ backgroundImage: `url(${qpayButton})` }} onMouseEnter={() => hoverMouseEffect('qpay')} onMouseLeave={() => hoverMouseEffect('qpay')} onClick={() => goToPay('qpay')} />
+            :
+            <>
+              <div className="payment-method" style={{ backgroundImage: `url(${vnpayButton})` }} onMouseEnter={() => hoverMouseEffect('vnpay')} onMouseLeave={() => hoverMouseEffect('vnpay')} onClick={() => goToPay('vnpay')} />
+              <div className="payment-method" style={{ backgroundImage: `url(${momoButton})` }} onMouseEnter={() => hoverMouseEffect('momo')} onMouseLeave={() => hoverMouseEffect('momo')} onClick={() => goToPay('momo')} />
+              <div className="payment-method" style={{ backgroundImage: `url(${zalopayButton})` }} onMouseEnter={() => hoverMouseEffect('zalopay')} onMouseLeave={() => hoverMouseEffect('zalopay')} onClick={() => goToPay('zalopay')} />
+            </>
         }
-        <div className="payment-method" style={{ backgroundImage: `url(${promoButton})` }} onMouseEnter={() => hoverMouseEffect('promo')} onMouseLeave={() => hoverMouseEffect('promo')} onClick={() => goToPay('promo')}/>
+        <div className="payment-method" style={{ backgroundImage: `url(${promoButton})` }} onMouseEnter={() => hoverMouseEffect('promo')} onMouseLeave={() => hoverMouseEffect('promo')} onClick={() => goToPay('promo')} />
       </div>
     </div>
   );

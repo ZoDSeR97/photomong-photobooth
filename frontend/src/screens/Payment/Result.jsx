@@ -16,6 +16,7 @@ import continue_kr from '../../assets/Common/kr/continue.png';
 import continue_kr_hover from '../../assets/Common/kr/continue_click.png';
 import continue_vn from '../../assets/Common/vn/continue.png';
 import continue_vn_hover from '../../assets/Common/vn/continue_click.png';
+import { getAudio } from '../../api/config';
 
 function QR() {
      const { t } = useTranslation();
@@ -39,6 +40,14 @@ function QR() {
                }
           }
      }, []);
+
+     const playAudio = async () => {
+          const res = await getAudio({ file_name: "pay_success.wav" })
+     }
+     
+     useEffect(() => {
+          playAudio()
+     }, [])
 
      const hoverContinueButton = () => {
           const storedLanguage = sessionStorage.getItem('language');

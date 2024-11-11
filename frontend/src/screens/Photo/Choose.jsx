@@ -193,7 +193,7 @@ function Choose() {
           if (clickedButton) {
                return;
           }
-          //getClickAudio()
+          getClickAudio()
           sessionStorage.setItem('choosePhotos', JSON.stringify(selectedPhotos));
 
           // Determine total photos
@@ -335,9 +335,10 @@ function Choose() {
           const res = await getAudio({ file_name: "choose_photos.wav" })
      }
 
-     /* useEffect(() => {
+     useEffect(() => {
           playAudio()
-     }, []) */
+     }, [])
+
      const showSelectedPhotos = () => {
 
           if (selectedFrame == '3-cutx2' && selectedPhotos.length > 0) {
@@ -455,7 +456,9 @@ function Choose() {
 
      return (
           <div className='photo-choose-container' style={{ backgroundImage: `url(${background})` }}>
-               <div className="go-back" style={{ backgroundImage: `url(${goBackButton})`, top:`4.2%`, left: `11%` }} onClick={() => navigate("/photo")} onMouseEnter={() => hoverGoBackButton(language)} onMouseLeave={() => hoverGoBackButton(language)}></div>
+               <div className="go-back" style={{ backgroundImage: `url(${goBackButton})`, top:`4.4%`, left: `6%` }} onClick={() => {
+                    getClickAudio()
+                    navigate("/photo")}} onMouseEnter={() => hoverGoBackButton(language)} onMouseLeave={() => hoverGoBackButton(language)}></div>
                <div className="left-big-frame">
                     {/* 프레임속 회색네모 갯수만큼 나오는 곳 */}
                     <div ref={parentRef} className={displayClassNameForBackground()} style={{ backgroundImage: `url(${myBackground})` }}>

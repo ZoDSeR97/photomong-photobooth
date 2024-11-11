@@ -94,13 +94,13 @@ function Frame() {
     fetchFrames();
   }, []);
 
-  /* const playAudio = async () => {
+  const playAudio = async () => {
     const res = await getAudio({ file_name: "choose_frame_layout.wav" })
   }
 
   useEffect(() => {
     playAudio()
-  }, []) */
+  }, [])
 
   /**
    * API frames
@@ -202,7 +202,7 @@ function Frame() {
   }
 
   const goToBg = (titleFrame, price) => {
-    //getClickAudio()
+    getClickAudio()
     console.log(titleFrame)
     sessionStorage.setItem('selectedFrame', JSON.stringify({
       frame: titleFrame
@@ -222,7 +222,9 @@ function Frame() {
         backgroundImage: `url(${frameBackground})`
       }}
     >
-      <div className="go-back-frame" style={{ backgroundImage: `url(${goBackBg})`,  top:`7.6%`, left: `6%`}} onClick={() => navigate("/")} onMouseEnter={() => hoverGoBackBtn(language)} onMouseLeave={() => hoverGoBackBtn(language)}></div>
+      <div className="go-back-frame" style={{ backgroundImage: `url(${goBackBg})`,  top:`7.6%`, left: `6%`}} onClick={() => {
+        getClickAudio()
+        navigate("/")}} onMouseEnter={() => hoverGoBackBtn(language)} onMouseLeave={() => hoverGoBackBtn(language)}></div>
       <div className="style-section"
         draggable={false}
         onDragStart={onDrag}

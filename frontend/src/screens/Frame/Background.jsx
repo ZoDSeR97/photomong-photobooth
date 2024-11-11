@@ -36,7 +36,7 @@ import background_en from '../../assets/Frame/Style/BG.png';
 import background_kr from '../../assets/Frame/Style/kr/BG.png';
 import background_vn from '../../assets/Frame/Style/vn/BG.png';
 import background_mn from '../../assets/Frame/Style/mn/BG.png';
-import { originAxiosInstance } from '../../api/config';
+import { getAudio, getClickAudio, originAxiosInstance } from '../../api/config';
 
 function Background() {
      const { t } = useTranslation();
@@ -75,6 +75,14 @@ function Background() {
                setSelectedFrame(JSON.parse(frame).frame);
           }
      })
+
+     const playAudio = async () => {
+          const res = await getAudio({ file_name: "choose_frame_style.wav" })
+     }
+
+     useEffect(() => {
+          playAudio()
+     }, [])
 
      useEffect(() => {
           fetchBackgrounds()
@@ -155,6 +163,7 @@ function Background() {
      }
 
      const goToLayout = (title) => {
+          getClickAudio()
           sessionStorage.setItem('styleBg', title);
           navigate('/layout');
      }
@@ -175,7 +184,10 @@ function Background() {
      }
      return (
           <div className='style-container' style={{ backgroundImage: `url(${backgroundContainer})` }}>
-               <div className="go-back" style={{ backgroundImage: `url(${goBackBg})`, top:`4.4%`, left: `6%`}} onClick={() => navigate("/frame")} onMouseEnter={() => hoverGoBackBtn(language)} onMouseLeave={() => hoverGoBackBtn(language)}></div>
+               <div className="go-back" style={{ backgroundImage: `url(${goBackBg})`, top: `4.4%`, left: `6%` }} onClick={() => {
+                    getClickAudio()
+                    navigate("/frame")
+               }} onMouseEnter={() => hoverGoBackBtn(language)} onMouseLeave={() => hoverGoBackBtn(language)}></div>
                <div className="style-section">
                     {backgrounds.map((item, index) => (
                          <div key={index} className="style-column">
