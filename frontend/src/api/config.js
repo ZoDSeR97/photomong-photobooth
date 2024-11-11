@@ -24,11 +24,11 @@ export const originAxiosInstance = axios.create({
 axios.defaults.withCredentials = true;
 
 //PaymentNumber.js
-export const sendDongNum = async (dongNum, checkCoupon) => {
+export const sendDongNum = async (photoNum, checkCoupon) => {
   try {
     const { data } = await axiosInstance.get('/api/get_print_amount', {
       params: {
-        printAmount: dongNum,
+        printAmount: photoNum,
         checkCoupon: checkCoupon
       }
     });
