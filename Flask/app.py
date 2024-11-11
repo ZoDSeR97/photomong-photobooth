@@ -14,7 +14,6 @@ import requests
 import time
 import threading
 import queue
-import io
 import shutil
 import atexit
 import cv2

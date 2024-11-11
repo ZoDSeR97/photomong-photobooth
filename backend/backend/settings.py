@@ -56,6 +56,7 @@ QPAY_INVO_URL=os.getenv('QPAY_INVO_URL')
 QPAY_PAYM_URL=os.getenv('QPAY_PAYM_URL')
 QPAY_USERNAME=os.getenv('QPAY_USERNAME')
 QPAY_PASSWORD=os.getenv('QPAY_PASSWORD')
+QPAY_CODE=os.getenv("QPAY_INVOICE_CODE")
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent

@@ -52,7 +52,7 @@ class QPayAPI(APIView):
 
         # Create the order request data
         invoice_data = {
-            "invoice_code": "TEST_INVOICE",  # Provided invoice code
+            "invoice_code": settings.QPAY_CODE,  # Provided invoice code
             "sender_invoice_no": str(transID),
             "invoice_receiver_code": "terminal",
             "sender_branch_code": "BRANCH1",
@@ -162,15 +162,16 @@ class QPayAPI(APIView):
 
             if result.get("rows"):
                 if result["rows"][0]["payment_status"] == "PAID":
-                    order.status = "Success"
-                    order.save()
-                    # Create Transaction if Success
-                    Transaction.objects.create(
-                        order_id=order,
-                        payment_id=qpay,
-                        amount=order.total_price,
-                        transaction_status="Success",
-                    )
+                    if order.status != "Success":
+                        order.status = "Success"
+                        order.save()
+                        # Create Transaction if Success
+                        Transaction.objects.create(
+                            order_id=order,
+                            payment_id=qpay,
+                            amount=order.total_price,
+                            transaction_status="Success",
+                        )
 
                     return Response({
                         "order_code": order_code,
@@ -224,12 +225,13 @@ class QPayWebhookAPI(APIView):
                 )
                 qpay.save()
 
-            Transaction.objects.create(
-                order_id=order,
-                payment_id=qpay,
-                amount=order.total_price,
-                transaction_status="Success",
-            )
+            if not Transaction.objects.filter(order_code=order_code).first():
+                Transaction.objects.create(
+                    order_id=order,
+                    payment_id=qpay,
+                    amount=order.total_price,
+                    transaction_status="Success",
+                )
 
             return Response({
                 "Success",
