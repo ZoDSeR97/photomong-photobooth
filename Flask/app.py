@@ -372,7 +372,7 @@ def get_mac_address():
 # Print image using rundll32
 def print_image_with_rundll32(image_path, frame_type):
     try:
-        printer_name = 'DS-RX1 (Photostrips)' if frame_type == 'stripx2' else 'DS-RX1'
+        printer_name = 'RX1-Photostrips' if frame_type == 'stripx2' else 'DS-RX1'
         logging.info(f"Printing to {printer_name}")
         
         # Print the image using rundll32
