@@ -51,6 +51,8 @@ video_filename = None
 lock = threading.Lock()  # For thread safety on shared resources
 inserted_money = 0
 amount_to_pay = 0
+print_amount = 1
+check_coupon = 0
 
 # Find Arduino port
 def find_arduino_port():
@@ -379,8 +381,9 @@ def print_image_with_rundll32(image_path, frame_type):
         print_command = f"powershell.exe Start-Process 'rundll32.exe' -ArgumentList 'C:\\Windows\\System32\\shimgvw.dll,ImageView_PrintTo', '\"/pt\"', '{image_path}', '{printer_name}'"
         print(print_command)
         logging.debug(f"Executing print command: {print_command}")
-
-        subprocess.run(print_command, check=True, shell=True)
+        
+        for i in range(print_amount):
+            subprocess.run(print_command, check=True, shell=True)
         logging.info(f"Print command sent for file: {image_path}")
     except subprocess.CalledProcessError as e:
         logging.error(f"Error printing file: {e}")
@@ -524,6 +527,7 @@ def serve_photo(file_path):
 
 @app.route('/api/get_print_amount', methods=['GET'])
 def get_print_amount():
+    global print_amount, check_coupon
     print_amount = request.args.get('printAmount', type=int)
     check_coupon = request.args.get('checkCoupon', type=int)
 

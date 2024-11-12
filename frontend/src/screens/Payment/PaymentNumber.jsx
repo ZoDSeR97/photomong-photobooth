@@ -97,10 +97,10 @@ function PaymentNumber(props) {
     setPhotoNum(p => (p > 1 ? p - 1 : p));
   };
 
-  const goToPayment = async (dongNum, checkCoupon) => {
+  const goToPayment = async (photoNum, checkCoupon) => {
     getClickAudio()
-    sessionStorage.setItem("photoNum", dongNum)
-    const res = await sendDongNum(dongNum, checkCoupon === true ? 1 : 0) // work on this later
+    sessionStorage.setItem("photoNum", photoNum)
+    const res = await sendDongNum(photoNum, checkCoupon === true ? 1 : 0) // work on this later
     navigate('/payment');
   }
 

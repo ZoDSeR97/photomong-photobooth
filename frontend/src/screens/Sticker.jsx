@@ -377,11 +377,7 @@ function Sticker() {
 
           playPrintAudio()
           setClickPrint(true);
-          for (let i = 0; i < photoNum; i++) {
-               setTimeout(() => {
-                    callPrinter();
-               }, 1000);
-          }
+          callPrinter();
           await uploadCloud();
 
           // setTimeout(() => {
