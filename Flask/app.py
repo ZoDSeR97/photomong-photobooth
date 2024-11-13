@@ -1,10 +1,9 @@
 from flask import Flask, jsonify, Response, request, send_file
-from PIL import Image
 from flask_cors import CORS, cross_origin
+from PIL import Image
 from datetime import datetime
 from dotenv import load_dotenv
-from pydub import AudioSegment
-from pydub.playback import play
+from pathlib import Path
 import os
 import subprocess
 import tempfile
@@ -16,301 +15,417 @@ import threading
 import queue
 import shutil
 import atexit
-import cv2
-import numpy as np
-import uuid
+import ctypes
 import serial
 import serial.tools.list_ports
 import sys
 import base64
+import numpy as np
+import uuid
+import simpleaudio as sa
 
+# Initialize Flask app
 app = Flask(__name__)
 load_dotenv()  # take environment variables from .env.
 CORS(app, supports_credentials=True, resources={r"/*": {"origins": "*"}})
 
-# Optimization changes applied
-live_view_process = None
-frame_queue = queue.Queue(maxsize=0)  # Unlimited size
-captured_frames = []
-timer = None
-live_view_thread = None
-MAX_CAPTURED_FRAMES = 100
+# Setup logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+# Global variables for camera and live view state
+camera_ref = None
+evf_image_ref = None
+live_view_active = False
+frame_queue = queue.Queue(maxsize=100)  # Buffer for live view frames
 capture_count = 0
-
-logging.basicConfig(level=logging.WARNING, format='%(asctime)s - %(levelname)s - %(message)s')
-
-temp_dir = tempfile.mkdtemp()
-frame_buffer = []
-MAX_BUFFER_SIZE = 300
-video_file = None
-fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-fps = 10.0
-frame_size = (640, 480)  # Adjustable
-video_filename = None
-
-lock = threading.Lock()  # For thread safety on shared resources
 inserted_money = 0
 amount_to_pay = 0
 print_amount = 1
 check_coupon = 0
 
-# Find Arduino port
-def find_arduino_port():
-    ports = list(serial.tools.list_ports.comports())
-    for p in ports:
-        if 'Arduino' in p.description:
-            return p.device
-    return None
+# Mappings
+EDS_ERR_CODES = {
+    # General errors
+    0x00000000: "Operation completed successfully",
+    0x00000001: "Operation not implemented",
+    0x00000002: "Internal SDK error",
+    0x00000003: "Memory allocation failed",
+    0x00000004: "Memory deallocation failed",
+    0x00000005: "Operation cancelled",
+    0x00000006: "Incompatible SDK version",
+    0x00000007: "Operation not supported",
+    0x00000008: "Unexpected exception occurred",
+    0x00000009: "Protection violation",
+    0x0000000A: "Missing subcomponent",
+    0x0000000B: "Selection unavailable",
 
-# Initialize serial communication with Arduino
-arduino_port = find_arduino_port()
-if arduino_port:
-    ser = serial.Serial(arduino_port, 9600, timeout=1)
-    logging.info(f"Arduino connected on {arduino_port}")
-else:
-    logging.error("Arduino not found. Please check the connection.")
-    sys.exit("Arduino not found")
+    # File errors
+    0x00000020: "File I/O error",
+    0x00000021: "Too many open files",
+    0x00000022: "File not found",
+    0x00000023: "File open error",
+    0x00000024: "File close error",
+    0x00000025: "File seek error",
+    0x00000026: "File tell error",
+    0x00000027: "File read error",
+    0x00000028: "File write error",
+    0x00000029: "File permission error",
+    0x0000002A: "File disk full",
+    0x0000002B: "File already exists",
+    0x0000002C: "File format unrecognized",
+    0x0000002D: "File data corrupt",
+    0x0000002E: "File naming error",
 
-def start_video_capture():
-    global video_file, video_filename
-    video_filename = os.path.join(temp_dir, f"video_{datetime.now().strftime('%Y%m%d_%H%M%S')}.mp4")
-    video_file = cv2.VideoWriter(video_filename, fourcc, fps, frame_size)
-    return video_filename
+    # Device errors
+    0x00000080: "Device not found",
+    0x00000081: "Device busy",
+    0x00000082: "Device invalid",
+    0x00000083: "Device emergency",
+    0x00000084: "Device memory full",
+    0x00000085: "Device internal error",
+    0x00000086: "Device invalid parameter",
+    0x00000087: "Device no disk",
+    0x00000088: "Device disk error",
+    0x00000089: "Device CF gate changed",
+    0x0000008A: "Device dial changed",
+    0x0000008B: "Device not installed",
+    0x0000008C: "Device stay awake",
+    0x0000008D: "Device not released",
 
-def stop_video_capture():
-    global video_file
-    if video_file:
-        video_file.release()
-        video_file = None
+    # Take picture errors
+    0x00008D01: "AF failed during photo capture",
+    0x00008D02: "Take picture reserved",
+    0x00008D03: "Mirror up operation failed",
+    0x00008D04: "Sensor cleaning in progress",
+    0x00008D05: "Silent mode operation failed",
+    0x00008D06: "No memory card inserted",
+    0x00008D07: "Memory card error",
+    0x00008D08: "Memory card write protected",
+    0x00008D09: "Movie crop operation failed",
+    0x00008D0A: "Flash charging required",
+    0x00008D0B: "No lens attached",
+    0x00008D0C: "Special movie mode error",
+    0x00008D0D: "Live view prohibited mode",
 
-def buffer_frame(frame):
-    global video_file
-    if video_file is None:
-        return
+    # Communication errors
+    0x000000C0: "Port in use",
+    0x000000C1: "Device disconnected",
+    0x000000C2: "Device incompatible",
+    0x000000C3: "Communication buffer full",
+    0x000000C4: "USB bus error",
 
-    nparr = np.frombuffer(frame, np.uint8)
-    img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-    img = cv2.resize(img, frame_size)
-    video_file.write(img)
+    # PTP errors
+    0x00002003: "Session not open",
+    0x00002004: "Invalid transaction ID",
+    0x00002007: "Incomplete transfer",
+    0x00002008: "Invalid storage ID",
+    0x0000200A: "Device property not supported",
+    0x00002019: "PTP device busy",
+    0x0000201E: "Session already open",
+    0x0000201F: "Transaction cancelled",
+}
 
-def enqueue_frames(out, frame_queue, captured_frames):
-    buffer = bytearray()
-    while True:
-        chunk = out.read(4096)
-        if not chunk:
-            break
-        buffer.extend(chunk)
-        a = buffer.find(b'\xff\xd8')
-        b = buffer.find(b'\xff\xd9')
-        if a != -1 and b != -1:
-            frame = buffer[a:b+2]
-            buffer = buffer[b+2:]
-            if frame_queue.full():
-                frame_queue.get()
-            frame_queue.put(frame)
-            if len(captured_frames) > MAX_CAPTURED_FRAMES:
-                captured_frames.pop(0)  # Remove oldest frame
-            captured_frames.append(frame)
-            buffer_frame(frame)
+frame_map = {
+    'Stripx2': ('stripx2.png', os.getenv("API_PRINTER_CUT")),
+    '2cut-x2': ('cutx2.png', os.getenv("API_PRINTER_2")),
+    '3-cutx2': ('cutx3.png', os.getenv("API_PRINTER_3")),
+    '4-cutx2': ('cutx4.png', os.getenv("API_PRINTER_4")),
+    '5-cutx2': ('cutx5.png', os.getenv("API_PRINTER_5")),
+    '6-cutx2': ('cutx6.png', os.getenv("API_PRINTER_6"))
+}
 
-def generate():
-    while True:
-        frame = frame_queue.get()
-        if frame is None:
-            break
-        yield (b'--frame\r\n'
-               b'Content-Type: image/png\r\n\r\n' + frame + b'\r\n\r\n')
+# Load Canon EDSDK
+try:
+    edsdk = ctypes.CDLL("./EDSDK_64/DLL/EDSDK.dll")
+    logging.info("EDSDK loaded successfully")
+except Exception as e:
+    logging.error(f"Failed to load EDSDK: {e}")
+    sys.exit("Failed to load EDSDK")
+
+def play_sound_thread(file_path):
+    try:
+        wave_obj = sa.WaveObject.from_wave_file(file_path)
+        play_obj = wave_obj.play()
+        play_obj.wait_done()  # Wait until the sound has finished playing
+    except Exception as e:
+        print(f"Failed to play sound: {str(e)}")
+
+# Initialize serial communication
+def initialize_serial():
+    """Initialize serial communication with Arduino"""
+    try:
+        ports = list(serial.tools.list_ports.comports())
+        arduino_port = next(
+            (p.device for p in ports if 'Arduino' in p.description), None)
+
+        if arduino_port:
+            ser = serial.Serial(arduino_port, 9600, timeout=1)
+            logging.info(f"Arduino connected on {arduino_port}")
+            return ser
+        else:
+            logging.error("Arduino not found")
+            return None
+
+    except Exception as e:
+        logging.error(f"Error initializing serial communication: {e}")
+        return None
+
+
+def log_sdk_error(code):
+    """Logs SDK errors using the error code mapping."""
+    error_message = EDS_ERR_CODES.get(code, "Unknown error")
+    logging.error(f"Canon SDK Error {code}: {error_message}")
+
+# Camera Event Handler
+@ctypes.CFUNCTYPE(ctypes.c_int, ctypes.c_int, ctypes.c_void_p, ctypes.c_void_p)
+def camera_event_callback(event, param, context):
+    if event == 0x00000200:  # Property changed event
+        logging.info("Camera property changed")
+    return 0
+
+def initialize_sdk():
+    """Initialize the Canon SDK"""
+    result = edsdk.EdsInitializeSDK()
+    if result != 0:
+        log_sdk_error(result)
+        return False
+    logging.info("Canon SDK initialized successfully")
+    return True
+
+def terminate_sdk():
+    """Terminate the Canon SDK"""
+    edsdk.EdsTerminateSDK()
+    logging.info("Canon SDK terminated")
+
+def open_camera_session():
+    """Open a session with the camera and register events"""
+    global camera_ref
+
+    camera_list = ctypes.c_void_p()
+    camera_ref = ctypes.c_void_p()
+
+    result = edsdk.EdsGetCameraList(ctypes.byref(camera_list))
+    if result != 0:
+        log_sdk_error(result)
+        return None
+
+    count = ctypes.c_int()
+    result = edsdk.EdsGetChildCount(camera_list, ctypes.byref(count))
+    if result != 0 or count.value == 0:
+        log_sdk_error(result)
+        edsdk.EdsRelease(camera_list)
+        return None
+
+    result = edsdk.EdsGetChildAtIndex(camera_list, 0, ctypes.byref(camera_ref))
+    # Release camera list after obtaining camera ref
+    edsdk.EdsRelease(camera_list)
+    if result != 0:
+        log_sdk_error(result)
+        return None
+
+    result = edsdk.EdsOpenSession(camera_ref)
+    if result != 0:
+        log_sdk_error(result)
+        edsdk.EdsRelease(camera_ref)
+        camera_ref = None
+        return None
+
+    logging.info("Camera session opened successfully")
+    return camera_ref
+
+
+def close_camera_session():
+    """Close the camera session"""
+    global camera_ref
+    if camera_ref:
+        edsdk.EdsCloseSession(camera_ref)
+        edsdk.EdsRelease(camera_ref)
+        camera_ref = None
+        logging.info("Camera session closed")
+
 
 def start_live_view():
-    global live_view_process, timer, captured_frames, live_view_thread
-    if live_view_thread and live_view_thread.is_alive():
-        return
-    captured_frames = []
-    if live_view_process is None:
-        live_view_process = subprocess.Popen(
-            ['gphoto2', '--capture-movie', '--stdout'],
-            stdout=subprocess.PIPE,
-            bufsize=10**8
-        )
-        live_view_thread = threading.Thread(target=enqueue_frames, args=(live_view_process.stdout, frame_queue, captured_frames), daemon=True)
-        live_view_thread.start()
+    """Start the live view stream"""
+    global camera_ref, live_view_active, evf_image_ref
 
-    if timer:
-        timer.cancel()
-    timer = threading.Timer(9.0, stop_live_view)
-    timer.start()
+    if not camera_ref:
+        camera_ref = open_camera_session()
+        if not camera_ref:
+            return False
+
+    try:
+        live_view_setting = ctypes.c_uint32(1)
+        result = edsdk.EdsSetPropertyData(
+            camera_ref, 0x00000050, 0, 4, ctypes.byref(live_view_setting))
+        if result != 0:
+            log_sdk_error(result)
+            return False
+
+        evf_image_ref = ctypes.c_void_p()
+        result = edsdk.EdsCreateEvfImageRef(
+            camera_ref, ctypes.byref(evf_image_ref))
+        if result != 0:
+            log_sdk_error(result)
+            return False
+
+        live_view_active = True
+        threading.Thread(target=live_view_thread, daemon=True).start()
+        logging.info("Live view started successfully")
+        return True
+
+    except Exception as e:
+        logging.error(f"Error starting live view: {e}")
+        return False
+
+
+def live_view_thread():
+    """Thread for continuously capturing live view frames"""
+    global live_view_active, camera_ref, evf_image_ref
+
+    while live_view_active and camera_ref and evf_image_ref:
+        try:
+            result = edsdk.EdsDownloadEvfImage(camera_ref, evf_image_ref)
+            if result == 0:
+                stream = ctypes.c_void_p()
+                edsdk.EdsCreateMemoryStream(0, ctypes.byref(stream))
+
+                length = ctypes.c_ulonglong()
+                edsdk.EdsGetLength(stream, ctypes.byref(length))
+
+                image_data = (ctypes.c_ubyte * length.value)()
+                edsdk.EdsGetPointer(stream, ctypes.byref(image_data))
+
+                if not frame_queue.full():
+                    frame_queue.put(bytes(image_data))
+
+                edsdk.EdsRelease(stream)
+            time.sleep(1 / 30)
+
+        except Exception as e:
+            logging.error(f"Error in live view thread: {e}")
+            break
+
+    live_view_active = False
 
 def stop_live_view():
-    global live_view_process, timer, captured_frames, frame_buffer
-    if live_view_process:
-        live_view_process.terminate()
-        live_view_process.wait()
-        live_view_process = None
+    """Stop the live view stream"""
+    global live_view_active, camera_ref, evf_image_ref
+
+    live_view_active = False
+    live_view_setting = ctypes.c_uint32(0)
+    edsdk.EdsSetPropertyData(camera_ref, 0x00000050, 0, 4, ctypes.byref(live_view_setting))
+
+    if evf_image_ref:
+        edsdk.EdsRelease(evf_image_ref)
+        evf_image_ref = None
+
     with frame_queue.mutex:
         frame_queue.queue.clear()
-    if timer:
-        timer.cancel()
-        timer = None
+    logging.info("Live view stopped")
 
-    frame_buffer.clear()
-    captured_frames.clear()
+def capture_image(uuid_str):
+    """Capture an image and save it to disk"""
+    if not camera_ref:
+        camera_ref = open_camera_session()
+        if not camera_ref:
+            return False, "Failed to open camera session"
 
-@app.route('/api/video_feed', methods=['GET'])
+    try:
+        save_dir = os.path.join(os.getcwd(), uuid_str)
+        os.makedirs(save_dir, exist_ok=True)
+
+        filename = f"{datetime.now().strftime('%Y-%m-%d-%H-%M-%S')}.jpg"
+        filepath = os.path.join(save_dir, filename)
+
+        stream = ctypes.c_void_p()
+        result = edsdk.EdsCreateFileStream(filepath.encode(), 1, 2, ctypes.byref(stream))
+        if result != 0:
+            log_sdk_error(result)
+            return False, "Failed to create file stream"
+
+        result = edsdk.EdsSendCommand(camera_ref, 0, 0)
+        if result != 0:
+            log_sdk_error(result)
+            edsdk.EdsRelease(stream)
+            return False, "Failed to capture image"
+
+        edsdk.EdsDownload(stream, ctypes.c_uint64(0), stream)
+        edsdk.EdsDownloadComplete(stream)
+        edsdk.EdsRelease(stream)
+
+        logging.info(f"Image captured and saved to {filepath}")
+        return True, filepath
+
+    except Exception as e:
+        logging.error(f"Error capturing image: {e}")
+        return False, str(e)
+
+# Flask Routes
+@app.route('/api/get_print_amount', methods=['GET'])
+def get_print_amount():
+    global print_amount, check_coupon
+    print_amount = request.args.get('printAmount', type=int)
+    check_coupon = request.args.get('checkCoupon', type=int)
+
+    if print_amount is not None:
+        return jsonify({'printAmountReceived': print_amount})
+    else:
+        return jsonify({'error': 'No print amount provided'}), 400
+
+@app.route('/api/video_feed')
 def video_feed():
+    def generate():
+        while live_view_active:
+            try:
+                frame = frame_queue.get_nowait()
+                yield (b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+            except queue.Empty:
+                continue
+
     return Response(generate(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @app.route('/api/start_live_view', methods=['GET'])
 def start_live_view_route():
-    start_live_view()
-    return jsonify(status="Live view started")
+    if start_live_view():
+        return jsonify({"status": "success", "message": "Live view started"})
+    return jsonify({"status": "error", "message": "Failed to start live view"}), 500
 
 @app.route('/api/stop_live_view', methods=['GET'])
 def stop_live_view_route():
     stop_live_view()
-    return jsonify(status="Live view stopped")
-
-def reset_usb_device(device_name):
-    try:
-        result = subprocess.run(['sudo', 'usbreset', device_name], capture_output=True, text=True, timeout=10)
-        if result.returncode != 0:
-            logging.error(f"USB reset failed: {result.stderr}")
-        else:
-            logging.info("USB successfully reset.")
-    except subprocess.TimeoutExpired:
-        logging.error(f"USB reset timed out.")
-    except Exception as e:
-        logging.error(f"Error during USB reset: {str(e)}")
-
-def stop_related_processes():
-    try:
-        subprocess.run(['pkill', 'gvfs-gphoto2-volume-monitor'], capture_output=True)
-        subprocess.run(['killall', 'gphoto2'], capture_output=True)
-        subprocess.run(['sudo', 'rmmod', 'sdc2xx', 'stv680', 'spca50x'], capture_output=True)
-    except Exception as e:
-        logging.error(f"Failed to stop processes or unload modules: {str(e)}")
-
-def get_usb_device_path(vendor_id, product_id):
-    try:
-        result = subprocess.run(['lsusb'], capture_output=True, text=True)
-        for line in result.stdout.split('\n'):
-            if f'{vendor_id}:{product_id}' in line:
-                parts = line.split()
-                bus = parts[1]
-                device = parts[3][:-1]
-                device_path = f'/dev/bus/usb/{bus}/{device.zfill(3)}'
-                return device_path
-    except Exception as e:
-        logging.error(f"Error fetching USB device path: {str(e)}")
-    return None
-
-def kill_process_using_device(vendor_id, product_id):
-    device_path = get_usb_device_path(vendor_id, product_id)
-    if device_path:
-        try:
-            result = subprocess.run(['fuser', '-k', device_path], capture_output=True, text=True)
-            if result.returncode == 0:
-                logging.info(f"Process using {device_path} terminated.")
-            else:
-                logging.info(f"No process using {device_path}.")
-        except Exception as e:
-            logging.error(f"Failed to terminate process using {device_path}: {str(e)}")
-    else:
-        logging.error(f"Could not find device path: {vendor_id}:{product_id}")
-
-def capture_image_with_retries(uuid, retries=5, delay=10):
-    current_directory = os.path.dirname(os.path.abspath(__file__))
-    date_str = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
-    filename = os.path.join(current_directory, f'{uuid}/{date_str}.png')
-    debug_logfile = os.path.join(current_directory, 'gphoto2_debug.log')
-
-    vendor_id = '04a9'  # Canon vendor ID
-    product_id = '330d'  # Example product ID, replace with your camera's product ID
-
-    for attempt in range(retries):
-        stop_related_processes()
-        kill_process_using_device(vendor_id, product_id)
-        reset_usb_device('Canon Digital Camera')
-        time.sleep(1)
-
-        logging.info(f"Image capture attempt #{attempt+1}")
-        result = subprocess.run(
-            ['env', 'LANG=C', 'gphoto2', '--debug', '--debug-logfile=' + debug_logfile, '--wait-event=500ms', '--capture-image-and-download', '--filename', os.path.join(uuid, filename), '--set-config', 'capturetarget=0'],
-            capture_output=True, text=True, timeout=60
-        )
-
-        if result.returncode == 0 and os.path.exists(os.path.join(uuid, filename)):
-            logging.info(f"Image captured successfully: {filename}")
-            start_live_view()  # Start live view after capture
-            return {'status': 'success', 'file_saved_as': filename}
-        else:
-            logging.error(f"Failed to capture image: {result.stderr}")
-
-        time.sleep(delay)
-
-    return {'status': 'error', 'message': result.stderr}
+    return jsonify({"status": "success", "message": "Live view stopped"})
 
 @app.route('/api/capture', methods=['POST'])
 @cross_origin()
-def capture_image():
-    global capture_count, video_filename
-
+def capture_route():
     data = request.get_json()
-    uuid = data.get('uuid')
+    uuid_str = data.get('uuid')
 
-    if not uuid:
-        return jsonify({'status': 'error', 'message': 'UUID is missing.'}), 400
+    if not uuid_str:
+        return jsonify({'status': 'error', 'message': 'UUID is required'}), 400
 
-    result = capture_image_with_retries(uuid)
-    if result['status'] == 'success':
-        capture_count += 1
-        image_filename = result['file_saved_as']
-        #async_upload_file(image_filename, uuid, 'image/png')
+    success, result = capture_image(uuid_str)
 
-        if capture_count == 1:
-            video_filename = start_video_capture()
-
-        if capture_count == 8:
-            stop_video_capture()
-            if video_filename and os.path.exists(video_filename):
-                #async_upload_file(video_filename, uuid, 'video/mp4')
-                response = jsonify({'status': 'success', 'message': 'All images captured and video uploaded'})
-            else:
-                response = jsonify({'status': 'success', 'message': 'All images captured, but no video to upload'})
-            capture_count = 0
-            return response
-        else:
-            return jsonify({'status': 'success', 'message': f'Image captured and uploaded ({capture_count}/8)'})
+    if success:
+        return jsonify({'status': 'success', 'message': 'Image captured', 'file_path': result})
     else:
-        return jsonify(result)
+        return jsonify({'status': 'error', 'message': f'Failed to capture image: {result}'}), 500
 
-def async_upload_file(filename, uuid, content_type):
-    threading.Thread(target=upload_file, args=(filename, uuid, content_type), daemon=True).start()
-
-def upload_file(filename, uuid, content_type):
-    try:
-        with open(filename, 'rb') as f:
-            files = {'file': (filename, f, content_type)}
-            response = requests.post(f"{os.getenv("VITE_REACT_APP_BACKEND")}/upload/{uuid}", files=files)
-            logging.info(f"File upload response: {response.status_code}")
-    except Exception as e:
-        logging.error(f"Failed to upload file: {str(e)}")
-
-# Start cash payment route
+# Cash payment routes (keeping the existing implementation)
 @app.route('/api/cash/start', methods=['POST'])
 def start_cash_payment():
-    global inserted_money, amount_to_pay #stop_thread counter, money
+    global inserted_money, amount_to_pay
     data = request.get_json()
     amount_to_pay = int(data.get('amount', 0))
-    
+
     ser.write(b'RESET\n')
     response = ser.readline().decode('utf-8').strip()
-    
+
     with lock:
-        inserted_money = 0  # Reset the inserted money
+        inserted_money = 0
 
     return jsonify({"message": "Cash payment started"}), 200
 
-# Check payment status
 @app.route('/api/cash/status', methods=['GET'])
 def check_payment_status():
     global inserted_money, amount_to_pay
@@ -364,25 +479,19 @@ def create_cash_payment():
     order_code = f"{device}_{amount}"
     return jsonify({"order_code": order_code}), 200
 
-# Get MAC address
-@app.route('/api/get-mac-address', methods=['GET'])
-def get_mac_address():
-    mac = uuid.UUID(int=uuid.getnode()).hex[-12:]
-    mac_address = ':'.join(mac[i:i+2] for i in range(0, 12, 2))
-    return mac_address
-
 # Print image using rundll32
 def print_image_with_rundll32(image_path, frame_type):
     try:
-        printer_name = 'DS-RX1 (Photostrips)' if frame_type == 'stripx2' else 'DS-RX1'
+        printer_name = 'RX1-Photostrips' if frame_type == 'stripx2' else 'DS-RX1'
         logging.info(f"Printing to {printer_name}")
-        
+
         # Print the image using rundll32
-        print_command = f"powershell.exe Start-Process 'rundll32.exe' -ArgumentList 'C:\\Windows\\System32\\shimgvw.dll,ImageView_PrintTo', '\"/pt\"', '{image_path}', '{printer_name}'"
+        print_command = f"powershell.exe Start-Process 'rundll32.exe' -ArgumentList 'C:\\Windows\\System32\\shimgvw.dll,ImageView_PrintTo', '\"/pt\"', '{
+            image_path}', '{printer_name}'"
         print(print_command)
         logging.debug(f"Executing print command: {print_command}")
-        
-        for i in range(print_amount):
+
+        for _ in range(print_amount):
             subprocess.run(print_command, check=True, shell=True)
         logging.info(f"Print command sent for file: {image_path}")
     except subprocess.CalledProcessError as e:
@@ -393,153 +502,103 @@ def print_image_with_rundll32(image_path, frame_type):
 def switch_printer(printer_model, frame_type):
     if 'file' not in request.files:
         return jsonify({'error': 'No file part'}), 400
-    
+
     file = request.files['file']
     if file.filename == '':
         return jsonify({'error': 'No selected file'}), 400
 
     safe_filename = werkzeug.utils.secure_filename(file.filename)
-    temp_dir = os.path.join(f"{os.getcwd()}/print_files")
-    file_path = os.path.join(temp_dir, safe_filename)
-    file_path = file_path.replace('/','\\')
-    print(file_path)
-    file_path = f"\\\wsl$\\Ubuntu{file_path}"
-    file.save(file_path)
+    temp_dir = Path.cwd() / "print_files"
+    temp_dir.mkdir(exist_ok=True)
+
+    file_path = temp_dir / safe_filename
+    file.save(str(file_path))
 
     try:
-        print_image_with_rundll32(file_path, frame_type)
+        print_image_with_rundll32(str(file_path), frame_type)
     except Exception as e:
         logging.error(f"Error processing print job: {e}")
         return jsonify({'error': str(e)}), 500
     finally:
-        if os.path.exists(file_path):
+        if file_path.exists():
             os.remove(file_path)  # Cleanup after use
-    
+
     return jsonify({'status': 'success', 'message': 'Print job started successfully.'})
 
 @app.route("/api/print", methods=['POST'])
 def print_photo():
+    global frame_map
     try:
-        print("print_photo")
-        folder_path = os.path.join(f"{os.getcwd()}/print_files")
-        folder_path = os.path.abspath(folder_path)
-        print(folder_path)
-        if not os.path.exists(folder_path):
-            os.makedirs(folder_path)
-        frame = request.form['frame']
-        
-        if request.files['photo'] and (request.files['photo'].mimetype.startswith('image/')):
-            image_content = request.files['photo'].read()
-        else:
-            image_content = base64.b64decode(request.files['photo'])
+        folder_path = Path.cwd() / "print_files"
+        folder_path.mkdir(exist_ok=True)
 
-        if not request.files['photo'] or not frame:
+        frame = request.form.get('frame')
+        photo = request.files.get('photo')
+
+        if not frame or not photo:
             return jsonify({'error': 'Invalid input'}), 400
-        
-        print_url = ''
-        print_file_name = ''
-        if frame == 'Stripx2':
-            print_file_name = 'stripx2.png'
-            print_url = os.getenv("API_PRINTER_CUT")
-        elif frame == '2cut-x2':
-            print_file_name = 'cutx2.png'
-            print_url = os.getenv("API_PRINTER_2")
-        elif frame == '3-cutx2':
-            print_file_name = 'cutx3.png'
-            print_url = os.getenv("API_PRINTER_3")
-        elif frame == '4-cutx2':
-            print_file_name = 'cutx4.png'
-            print_url = os.getenv("API_PRINTER_4")
-        elif frame == '5-cutx2':
-            print_file_name = 'cutx5.png'
-            print_url = os.getenv("API_PRINTER_5")
-        elif frame == '6-cutx2':
-            print_file_name = 'cutx6.png'
-            print_url = os.getenv("API_PRINTER_6")
-        
-        file_path = os.path.join(folder_path, print_file_name)
 
-        print(111)
-        print("file_path")
-        print(file_path)
-        print(111)
+        # Read image content
+        image_content = (
+            photo.read() if photo.mimetype.startswith('image/')
+            else base64.b64decode(request.form['photo'])
+        )
 
-        with open(file_path, 'wb') as destination:
-            destination.write(image_content)
+        print_file_name, print_url = frame_map.get(frame, (None, None))
 
-        # 파일이 제대로 저장되었는지 확인
-        if not os.path.exists(file_path):
-            return jsonify({'status':'error', 'message': 'Failed to save the file'}), 500
-        
-        # 파일 크기 확인
-        file_size = os.path.getsize(file_path)
-        if file_size == 0:
-            return jsonify({'status':'error', 'message': 'Saved file is empty'}), 500
-        
-        # Call POST method to printer                
+        if not print_file_name or not print_url:
+            return jsonify({'error': 'Invalid frame type'}), 400
+
+        file_path = folder_path / print_file_name
+        file_path.write_bytes(image_content)
+
+        if not file_path.exists() or file_path.stat().st_size == 0:
+            return jsonify({'status': 'error', 'message': 'Failed to save the file or file is empty'}), 500
+
         with open(file_path, 'rb') as f:
             response = requests.post(print_url, files={'file': f})
 
-        print(response.status_code)
-        #print(response.text)
         if response.status_code == 200:
-            return jsonify({'status':'success', 'message': 'Print job started successfully.'}), 200
+            return jsonify({'status': 'success', 'message': 'Print job started successfully.'}), 200
         else:
-            return jsonify({'status':'error', 'message': 'Failed to send print request'}), 500
+            return jsonify({'status': 'error', 'message': 'Failed to send print request'}), 500
     except Exception as e:
-        print(e)
-        return jsonify({'status':'error', 'message': 'Failed to send print request'}), 500
+        logging.error(f"Error in print_photo: {e}")
+        return jsonify({'status': 'error', 'message': 'Failed to send print request'}), 500
 
 # Route to download a file
 @app.route('/api/get_photo', methods=['GET'])
 def download_file():
-    # Assuming the files are stored in a specific directory on WSL
     uuid = request.args.get('uuid')
-    if (not uuid):
-        return jsonify({'status': 'error', 'message': 'No uuid'}), 200
-    file_directory = os.path.join(os.path.dirname(os.path.abspath(__file__)),  uuid)
-    try:
-        file_list = os.listdir(file_directory)
-        print("###########")
-        print("file_list")
-        print(file_list)
-        print("###########")
-        images = [file for file in file_list if file.lower().endswith(('.png', '.jpg', '.jpeg','.mp4'))]
-        image_urls = [
-            {
-                'id': idx, 
-                'url': f"{request.scheme}://{request.host}/api/get_photo/uploads"+os.path.join(f"/{uuid}", image.replace("\\","/"))
-            } for idx, image in enumerate(images)
-        ]
+    if not uuid:
+        return jsonify({'status': 'error', 'message': 'No uuid provided'}), 400
 
-        return jsonify({'status': 'success', 'images': image_urls})
-    except Exception as e:
-        print(e)
-        return jsonify({'status': 'error', 'message': 'File not found'}), 404
+    file_directory = Path(__file__).parent / uuid
+    if not file_directory.exists():
+        return jsonify({'status': 'error', 'message': 'Directory not found'}), 404
+
+    images = [
+        file for file in file_directory.iterdir()
+        if file.suffix.lower() in {'.png', '.jpg', '.jpeg', '.mp4'}
+    ]
+    image_urls = [
+        {
+            'id': idx,
+            'url': f"{request.scheme}://{request.host}/api/get_photo/uploads/{uuid}/{file.name}"
+        }
+        for idx, file in enumerate(images)
+    ]
+
+    return jsonify({'status': 'success', 'images': image_urls})
+
 
 @app.route('/api/get_photo/uploads/<path:file_path>', methods=['GET'])
 def serve_photo(file_path):
-    file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), file_path.replace("\\","/"))
-    if os.path.exists(file_path):
-        return send_file(file_path, mimetype="image/png")
+    full_path = Path(__file__).parent / file_path
+    if full_path.exists():
+        return send_file(full_path, mimetype="image/png")
     else:
         return jsonify({'status': 'error', 'message': 'File not found'}), 404
-
-@app.route('/api/get_print_amount', methods=['GET'])
-def get_print_amount():
-    global print_amount, check_coupon
-    print_amount = request.args.get('printAmount', type=int)
-    check_coupon = request.args.get('checkCoupon', type=int)
-
-    if print_amount is not None:
-        return jsonify({'printAmountReceived': print_amount})
-    else:
-        return jsonify({'error': 'No print amount provided'}), 400
-
-def cleanup_temp_dir():
-    shutil.rmtree(temp_dir)
-
-atexit.register(cleanup_temp_dir)
 
 @app.route('/api/play_sound/', methods=['POST'])
 def play_sound():
@@ -548,7 +607,6 @@ def play_sound():
         return jsonify({"error": "File name is required"}), 400
 
     file_name = data['file_name']
-
     print(file_name)
 
     # Path to the directory containing the sound files
@@ -556,26 +614,47 @@ def play_sound():
 
     # Construct the full file path
     file_path = os.path.join(sound_files_directory, file_name)
-
     print(file_path)
-
     print(datetime.now())
 
     # Check if the file exists
     if not os.path.isfile(file_path):
         return jsonify({"error": "File not found"}), 404
 
-    # Play the sound file using winsound in a separate thread
+    # Play the sound file using simpleaudio in a separate thread
     threading.Thread(target=play_sound_thread, args=(file_path,), daemon=True).start()
 
     return jsonify({"status": "Playing sound", "file_name": file_name}), 200
 
-def play_sound_thread(file_path):
-    try:
-        play(AudioSegment.from_wav(file_path))
-    except Exception as e:
-        print(f"Failed to play sound: {str(e)}")
+# Cleanup function
+def cleanup():
+    """Cleanup function to be called on exit"""
+    stop_live_view()
+    close_camera_session()
+    terminate_sdk()
 
-# Run the Flask app
+# Register cleanup
+atexit.register(cleanup)
+
 if __name__ == '__main__':
-    app.run(host='127.0.0.1', port=5000, debug=True)
+    try:
+        # Initialize SDK
+        if not initialize_sdk():
+            sys.exit("Failed to initialize SDK")
+
+        # Initialize serial communication
+        ser = initialize_serial()
+        if not ser:
+            sys.exit("Failed to initialize serial communication")
+
+        # Create lock for thread safety
+        lock = threading.Lock()
+
+        # Start Flask app
+        app.run(host="0.0.0.0", port=5000)
+
+    except Exception as e:
+        logging.error(f"Application error: {e}")
+        sys.exit(1)
+    finally:
+        cleanup()

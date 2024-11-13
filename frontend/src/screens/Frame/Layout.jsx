@@ -32,6 +32,9 @@ import confirm_mn_hover from '../../assets/Frame/Layout/Confirm/mn/confirm_click
 import { getAudio, getClickAudio, originAxiosInstance } from '../../api/config';
 import FrameCarousel from '../../components/FrameCarousel';
 
+import scroll_left from '../../assets/Photo/Snap/ScrollLeft.png';
+import scroll_right from '../../assets/Photo/Snap/ScrollRight.png';
+
 function Layout() {
      const [layoutBackground, setLayoutBackground] = useState(null);
      const [layouts, setLayouts] = useState([]);
@@ -65,6 +68,12 @@ function Layout() {
           // e.preventDefault()
           setDraging(true)
      }
+
+     const scrollPage = (scrollOffset) => {
+          const frameContainer = document.querySelector('.frame-carousel-container');
+          frameContainer.scrollLeft += scrollOffset;
+     }
+     
      useEffect(() => {
           const storedLanguage = sessionStorage.getItem('language');
           if (storedLanguage) {
@@ -210,7 +219,7 @@ function Layout() {
                     }
 
                }
-               sessionStorage.setItem('selectedLayout', JSON.stringify(layouts.findLast(layout=>clickedTitles.includes(layout.title))));
+               sessionStorage.setItem('selectedLayout', JSON.stringify(layouts.findLast(layout => clickedTitles.includes(layout.title))));
                navigate('/payment-number');
           }
      }
@@ -296,9 +305,10 @@ function Layout() {
                     // backgroundColor:"red"
                }}
           >
-               <div className="go-back" style={{ backgroundImage: `url(${goBackBg})`, top:`4.4%`, left: `6%` }} onClick={() => {
+               <div className="go-back" style={{ backgroundImage: `url(${goBackBg})`, top: `4.4%`, left: `6%` }} onClick={() => {
                     getClickAudio()
-                    navigate("/background")}} onMouseEnter={() => hoverGoBackBtn(language)} onMouseLeave={() => hoverGoBackBtn(language)}></div>
+                    navigate("/background")
+               }} onMouseEnter={() => hoverGoBackBtn(language)} onMouseLeave={() => hoverGoBackBtn(language)}></div>
                <div className="style-section"
                     draggable={false}
                     onDragStart={onDrag}
@@ -309,11 +319,13 @@ function Layout() {
                     style={{
                     }}
                >
+                    <div className="scroll-left" style={{ backgroundImage: `url(${scroll_left})` }} onClick={() => scrollPage(-200)}></div>
                     <FrameCarousel
                          clickedTitles={clickedTitles}
                          images={layouts}
                          handleClick={handleClick}
                     />
+                    <div className="scroll-right" style={{ backgroundImage: `url(${scroll_right})` }} onClick={() => scrollPage(200)}></div>
                </div>
                <div
                     className="confirm-layout-button"

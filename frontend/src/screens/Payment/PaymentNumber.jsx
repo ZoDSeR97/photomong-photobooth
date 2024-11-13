@@ -141,7 +141,8 @@ function PaymentNumber(props) {
     }
     if (language === "mn" && import.meta.env.VITE_LOCATION == "MN") {
       amount /= 10
-      amount += 1000
+      if (amount < 10000)
+        amount += 1000
       add /= 10
       add += 2000
     }

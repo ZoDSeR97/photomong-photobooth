@@ -22,7 +22,7 @@ token_data = {
 
 def get_access_token():
     # Check if token exists and hasn't expired
-    if token_data["access_token"] and token_data["expires_at"] > time():
+    if token_data.get("access_token") and token_data.get("expires_at", 0) > time():
         return token_data["access_token"]
 
     # If token is missing or expired, request a new one
