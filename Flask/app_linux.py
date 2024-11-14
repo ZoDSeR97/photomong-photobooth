@@ -3,8 +3,6 @@ from PIL import Image
 from flask_cors import CORS, cross_origin
 from datetime import datetime
 from dotenv import load_dotenv
-from pydub import AudioSegment
-from pydub.playback import play
 import os
 import subprocess
 import tempfile
@@ -61,15 +59,6 @@ def find_arduino_port():
         if 'Arduino' in p.description:
             return p.device
     return None
-
-# Initialize serial communication with Arduino
-arduino_port = find_arduino_port()
-if arduino_port:
-    ser = serial.Serial(arduino_port, 9600, timeout=1)
-    logging.info(f"Arduino connected on {arduino_port}")
-else:
-    logging.error("Arduino not found. Please check the connection.")
-    sys.exit("Arduino not found")
 
 def start_video_capture():
     global video_file, video_filename
@@ -541,41 +530,19 @@ def cleanup_temp_dir():
 
 atexit.register(cleanup_temp_dir)
 
-@app.route('/api/play_sound/', methods=['POST'])
-def play_sound():
-    data = request.get_json()
-    if not data or 'file_name' not in data:
-        return jsonify({"error": "File name is required"}), 400
-
-    file_name = data['file_name']
-
-    print(file_name)
-
-    # Path to the directory containing the sound files
-    sound_files_directory = "playsound/"
-
-    # Construct the full file path
-    file_path = os.path.join(sound_files_directory, file_name)
-
-    print(file_path)
-
-    print(datetime.now())
-
-    # Check if the file exists
-    if not os.path.isfile(file_path):
-        return jsonify({"error": "File not found"}), 404
-
-    # Play the sound file using winsound in a separate thread
-    threading.Thread(target=play_sound_thread, args=(file_path,), daemon=True).start()
-
-    return jsonify({"status": "Playing sound", "file_name": file_name}), 200
-
-def play_sound_thread(file_path):
-    try:
-        play(AudioSegment.from_wav(file_path))
-    except Exception as e:
-        print(f"Failed to play sound: {str(e)}")
-
 # Run the Flask app
 if __name__ == '__main__':
-    app.run(host='127.0.0.1', port=5000, debug=True)
+    try:
+        # Initialize serial communication with Arduino
+        if arduino_port:
+            ser = serial.Serial(find_arduino_port(), 9600, timeout=1)
+            logging.info(f"Arduino connected on {arduino_port}")
+        else:
+            logging.error("Arduino not found. Please check the connection.")
+            sys.exit("Arduino not found")
+
+        app.run(host='127.0.0.1', port=5000, debug=True)
+    except Exception as e:
+        print(e)
+    finally:
+        cleanup_temp_dir()
