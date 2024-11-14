@@ -325,6 +325,7 @@ def stop_live_view():
 
 def capture_image(uuid_str):
     """Capture an image and save it to disk"""
+    global camera_ref
     if not camera_ref:
         camera_ref = open_camera_session()
         if not camera_ref:
