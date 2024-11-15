@@ -16,10 +16,8 @@ import shutil
 import atexit
 import cv2
 import numpy as np
-import uuid
 import serial
 import serial.tools.list_ports
-import sys
 import base64
 
 app = Flask(__name__)
@@ -219,7 +217,7 @@ def capture_image_with_retries(uuid, retries=5, delay=10):
         try:
             logging.info(f"Image capture attempt #{attempt+1}")
             result = subprocess.run(
-                ['env', 'LANG=C', 'gphoto2', '--debug', '--debug-logfile=' + debug_logfile, '--wait-event=500ms', '--capture-image-and-download', '--filename', os.path.join(uuid, filename), '--set-config', 'capturetarget=0'],
+                ['env', 'LANG=C', 'gphoto2', '--debug', '--debug-logfile=' + debug_logfile, '--wait-event=100ms', '--capture-image-and-download', '--filename', os.path.join(uuid, filename), '--set-config', 'capturetarget=0'],
                 capture_output=True, text=True, timeout=60
             )
 
@@ -231,12 +229,11 @@ def capture_image_with_retries(uuid, retries=5, delay=10):
                 logging.error(f"Failed to capture image: {result.stderr}")
         except Exception as e:
             logging.error(f"Failed to capture image: {str(e)}")
+        finally:
             stop_related_processes()
             kill_process_using_device(vendor_id, product_id)
             reset_usb_device('Canon Digital Camera')
-        finally:
             time.sleep(delay)
-        
 
     return {'status': 'error', 'message': result.stderr}
 
@@ -529,14 +526,15 @@ atexit.register(cleanup_temp_dir)
 if __name__ == '__main__':
     try:
         # Initialize serial communication with Arduino
+        arduino_port = find_arduino_port()
         if arduino_port:
-            ser = serial.Serial(find_arduino_port(), 9600, timeout=1)
+            ser = serial.Serial(arduino_port, 9600, timeout=1)
             logging.info(f"Arduino connected on {arduino_port}")
         else:
             logging.error("Arduino not found. Please check the connection.")
             sys.exit("Arduino not found")
 
-        app.run(host='127.0.0.1', port=5000, debug=True)
+        app.run(host='0.0.0.0', port=5000, debug=True)
     except Exception as e:
         print(e)
     finally:

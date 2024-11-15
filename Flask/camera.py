@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from contextlib import contextmanager
 import logging
-from flask import Flask, send_file, jsonify
+from flask import Flask, send_file, jsonify, request
 from flask_cors import CORS, cross_origin
 from dotenv import load_dotenv
 import gphoto2 as gp
@@ -151,8 +151,7 @@ class CameraManager:
                     current_directory = os.path.dirname(
                         os.path.abspath(__file__))
                     date_str = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
-                    filename = os.path.join(current_directory, f'{
-                                            uuid}/{date_str}.png')
+                    filename = os.path.join(current_directory, f'{uuid}/{date_str}.png')
 
                     # Ensure directory exists
                     os.makedirs(os.path.dirname(filename), exist_ok=True)
@@ -241,6 +240,18 @@ class CameraManager:
 
 # Initialize camera manager
 camera_manager = CameraManager()
+
+def start_video_capture():
+    global video_file, video_filename
+    video_filename = os.path.join(temp_dir, f"video_{datetime.now().strftime('%Y%m%d_%H%M%S')}.mp4")
+    video_file = cv2.VideoWriter(video_filename, fourcc, fps, frame_size)
+    return video_filename
+
+def stop_video_capture():
+    global video_file
+    if video_file:
+        video_file.release()
+        video_file = None
 
 # Register cleanup on exit
 atexit.register(camera_manager.cleanup)
