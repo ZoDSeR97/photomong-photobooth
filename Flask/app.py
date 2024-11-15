@@ -601,7 +601,7 @@ def serve_photo(file_path):
     else:
         return jsonify({'status': 'error', 'message': 'File not found'}), 404
 
-@app.route('/api/play_sound/', methods=['POST'])
+""" @app.route('/api/play_sound/', methods=['POST'])
 def play_sound():
     data = request.get_json()
     if not data or 'file_name' not in data:
@@ -625,7 +625,7 @@ def play_sound():
     # Play the sound file using simpleaudio in a separate thread
     threading.Thread(target=play_sound_thread, args=(file_path,), daemon=True).start()
 
-    return jsonify({"status": "Playing sound", "file_name": file_name}), 200
+    return jsonify({"status": "Playing sound", "file_name": file_name}), 200 """
 
 # Cleanup function
 def cleanup():
@@ -643,10 +643,10 @@ if __name__ == '__main__':
         if not initialize_sdk():
             sys.exit("Failed to initialize SDK")
 
-        # Initialize serial communication
+        """ # Initialize serial communication
         ser = initialize_serial()
         if not ser:
-            sys.exit("Failed to initialize serial communication")
+            sys.exit("Failed to initialize serial communication") """
 
         # Create lock for thread safety
         lock = threading.Lock()

@@ -724,7 +724,7 @@ function Photo() {
           ) : (
                <div className={`photo-container`} style={{ backgroundImage: `url(${backgroundImage})` }}>
                     <div className="left-photo-div" style={{ backgroundImage: `url(${countdownImg})` }}>
-                         <div className="photo-countdown">{countdown}s</div>
+                         <div className="photo-countdown">{countdown}</div>
                     </div>
                     <div className="right-photo-div" style={{ backgroundImage: `url(${photocountImg})` }}>
                          <div className="photo-count">{photoCount}/{totalSnapshotPhoto}</div>
