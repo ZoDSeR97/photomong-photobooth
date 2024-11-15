@@ -45,6 +45,8 @@ fourcc = cv2.VideoWriter_fourcc(*'mp4v')
 fps = 10.0
 frame_size = (640, 480)  # Adjustable
 video_filename = None
+vendor_id = '04a9' # Canon vendor ID
+product_id = '330d' # Replace with your camera's product ID
 
 lock = threading.Lock()  # For thread safety on shared resources
 inserted_money = 0
@@ -108,7 +110,7 @@ def generate():
         if frame is None:
             break
         yield (b'--frame\r\n'
-               b'Content-Type: image/png\r\n\r\n' + frame + b'\r\n\r\n')
+               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
 
 def start_live_view():
     global live_view_process, timer, captured_frames, live_view_thread
@@ -207,34 +209,34 @@ def kill_process_using_device(vendor_id, product_id):
         logging.error(f"Could not find device path: {vendor_id}:{product_id}")
 
 def capture_image_with_retries(uuid, retries=5, delay=10):
+    global vendor_id, product_id
     current_directory = os.path.dirname(os.path.abspath(__file__))
     date_str = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
     filename = os.path.join(current_directory, f'{uuid}/{date_str}.png')
     debug_logfile = os.path.join(current_directory, 'gphoto2_debug.log')
 
-    vendor_id = '04a9'  # Canon vendor ID
-    product_id = '330d'  # Example product ID, replace with your camera's product ID
-
     for attempt in range(retries):
-        stop_related_processes()
-        kill_process_using_device(vendor_id, product_id)
-        reset_usb_device('Canon Digital Camera')
-        time.sleep(1)
+        try:
+            logging.info(f"Image capture attempt #{attempt+1}")
+            result = subprocess.run(
+                ['env', 'LANG=C', 'gphoto2', '--debug', '--debug-logfile=' + debug_logfile, '--wait-event=500ms', '--capture-image-and-download', '--filename', os.path.join(uuid, filename), '--set-config', 'capturetarget=0'],
+                capture_output=True, text=True, timeout=60
+            )
 
-        logging.info(f"Image capture attempt #{attempt+1}")
-        result = subprocess.run(
-            ['env', 'LANG=C', 'gphoto2', '--debug', '--debug-logfile=' + debug_logfile, '--wait-event=500ms', '--capture-image-and-download', '--filename', os.path.join(uuid, filename), '--set-config', 'capturetarget=0'],
-            capture_output=True, text=True, timeout=60
-        )
-
-        if result.returncode == 0 and os.path.exists(os.path.join(uuid, filename)):
-            logging.info(f"Image captured successfully: {filename}")
-            start_live_view()  # Start live view after capture
-            return {'status': 'success', 'file_saved_as': filename}
-        else:
-            logging.error(f"Failed to capture image: {result.stderr}")
-
-        time.sleep(delay)
+            if result.returncode == 0 and os.path.exists(os.path.join(uuid, filename)):
+                logging.info(f"Image captured successfully: {filename}")
+                start_live_view()  # Start live view after capture
+                return {'status': 'success', 'file_saved_as': filename}
+            else:
+                logging.error(f"Failed to capture image: {result.stderr}")
+        except Exception as e:
+            logging.error(f"Failed to capture image: {str(e)}")
+            stop_related_processes()
+            kill_process_using_device(vendor_id, product_id)
+            reset_usb_device('Canon Digital Camera')
+        finally:
+            time.sleep(delay)
+        
 
     return {'status': 'error', 'message': result.stderr}
 
@@ -352,13 +354,6 @@ def create_cash_payment():
     amount = request.args.get('amount')
     order_code = f"{device}_{amount}"
     return jsonify({"order_code": order_code}), 200
-
-# Get MAC address
-@app.route('/api/get-mac-address', methods=['GET'])
-def get_mac_address():
-    mac = uuid.UUID(int=uuid.getnode()).hex[-12:]
-    mac_address = ':'.join(mac[i:i+2] for i in range(0, 12, 2))
-    return mac_address
 
 # Print image using rundll32
 def print_image_with_rundll32(image_path, frame_type):
@@ -545,4 +540,6 @@ if __name__ == '__main__':
     except Exception as e:
         print(e)
     finally:
-        cleanup_temp_dir()
+        stop_related_processes()
+        kill_process_using_device(vendor_id, product_id)
+        reset_usb_device('Canon Digital Camera')
