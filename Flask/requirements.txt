@@ -1,5 +1,6 @@
 flask
 flask_cors
+flask-socketio
 pillow
 python-dotenv
 opencv-python
