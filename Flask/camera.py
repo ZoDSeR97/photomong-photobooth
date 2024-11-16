@@ -134,8 +134,7 @@ class CameraManager:
 
     def capture_image(self, uuid, retries=3):
         """Capture image with improved error handling and recovery"""
-        if self.error_count >= self.MAX_ERRORS and \
-           time.time() - self.last_error_time < self.ERROR_TIMEOUT:
+        if self.error_count >= self.MAX_ERRORS and time.time() - self.last_error_time < self.ERROR_TIMEOUT:
             return {'status': 'error', 'message': 'Camera in recovery timeout'}
 
         self.reset_error_state()
