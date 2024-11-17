@@ -1,15 +1,18 @@
 #!/usr/bin/env python3
 from contextlib import contextmanager
-import logging
-from flask import Flask, send_file, jsonify, request
+from flask import Flask, send_file, jsonify, request, Response
 from flask_cors import CORS, cross_origin
 from dotenv import load_dotenv
+from datetime import datetime
 import gphoto2 as gp
+import queue
+import logging
 import time
 import atexit
 import threading
-from datetime import datetime
 import os
+import numpy as np
+import cv2
 
 app = Flask(__name__)
 load_dotenv()  # take environment variables from .env.
@@ -19,9 +22,14 @@ CORS(app, supports_credentials=True, resources={r"/*": {"origins": "*"}})
 camera = None
 context = None
 recording_thread = None
+capture_count = 0
+timer = None
 is_recording = False
-current_sequence = 0
+VIDEO_WRITER_ACTIVE = False
+video_writer = None
+video_lock = threading.Lock()
 TOTAL_SEQUENCES = 8
+PREVIEW_INTERVAL = 0.1  # 100ms between preview captures
 
 class CameraManager:
     def __init__(self):
@@ -131,9 +139,76 @@ class CameraManager:
         except gp.GPhoto2Error as e:
             logging.error(f"Failed to recover camera: {str(e)}")
             return False
+    
+    def _enqueue_frames(self):
+        """Fetch frames for live view."""
+        global timer
+        if timer:
+            timer.cancel()
+        timer = threading.Timer(9.0, self.stop_live_view)
+        timer.start()
+        while self.is_live_view_active:
+            try:
+                preview_file = self.camera.capture_preview(self.context)
+                preview_data = preview_file.get_data_and_size()
+                frame = cv2.imdecode(np.frombuffer(preview_data, np.uint8), cv2.IMREAD_COLOR)
+                if self.frame_queue.full():
+                    self.frame_queue.get()
+                self.frame_queue.put(frame)
+                if VIDEO_WRITER_ACTIVE:
+                    self._write_video_frame(frame)
+            except gp.GPhoto2Error as e:
+                logging.error(f"Error in live view: {e}")
+            time.sleep(PREVIEW_INTERVAL)
+    
+    def generate_frames(self):
+        """Generate frames for live view."""
+        while True:
+            try:
+                frame = self.frame_queue.get(timeout=5)
+                _, buffer = cv2.imencode('.jpg', frame)
+                yield (b'--frame\r\nContent-Type: image/jpeg\r\n\r\n' + buffer.tobytes() + b'\r\n')
+            except queue.Empty:
+                continue
+    
+    def _write_video_frame(self, frame):
+        """Write frame to the video file."""
+        global video_writer
+        with video_lock:
+            if video_writer is not None:
+                video_writer.write(frame)
 
+    def start_video_recording(self):
+        """Start video recording."""
+        global video_writer, VIDEO_WRITER_ACTIVE
+        VIDEO_WRITER_ACTIVE = True
+        filename = f"video_{datetime.now().strftime('%Y%m%d_%H%M%S')}.mp4"
+        filepath = os.path.join(os.getcwd(), filename)
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        frame = self.frame_queue.queue[0] if not self.frame_queue.empty() else None
+
+        if frame is not None:
+            height, width, _ = frame.shape
+            with video_lock:
+                video_writer = cv2.VideoWriter(filepath, fourcc, 10, (width, height))
+
+    def stop_video_recording(self):
+        """Stop video recording."""
+        global timer, video_writer, VIDEO_WRITER_ACTIVE
+        if timer:
+            timer.cancel()
+            timer = None
+        VIDEO_WRITER_ACTIVE = False
+        with video_lock:
+            if video_writer is not None:
+                video_writer.release()
+                video_writer = None
+    
     def capture_image(self, uuid, retries=3):
         """Capture image with improved error handling and recovery"""
+        global VIDEO_WRITER_ACTIVE
+        self.stop_video_recording()
+        
         if self.error_count >= self.MAX_ERRORS and time.time() - self.last_error_time < self.ERROR_TIMEOUT:
             return {'status': 'error', 'message': 'Camera in recovery timeout'}
 
@@ -174,6 +249,9 @@ class CameraManager:
                     # Verify file exists and has size
                     if os.path.exists(filename) and os.path.getsize(filename) > 0:
                         self.error_count = 0
+                        # Resume video recording after capture
+                        self.start_live_view()
+                        self.start_video_recording()
                         return {'status': 'success', 'file_saved_as': filename}
                     else:
                         raise Exception("Captured file is empty or missing")
@@ -195,35 +273,15 @@ class CameraManager:
 
     def start_live_view(self):
         """Start live view with error handling"""
-        try:
-            if not self.check_camera_ready():
-                if not self.recover_camera():
-                    return False
-
-            config = self.camera.get_config(self.context)
-            # Enable live view if the camera supports it
-            output = config.get_child_by_name('output')
-            if output:
-                output.set_value('PC')
-                self.camera.set_config(config, self.context)
-            return True
-
-        except gp.GPhoto2Error as e:
-            logging.error(f"Failed to start live view: {str(e)}")
-            self.handle_error(e)
-            return False
+        self.is_live_view_active = True
+        self.live_view_thread = threading.Thread(target=self._enqueue_frames, daemon=True)
+        self.live_view_thread.start()
 
     def stop_live_view(self):
         """Stop live view with error handling"""
-        try:
-            if self.camera:
-                config = self.camera.get_config(self.context)
-                output = config.get_child_by_name('output')
-                if output:
-                    output.set_value('Off')
-                    self.camera.set_config(config, self.context)
-        except gp.GPhoto2Error as e:
-            logging.error(f"Failed to stop live view: {str(e)}")
+        self.is_live_view_active = False
+        if self.live_view_thread:
+            self.live_view_thread.join()
 
     def cleanup(self):
         """Clean up camera resources"""
@@ -289,6 +347,10 @@ def capture_image():
             return jsonify({'status': 'success', 'message': f'Image captured and uploaded ({capture_count}/8)'})
     else:
         return jsonify(result)
+
+@app.route('/api/video_feed')
+def video_feed():
+    return Response(camera_manager.generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 # Update live view routes
 @app.route('/api/start_live_view', methods=['GET'])
