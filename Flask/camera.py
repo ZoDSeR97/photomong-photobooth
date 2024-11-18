@@ -29,7 +29,7 @@ video_writer = None
 video_lock = threading.Lock()
 live_view_thread = None
 print_amount = 1
-check_coupon
+check_coupon = 0
 inserted_money = 0
 amount_to_pay = 0
 PREVIEW_INTERVAL = 0.0167  # 17ms between frames
