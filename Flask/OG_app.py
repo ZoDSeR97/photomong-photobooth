@@ -18,6 +18,7 @@ import cv2
 import numpy as np
 import serial
 import serial.tools.list_ports
+import sys
 import base64
 
 app = Flask(__name__)
@@ -33,7 +34,8 @@ live_view_thread = None
 MAX_CAPTURED_FRAMES = 100
 capture_count = 0
 
-logging.basicConfig(level=logging.WARNING, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.WARNING,
+                    format='%(asctime)s - %(levelname)s - %(message)s')
 
 temp_dir = tempfile.mkdtemp()
 frame_buffer = []
@@ -43,8 +45,6 @@ fourcc = cv2.VideoWriter_fourcc(*'mp4v')
 fps = 10.0
 frame_size = (640, 480)  # Adjustable
 video_filename = None
-vendor_id = '04a9' # Canon vendor ID
-product_id = '330d' # Replace with your camera's product ID
 
 lock = threading.Lock()  # For thread safety on shared resources
 inserted_money = 0
@@ -62,7 +62,8 @@ def find_arduino_port():
 
 def start_video_capture():
     global video_file, video_filename
-    video_filename = os.path.join(temp_dir, f"video_{datetime.now().strftime('%Y%m%d_%H%M%S')}.mp4")
+    video_filename = os.path.join(
+        temp_dir, f"video_{datetime.now().strftime('%Y%m%d_%H%M%S')}.mp4")
     video_file = cv2.VideoWriter(video_filename, fourcc, fps, frame_size)
     return video_filename
 
@@ -107,8 +108,7 @@ def generate():
         frame = frame_queue.get()
         if frame is None:
             break
-        yield (b'--frame\r\n'
-               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
+        yield (b'--frame\r\nContent-Type: image/png\r\n\r\n' + frame + b'\r\n\r\n')
 
 def start_live_view():
     global live_view_process, timer, captured_frames, live_view_thread
@@ -121,7 +121,8 @@ def start_live_view():
             stdout=subprocess.PIPE,
             bufsize=10**8
         )
-        live_view_thread = threading.Thread(target=enqueue_frames, args=(live_view_process.stdout, frame_queue, captured_frames), daemon=True)
+        live_view_thread = threading.Thread(target=enqueue_frames, args=(
+            live_view_process.stdout, frame_queue, captured_frames), daemon=True)
         live_view_thread.start()
 
     if timer:
@@ -160,7 +161,8 @@ def stop_live_view_route():
 
 def reset_usb_device(device_name):
     try:
-        result = subprocess.run(['sudo', 'usbreset', device_name], capture_output=True, text=True, timeout=10)
+        result = subprocess.run(
+            ['sudo', 'usbreset', device_name], capture_output=True, text=True, timeout=10)
         if result.returncode != 0:
             logging.error(f"USB reset failed: {result.stderr}")
         else:
@@ -172,9 +174,11 @@ def reset_usb_device(device_name):
 
 def stop_related_processes():
     try:
-        subprocess.run(['pkill', 'gvfs-gphoto2-volume-monitor'], capture_output=True)
+        subprocess.run(['pkill', 'gvfs-gphoto2-volume-monitor'],
+                       capture_output=True)
         subprocess.run(['killall', 'gphoto2'], capture_output=True)
-        subprocess.run(['sudo', 'rmmod', 'sdc2xx', 'stv680', 'spca50x'], capture_output=True)
+        subprocess.run(['sudo', 'rmmod', 'sdc2xx', 'stv680',
+                       'spca50x'], capture_output=True)
     except Exception as e:
         logging.error(f"Failed to stop processes or unload modules: {str(e)}")
 
@@ -196,7 +200,8 @@ def kill_process_using_device(vendor_id, product_id):
     device_path = get_usb_device_path(vendor_id, product_id)
     if device_path:
         try:
-            result = subprocess.run(['fuser', '-k', device_path], capture_output=True, text=True)
+            result = subprocess.run(
+                ['fuser', '-k', device_path], capture_output=True, text=True)
             if result.returncode == 0:
                 logging.info(f"Process using {device_path} terminated.")
             else:
@@ -206,34 +211,37 @@ def kill_process_using_device(vendor_id, product_id):
     else:
         logging.error(f"Could not find device path: {vendor_id}:{product_id}")
 
+
 def capture_image_with_retries(uuid, retries=5, delay=10):
-    global vendor_id, product_id
     current_directory = os.path.dirname(os.path.abspath(__file__))
     date_str = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
     filename = os.path.join(current_directory, f'{uuid}/{date_str}.png')
     debug_logfile = os.path.join(current_directory, 'gphoto2_debug.log')
 
-    for attempt in range(retries):
-        try:
-            logging.info(f"Image capture attempt #{attempt+1}")
-            result = subprocess.run(
-                ['env', 'LANG=C', 'gphoto2', '--debug', '--debug-logfile=' + debug_logfile, '--wait-event=100ms', '--capture-image-and-download', '--filename', os.path.join(uuid, filename), '--set-config', 'capturetarget=0'],
-                capture_output=True, text=True, timeout=60
-            )
+    vendor_id = '04a9'  # Canon vendor ID
+    product_id = '330d'  # Example product ID, replace with your camera's product ID
 
-            if result.returncode == 0 and os.path.exists(os.path.join(uuid, filename)):
-                logging.info(f"Image captured successfully: {filename}")
-                start_live_view()  # Start live view after capture
-                return {'status': 'success', 'file_saved_as': filename}
-            else:
-                logging.error(f"Failed to capture image: {result.stderr}")
-        except Exception as e:
-            logging.error(f"Failed to capture image: {str(e)}")
-        finally:
-            stop_related_processes()
-            kill_process_using_device(vendor_id, product_id)
-            reset_usb_device('Canon Digital Camera')
-            time.sleep(delay)
+    for attempt in range(retries):
+        stop_related_processes()
+        kill_process_using_device(vendor_id, product_id)
+        reset_usb_device('Canon Digital Camera')
+        time.sleep(1)
+
+        logging.info(f"Image capture attempt #{attempt+1}")
+        result = subprocess.run(
+            ['env', 'LANG=C', 'gphoto2', '--debug', '--debug-logfile=' + debug_logfile, '--wait-event=500ms',
+                '--capture-image-and-download', '--filename', os.path.join(uuid, filename), '--set-config', 'capturetarget=0'],
+            capture_output=True, text=True, timeout=60
+        )
+
+        if result.returncode == 0 and os.path.exists(os.path.join(uuid, filename)):
+            logging.info(f"Image captured successfully: {filename}")
+            start_live_view()  # Start live view after capture
+            return {'status': 'success', 'file_saved_as': filename}
+        else:
+            logging.error(f"Failed to capture image: {result.stderr}")
+
+        time.sleep(delay)
 
     return {'status': 'error', 'message': result.stderr}
 
@@ -252,7 +260,7 @@ def capture_image():
     if result['status'] == 'success':
         capture_count += 1
         image_filename = result['file_saved_as']
-        #async_upload_file(image_filename, uuid, 'image/png')
+        # async_upload_file(image_filename, uuid, 'image/png')
 
         if capture_count == 1:
             video_filename = start_video_capture()
@@ -260,10 +268,12 @@ def capture_image():
         if capture_count == 8:
             stop_video_capture()
             if video_filename and os.path.exists(video_filename):
-                #async_upload_file(video_filename, uuid, 'video/mp4')
-                response = jsonify({'status': 'success', 'message': 'All images captured and video uploaded'})
+                # async_upload_file(video_filename, uuid, 'video/mp4')
+                response = jsonify(
+                    {'status': 'success', 'message': 'All images captured and video uploaded'})
             else:
-                response = jsonify({'status': 'success', 'message': 'All images captured, but no video to upload'})
+                response = jsonify(
+                    {'status': 'success', 'message': 'All images captured, but no video to upload'})
             capture_count = 0
             return response
         else:
@@ -272,13 +282,16 @@ def capture_image():
         return jsonify(result)
 
 def async_upload_file(filename, uuid, content_type):
-    threading.Thread(target=upload_file, args=(filename, uuid, content_type), daemon=True).start()
+    threading.Thread(target=upload_file, args=(
+        filename, uuid, content_type), daemon=True).start()
+
 
 def upload_file(filename, uuid, content_type):
     try:
         with open(filename, 'rb') as f:
             files = {'file': (filename, f, content_type)}
-            response = requests.post(f"{os.getenv('VITE_REACT_APP_BACKEND')}/upload/{uuid}", files=files)
+            response = requests.post(
+                f"{os.getenv('VITE_REACT_APP_BACKEND')}/upload/{uuid}", files=files)
             logging.info(f"File upload response: {response.status_code}")
     except Exception as e:
         logging.error(f"Failed to upload file: {str(e)}")
@@ -286,13 +299,13 @@ def upload_file(filename, uuid, content_type):
 # Start cash payment route
 @app.route('/api/cash/start', methods=['POST'])
 def start_cash_payment():
-    global inserted_money, amount_to_pay #stop_thread counter, money
+    global inserted_money, amount_to_pay  # stop_thread counter, money
     data = request.get_json()
     amount_to_pay = int(data.get('amount', 0))
-    
+
     ser.write(b'RESET\n')
     response = ser.readline().decode('utf-8').strip()
-    
+
     with lock:
         inserted_money = 0  # Reset the inserted money
 
@@ -355,14 +368,14 @@ def create_cash_payment():
 # Print image using rundll32
 def print_image_with_rundll32(image_path, frame_type):
     try:
-        printer_name = 'DS-RX1 (Photostrips)' if frame_type == 'stripx2' else 'DS-RX1'
+        printer_name = 'RX1-Photostrips' if frame_type == 'stripx2' else 'DS-RX1'
         logging.info(f"Printing to {printer_name}")
-        
+
         # Print the image using rundll32
         print_command = f"powershell.exe Start-Process 'rundll32.exe' -ArgumentList 'C:\\Windows\\System32\\shimgvw.dll,ImageView_PrintTo', '\"/pt\"', '{image_path}', '{printer_name}'"
         print(print_command)
         logging.debug(f"Executing print command: {print_command}")
-        
+
         for i in range(print_amount):
             subprocess.run(print_command, check=True, shell=True)
         logging.info(f"Print command sent for file: {image_path}")
@@ -374,7 +387,7 @@ def print_image_with_rundll32(image_path, frame_type):
 def switch_printer(printer_model, frame_type):
     if 'file' not in request.files:
         return jsonify({'error': 'No file part'}), 400
-    
+
     file = request.files['file']
     if file.filename == '':
         return jsonify({'error': 'No selected file'}), 400
@@ -382,9 +395,9 @@ def switch_printer(printer_model, frame_type):
     safe_filename = werkzeug.utils.secure_filename(file.filename)
     temp_dir = os.path.join(f"{os.getcwd()}/print_files")
     file_path = os.path.join(temp_dir, safe_filename)
-    file_path = file_path.replace('/','\\')
+    file_path = file_path.replace('/', '\\')
     print(file_path)
-    file_path = f"\\\wsl$\\Ubuntu{file_path}"
+    file_path = f"\\\wsl$\\Ubuntu-22.04{file_path}"
     file.save(file_path)
 
     try:
@@ -395,7 +408,7 @@ def switch_printer(printer_model, frame_type):
     finally:
         if os.path.exists(file_path):
             os.remove(file_path)  # Cleanup after use
-    
+
     return jsonify({'status': 'success', 'message': 'Print job started successfully.'})
 
 @app.route("/api/print", methods=['POST'])
@@ -408,7 +421,7 @@ def print_photo():
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
         frame = request.form['frame']
-        
+
         if request.files['photo'] and (request.files['photo'].mimetype.startswith('image/')):
             image_content = request.files['photo'].read()
         else:
@@ -416,7 +429,7 @@ def print_photo():
 
         if not request.files['photo'] or not frame:
             return jsonify({'error': 'Invalid input'}), 400
-        
+
         print_url = ''
         print_file_name = ''
         if frame == 'Stripx2':
@@ -437,7 +450,7 @@ def print_photo():
         elif frame == '6-cutx2':
             print_file_name = 'cutx6.png'
             print_url = os.getenv("API_PRINTER_6")
-        
+
         file_path = os.path.join(folder_path, print_file_name)
 
         print(111)
@@ -450,26 +463,26 @@ def print_photo():
 
         # 파일이 제대로 저장되었는지 확인
         if not os.path.exists(file_path):
-            return jsonify({'status':'error', 'message': 'Failed to save the file'}), 500
-        
+            return jsonify({'status': 'error', 'message': 'Failed to save the file'}), 500
+
         # 파일 크기 확인
         file_size = os.path.getsize(file_path)
         if file_size == 0:
-            return jsonify({'status':'error', 'message': 'Saved file is empty'}), 500
-        
-        # Call POST method to printer                
+            return jsonify({'status': 'error', 'message': 'Saved file is empty'}), 500
+
+        # Call POST method to printer
         with open(file_path, 'rb') as f:
             response = requests.post(print_url, files={'file': f})
 
         print(response.status_code)
-        #print(response.text)
+        # print(response.text)
         if response.status_code == 200:
-            return jsonify({'status':'success', 'message': 'Print job started successfully.'}), 200
+            return jsonify({'status': 'success', 'message': 'Print job started successfully.'}), 200
         else:
-            return jsonify({'status':'error', 'message': 'Failed to send print request'}), 500
+            return jsonify({'status': 'error', 'message': 'Failed to send print request'}), 500
     except Exception as e:
         print(e)
-        return jsonify({'status':'error', 'message': 'Failed to send print request'}), 500
+        return jsonify({'status': 'error', 'message': 'Failed to send print request'}), 500
 
 # Route to download a file
 @app.route('/api/get_photo', methods=['GET'])
@@ -478,18 +491,20 @@ def download_file():
     uuid = request.args.get('uuid')
     if (not uuid):
         return jsonify({'status': 'error', 'message': 'No uuid'}), 200
-    file_directory = os.path.join(os.path.dirname(os.path.abspath(__file__)),  uuid)
+    file_directory = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),  uuid)
     try:
         file_list = os.listdir(file_directory)
         print("###########")
         print("file_list")
         print(file_list)
         print("###########")
-        images = [file for file in file_list if file.lower().endswith(('.png', '.jpg', '.jpeg','.mp4'))]
+        images = [file for file in file_list if file.lower().endswith(
+            ('.png', '.jpg', '.jpeg', '.mp4'))]
         image_urls = [
             {
-                'id': idx, 
-                'url': f"{request.scheme}://{request.host}/api/get_photo/uploads"+os.path.join(f"/{uuid}", image.replace("\\","/"))
+                'id': idx,
+                'url': f"{request.scheme}://{request.host}/api/get_photo/uploads"+os.path.join(f"/{uuid}", image.replace("\\", "/"))
             } for idx, image in enumerate(images)
         ]
 
@@ -500,7 +515,8 @@ def download_file():
 
 @app.route('/api/get_photo/uploads/<path:file_path>', methods=['GET'])
 def serve_photo(file_path):
-    file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), file_path.replace("\\","/"))
+    file_path = os.path.join(os.path.dirname(
+        os.path.abspath(__file__)), file_path.replace("\\", "/"))
     if os.path.exists(file_path):
         return send_file(file_path, mimetype="image/png")
     else:
@@ -533,11 +549,6 @@ if __name__ == '__main__':
         else:
             logging.error("Arduino not found. Please check the connection.")
             sys.exit("Arduino not found")
-
-        app.run(host='0.0.0.0', port=5000, debug=True)
+        app.run(host='127.0.0.1', port=5000, debug=True)
     except Exception as e:
         print(e)
-    finally:
-        stop_related_processes()
-        kill_process_using_device(vendor_id, product_id)
-        reset_usb_device('Canon Digital Camera')
