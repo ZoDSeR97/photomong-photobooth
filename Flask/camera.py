@@ -13,6 +13,7 @@ import logging
 import threading
 import queue
 import os
+import sys
 import time
 import serial
 import serial.tools.list_ports
@@ -89,7 +90,7 @@ class CameraManager:
                     logging.warning(f"Could not set {setting_name}: {str(e)}")
             
             # Save settings to camera
-            camera.set_config(config)
+            self.camera.set_config(config)
             logging.info("Successfully applied all available settings")
             
         except Exception as e:
@@ -230,19 +231,20 @@ class CameraManager:
             if video_writer is not None:
                 video_writer.write(frame)
 
-    def start_video_recording(self):
+    def start_video_recording(self, uuid):
         """Start video recording."""
         global video_writer, VIDEO_WRITER_ACTIVE
         VIDEO_WRITER_ACTIVE = True
-        filename = f"video_{datetime.now().strftime('%Y%m%d_%H%M%S')}.mp4"
-        filepath = os.path.join(os.getcwd(), filename)
+        current_directory = os.path.dirname(os.path.abspath(__file__))
+        date_str = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
+        filename = os.path.join(current_directory, f'{uuid}/{date_str}.mp4')
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
         frame = self.frame_queue.queue[0] if not self.frame_queue.empty() else None
 
         if frame is not None:
             height, width, _ = frame.shape
             with video_lock:
-                video_writer = cv2.VideoWriter(filepath, fourcc, 10, (width, height))
+                video_writer = cv2.VideoWriter(filename, fourcc, 60, (width, height))
 
     def stop_video_recording(self):
         """Stop video recording."""
@@ -263,6 +265,7 @@ class CameraManager:
         self.reset_error_state()
 
         with self.camera_lock():
+            self.apply_camera_settings()
             for attempt in range(retries):
                 try:
                     if not self.check_camera_ready():
@@ -333,7 +336,8 @@ def video_feed():
 def start_live_view():
     if not LIVE_VIEW_ACTIVE:
         camera_manager.start_live_view()
-        #camera_manager.start_video_recording()
+        # request.args.get('uuid')
+        # camera_manager.start_video_recording(uuid)
     return jsonify(status="Live view and video recording started")
 
 @app.route('/api/stop_live_view', methods=['GET'])
@@ -603,5 +607,12 @@ if __name__ == '__main__':
     except Exception as e:
         print(str(e))
     finally:
-        camera_manager.stop_video_recording()
-        camera_manager.stop_live_view()
+        try:
+            if camera_manager.video_writer_active:
+                camera_manager.stop_video_recording()
+            if camera_manager.live_view_active:
+                camera_manager.stop_live_view()
+            if camera_manager.camera:
+                camera_manager.camera.exit()
+        except Exception as e:
+            logging.error(f"Error during cleanup: {e}")

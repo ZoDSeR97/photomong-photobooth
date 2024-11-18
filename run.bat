@@ -18,4 +18,4 @@ start cmd /k "npm install -g bun && bun install && bun run dev"
 timeout /t 5 > nul
 
 :: Run kiosk
-start chrome.exe --kiosk http://localhost:5173
+start chrome.exe --kiosk –-touch-events –enable-viewport http://localhost:5173

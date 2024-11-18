@@ -7,4 +7,5 @@ opencv-python
 gphoto2
 numpy
 pyserial
+pyusb
 requests
