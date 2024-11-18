@@ -11,7 +11,7 @@ import start_kr from '../assets/Home/kr/start.png';
 import start_click_kr from '../assets/Home/kr/start_click.png';
 import start_mn from '../assets/Home/mn/start.png';
 import start_click_mn from '../assets/Home/mn/start_click.png';
-import { getAudio, getClickAudio } from '../api/config';
+import { playAudio } from '../api/config';
 
 function App() {
   const [language, setLanguage] = useState('en');
@@ -23,19 +23,15 @@ function App() {
 
   useEffect(() => {
     sessionStorage.clear();
-    playAudio();
+    playAudio("lets-start.wav");
     setLanguage('en');
     sessionStorage.setItem('language', 'en');
     i18n.changeLanguage('en');
     setDisplayLanguage(t(`language.en`));
   }, []);
 
-  const playAudio = async () => {
-    const res = await getAudio({ file_name: "lets-start.wav" })
-  }
-
   const handleChangeLanguage = (value) => {
-    getClickAudio()
+    playAudio("click_sound.wav")
     const selectedLanguage = value;
     setLanguage(selectedLanguage);
     sessionStorage.setItem('language', selectedLanguage);
@@ -56,6 +52,7 @@ function App() {
 
   const toggleShowLangOption = () => {
     setShowLangOption(!showLangOption);
+    playAudio("click_sound.wav")
   };
 
   const changeButtonBackground = (lang) => {
@@ -84,7 +81,7 @@ function App() {
         }
       </div>
       <div className="start-button" style={{ backgroundImage: `url(${buttonBackground})` }} onMouseEnter={() => changeButtonBackground(language)} onMouseLeave={() => changeButtonBackground(language)} onClick={() => {
-        getClickAudio()
+        playAudio("click_sound.wav")
         navigate('/frame')
       }}></div>
     </div>

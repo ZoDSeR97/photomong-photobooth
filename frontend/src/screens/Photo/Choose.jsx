@@ -30,7 +30,7 @@ import continue_vn from '../../assets/Common/vn/continue.png';
 import continue_vn_hover from '../../assets/Common/vn/continue_click.png';
 import continue_mn from '../../assets/Common/mn/continue.png';
 import continue_mn_hover from '../../assets/Common/mn/continue_click.png';
-import { getAudio, getClickAudio, getPhotos } from '../../api/config';
+import { playAudio, getPhotos } from '../../api/config';
 
 function Choose() {
      const { t } = useTranslation();
@@ -193,7 +193,7 @@ function Choose() {
           if (clickedButton) {
                return;
           }
-          getClickAudio()
+          playAudio("click_sound.wav")
           sessionStorage.setItem('choosePhotos', JSON.stringify(selectedPhotos));
 
           // Determine total photos
@@ -331,12 +331,8 @@ function Choose() {
           }
      }
 
-     const playAudio = async () => {
-          const res = await getAudio({ file_name: "choose_photos.wav" })
-     }
-
      useEffect(() => {
-          playAudio()
+          playAudio("choose_photos.wav")
      }, [])
 
      const showSelectedPhotos = () => {
@@ -457,7 +453,7 @@ function Choose() {
      return (
           <div className='photo-choose-container' style={{ backgroundImage: `url(${background})` }}>
                <div className="go-back" style={{ backgroundImage: `url(${goBackButton})`, top:`4.4%`, left: `6%` }} onClick={() => {
-                    getClickAudio()
+                    playAudio("click_sound.wav")
                     navigate("/photo")}} onMouseEnter={() => hoverGoBackButton(language)} onMouseLeave={() => hoverGoBackButton(language)}></div>
                <div className="left-big-frame">
                     {/* 프레임속 회색네모 갯수만큼 나오는 곳 */}
@@ -474,7 +470,10 @@ function Choose() {
                                         key={photoIndex}
                                         className={`choose-image ${selectedPhotos.includes(photo.id) ? "clicked" : ""}`}
                                         style={{ backgroundImage: `url(${photo.url})`}}
-                                        onClick={() => toggleSelection(photo.id)}
+                                        onClick={() => {
+                                             playAudio("click_sound.wav")
+                                             toggleSelection(photo.id)
+                                        }}
                                    />
                               ))}
                          </div>

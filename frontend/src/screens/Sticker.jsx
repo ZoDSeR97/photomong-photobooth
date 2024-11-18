@@ -75,7 +75,7 @@ import print_mn_click from '../assets/Sticker/mn/print-pressed.png';
 import frame_box from '../assets/Sticker/frame_box.png';
 import CustomCarousel from '../components/CustomCarousel';
 import VerticalCustomCarousel from '../components/VerticalCustomCarousel';
-import { getAudio, getClickAudio, getPhotos, originAxiosInstance } from '../api/config';
+import { getPhotos, originAxiosInstance } from '../api/config';
 let playAddEmojiSound = false;
 function Sticker() {
      const { t } = useTranslation();
@@ -366,7 +366,7 @@ function Sticker() {
      };
 
      const filterStickerByCategory = (category) => {
-          getClickAudio()
+          playAudio("click_sound.wav")
           setSelectedCategory(category);
      };
 
@@ -1396,21 +1396,17 @@ function Sticker() {
 
      }
      const playPrintAudio = async () => {
-          const res = await getAudio({ file_name: "print.wav" })
-     }
-
-     const playAudio = async () => {
-          const res = await getAudio({ file_name: "add_emoji.wav" })
+          const res = await playAudio("print.wav")
      }
 
      useEffect(() => {
-          playAudio()
+          playAudio("add_emoji.wav")
      }, [])
 
      return (
           <div className='sticker-container' style={{ backgroundImage: `url(${backgroundImage})` }}>
                <div className="go-back" style={{ backgroundImage: `url(${goBackButton})`, top:`4.4%`, left: `6%`}} onClick={() => {
-                    getClickAudio()
+                    playAudio("click_sound.wav")
                     navigate("/filter")}} onMouseEnter={hoverGoBackButton} onMouseLeave={hoverGoBackButton}></div>
                {/* 프린트용 */}
                <div className='print'>

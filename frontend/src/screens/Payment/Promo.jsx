@@ -62,7 +62,7 @@ import goback_vn_hover from '../../assets/Common/vn/gobackhover.png';
 import goback_mn from '../../assets/Common/mn/goback.png';
 import goback_mn_hover from '../../assets/Common/mn/gobackhover.png';
 
-import { checkPromotionCode, getAudio, getClickAudio } from '../../api/config';
+import { playAudio } from '../../api/config';
 
 function Cash() {
      const { t } = useTranslation();
@@ -138,7 +138,7 @@ function Cash() {
                return;
           }
           if (buttonClick) {
-               getClickAudio()
+               playAudio("click_sound.wav")
                setRedeemCode(redeemCode + buttonClick);
           }
      }
@@ -148,7 +148,7 @@ function Cash() {
      }
 
      const redeemClick = () => {
-          getClickAudio()
+          playAudio("click_sound.wav")
           checkReedeem();
      }
 
@@ -191,18 +191,14 @@ function Cash() {
           }
      }
 
-     const playAudio = async () => {
-          const res = await getAudio({ file_name: "enter_pro.wav" })
-     }
-
      useEffect(() => {
-          playAudio()
+          playAudio("enter_pro.wav")
      }, [])
 
      return (
           <div className='promo-container' style={{ backgroundImage: `url(${background})` }}>
                <div className="go-back" style={{ backgroundImage: `url(${goBackButton})`, top: `4.4%`, left: `6%` }} onClick={() => {
-                    getClickAudio()
+                    playAudio("click_sound.wav")
                     navigate("/payment")}}></div>
                <div className="promo-form" style={{ backgroundImage: `url(${promoForm})` }}>
                     <div className="code-input" style={{ backgroundImage: `url(${promo_input})` }}></div>

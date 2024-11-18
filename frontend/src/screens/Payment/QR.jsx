@@ -22,7 +22,7 @@ import background_en from '../../assets/Payment/QR/BG.png';
 import background_vn from '../../assets/Payment/QR/vn/BG.png';
 import background_kr from '../../assets/Payment/QR/kr/BG.png';
 import background_mn from '../../assets/Payment/QR/mn/BG.png';
-import { getAudio, getClickAudio } from '../../api/config';
+import { playAudio } from '../../api/config';
 
 QRPayment.propTypes = {
     method: PropTypes.string.isRequired,  // Ensures 'method' is a string and is required
@@ -57,12 +57,8 @@ function QRPayment({ method }) { // 'method' can be 'momo', 'vnpay', or 'zalopay
         }
     }, []);
 
-    const playAudio = async () => {
-        const res = await getAudio({ file_name: "scan_qr.wav" })
-    }
-
     useEffect(() => {
-        playAudio()
+        playAudio("scan_qr.wav")
     }, [])
 
     useEffect(() => {
@@ -164,7 +160,7 @@ function QRPayment({ method }) { // 'method' can be 'momo', 'vnpay', or 'zalopay
     }, [paymentStatus, navigate]);
 
     const goBack = () => {
-        getClickAudio()
+        playAudio("click_sound.wav")
         navigate("/payment");
     }
 

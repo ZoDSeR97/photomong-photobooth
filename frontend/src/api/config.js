@@ -93,3 +93,12 @@ export const getClickAudio = async () => {
   const { data } = await audioAxiosInstance.post(`/api/play_sound/`, { file_name: "click_sound.wav" })
   return "";
 }
+
+export const playAudio = async (file_name) => {
+  try {
+      const audio = new Audio(`/src/assets/playsound/${file_name}`)
+      await audio.play()
+  } catch (error) {
+      console.error('Error playing audio:', error)
+  }
+}

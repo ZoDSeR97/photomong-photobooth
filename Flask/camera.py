@@ -1,35 +1,28 @@
-#!/usr/bin/env python3
 from contextlib import contextmanager
-from flask import Flask, send_file, jsonify, request, Response
-from flask_cors import CORS, cross_origin
-from dotenv import load_dotenv
-from datetime import datetime
-import gphoto2 as gp
+import cv2
+import threading
 import queue
+import os
 import logging
+from datetime import datetime
+from flask import Flask, jsonify, Response, request, send_file
+from flask_cors import CORS
+import gphoto2 as gp
+import numpy as np
 import time
 import atexit
-import threading
-import os
-import numpy as np
-import cv2
 
 app = Flask(__name__)
-load_dotenv()  # take environment variables from .env.
 CORS(app, supports_credentials=True, resources={r"/*": {"origins": "*"}})
 
-# Global variables to manage camera state
-camera = None
-context = None
-recording_thread = None
-capture_count = 0
-timer = None
-is_recording = False
+# Globals
+frame_queue = queue.Queue(maxsize=60)
+LIVE_VIEW_ACTIVE = False
 VIDEO_WRITER_ACTIVE = False
 video_writer = None
 video_lock = threading.Lock()
-TOTAL_SEQUENCES = 8
-PREVIEW_INTERVAL = 0.1  # 100ms between preview captures
+live_view_thread = None
+PREVIEW_INTERVAL = 0.1  # 100ms between frames
 
 class CameraManager:
     def __init__(self):
@@ -41,7 +34,9 @@ class CameraManager:
         self.error_count = 0
         self.MAX_ERRORS = 3
         self.ERROR_TIMEOUT = 300  # 5 minutes timeout after max errors
+        self.frame_queue = frame_queue
         self.init_logging()
+        self.initialize_camera()
 
     def init_logging(self):
         """Initialize gphoto2 logging callbacks"""
@@ -61,13 +56,13 @@ class CameraManager:
         finally:
             self.is_busy = False
             self.lock.release()
-
+    
     def reset_error_state(self):
         """Reset error counter if timeout has passed"""
         if self.last_error_time and time.time() - self.last_error_time > self.ERROR_TIMEOUT:
             self.error_count = 0
             self.last_error_time = None
-
+    
     def handle_error(self, error):
         """Handle camera errors with exponential backoff"""
         self.error_count += 1
@@ -75,8 +70,7 @@ class CameraManager:
         logging.error(f"Camera error: {str(error)}")
 
         if self.error_count >= self.MAX_ERRORS:
-            logging.error(
-                "Maximum error count reached. Camera needs manual intervention.")
+            logging.error("Maximum error count reached. Camera needs manual intervention.")
             return False
         return True
 
@@ -88,7 +82,6 @@ class CameraManager:
                 self.camera = None
 
             if self.context is not None:
-                self.context.exit()
                 self.context = None
 
             self.context = gp.Context()
@@ -107,7 +100,7 @@ class CameraManager:
             logging.error(f"Failed to initialize camera: {str(e)}")
             self.handle_error(e)
             return False
-
+        
     def check_camera_ready(self):
         """Check if camera is responsive"""
         try:
@@ -130,7 +123,6 @@ class CameraManager:
                 self.camera = None
 
             if self.context:
-                self.context.exit()
                 self.context = None
 
             time.sleep(2)
@@ -139,38 +131,38 @@ class CameraManager:
         except gp.GPhoto2Error as e:
             logging.error(f"Failed to recover camera: {str(e)}")
             return False
-    
+
+    def start_live_view(self):
+        """Start live view."""
+        global LIVE_VIEW_ACTIVE
+        LIVE_VIEW_ACTIVE = True
+        threading.Thread(target=self._enqueue_frames, daemon=True).start()
+
+    def stop_live_view(self):
+        """Stop live view."""
+        global LIVE_VIEW_ACTIVE
+        LIVE_VIEW_ACTIVE = False
+
     def _enqueue_frames(self):
         """Fetch frames for live view."""
-        global timer
-        if timer:
-            timer.cancel()
-        timer = threading.Timer(9.0, self.stop_live_view)
-        timer.start()
-        while self.is_live_view_active:
+        while LIVE_VIEW_ACTIVE:
             try:
                 preview_file = self.camera.capture_preview(self.context)
                 preview_data = preview_file.get_data_and_size()
                 frame = cv2.imdecode(np.frombuffer(preview_data, np.uint8), cv2.IMREAD_COLOR)
+
                 if self.frame_queue.full():
                     self.frame_queue.get()
                 self.frame_queue.put(frame)
+
                 if VIDEO_WRITER_ACTIVE:
                     self._write_video_frame(frame)
+
+                time.sleep(PREVIEW_INTERVAL)
             except gp.GPhoto2Error as e:
                 logging.error(f"Error in live view: {e}")
-            time.sleep(PREVIEW_INTERVAL)
-    
-    def generate_frames(self):
-        """Generate frames for live view."""
-        while True:
-            try:
-                frame = self.frame_queue.get(timeout=5)
-                _, buffer = cv2.imencode('.jpg', frame)
-                yield (b'--frame\r\nContent-Type: image/jpeg\r\n\r\n' + buffer.tobytes() + b'\r\n')
-            except queue.Empty:
                 continue
-    
+
     def _write_video_frame(self, frame):
         """Write frame to the video file."""
         global video_writer
@@ -194,21 +186,17 @@ class CameraManager:
 
     def stop_video_recording(self):
         """Stop video recording."""
-        global timer, video_writer, VIDEO_WRITER_ACTIVE
-        if timer:
-            timer.cancel()
-            timer = None
+        global video_writer, VIDEO_WRITER_ACTIVE
         VIDEO_WRITER_ACTIVE = False
         with video_lock:
             if video_writer is not None:
                 video_writer.release()
                 video_writer = None
-    
+
     def capture_image(self, uuid, retries=3):
-        """Capture image with improved error handling and recovery"""
+        """Capture an image and save it as PNG."""
         global VIDEO_WRITER_ACTIVE
-        self.stop_video_recording()
-        
+        self.stop_live_view()
         if self.error_count >= self.MAX_ERRORS and time.time() - self.last_error_time < self.ERROR_TIMEOUT:
             return {'status': 'error', 'message': 'Camera in recovery timeout'}
 
@@ -222,8 +210,7 @@ class CameraManager:
                             continue
 
                     # Prepare the file path
-                    current_directory = os.path.dirname(
-                        os.path.abspath(__file__))
+                    current_directory = os.path.dirname(os.path.abspath(__file__))
                     date_str = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
                     filename = os.path.join(current_directory, f'{uuid}/{date_str}.png')
 
@@ -232,8 +219,7 @@ class CameraManager:
 
                     # Capture the image
                     logging.info("Capturing image...")
-                    camera_path = self.camera.capture(
-                        gp.GP_CAPTURE_IMAGE, self.context)
+                    camera_path = self.camera.capture(gp.GP_CAPTURE_IMAGE, self.context)
 
                     # Download the image
                     logging.info("Downloading image...")
@@ -249,9 +235,7 @@ class CameraManager:
                     # Verify file exists and has size
                     if os.path.exists(filename) and os.path.getsize(filename) > 0:
                         self.error_count = 0
-                        # Resume video recording after capture
                         self.start_live_view()
-                        self.start_video_recording()
                         return {'status': 'success', 'file_saved_as': filename}
                     else:
                         raise Exception("Captured file is empty or missing")
@@ -266,103 +250,93 @@ class CameraManager:
                     if not self.handle_error(e):
                         break
                     self.recover_camera()
-
                 time.sleep(2 ** attempt)  # Exponential backoff
-
+            self.start_live_view()
             return {'status': 'error', 'message': 'Failed to capture image after multiple attempts'}
 
-    def start_live_view(self):
-        """Start live view with error handling"""
-        self.is_live_view_active = True
-        self.live_view_thread = threading.Thread(target=self._enqueue_frames, daemon=True)
-        self.live_view_thread.start()
+    def generate_frames(self):
+        """Generate frames for live view."""
+        while True:
+            try:
+                frame = self.frame_queue.get(timeout=5)
+                _, buffer = cv2.imencode('.jpg', frame)
+                yield (b'--frame\r\nContent-Type: image/jpeg\r\n\r\n' + buffer.tobytes() + b'\r\n')
+            except queue.Empty:
+                continue
 
-    def stop_live_view(self):
-        """Stop live view with error handling"""
-        self.is_live_view_active = False
-        if self.live_view_thread:
-            self.live_view_thread.join()
-
-    def cleanup(self):
-        """Clean up camera resources"""
-        try:
-            if self.camera:
-                self.camera.exit()
-                self.camera = None
-            if self.context:
-                self.context.exit()
-                self.context = None
-        except gp.GPhoto2Error as e:
-            logging.error(f"Error during cleanup: {str(e)}")
-
-# Initialize camera manager
+# Flask endpoints
 camera_manager = CameraManager()
-
-def start_video_capture():
-    global video_file, video_filename
-    video_filename = os.path.join(temp_dir, f"video_{datetime.now().strftime('%Y%m%d_%H%M%S')}.mp4")
-    video_file = cv2.VideoWriter(video_filename, fourcc, fps, frame_size)
-    return video_filename
-
-def stop_video_capture():
-    global video_file
-    if video_file:
-        video_file.release()
-        video_file = None
-
-# Register cleanup on exit
-atexit.register(camera_manager.cleanup)
-
-# Update the capture route to use the new camera manager
-@app.route('/api/capture', methods=['POST'])
-@cross_origin()
-def capture_image():
-    global capture_count, video_filename
-
-    data = request.get_json()
-    uuid = data.get('uuid')
-
-    if not uuid:
-        return jsonify({'status': 'error', 'message': 'UUID is missing.'}), 400
-
-    result = camera_manager.capture_image(uuid)
-    if result['status'] == 'success':
-        capture_count += 1
-        image_filename = result['file_saved_as']
-
-        if capture_count == 1:
-            video_filename = start_video_capture()
-
-        if capture_count == 8:
-            stop_video_capture()
-            if video_filename and os.path.exists(video_filename):
-                response = jsonify(
-                    {'status': 'success', 'message': 'All images captured and video uploaded'})
-            else:
-                response = jsonify(
-                    {'status': 'success', 'message': 'All images captured, but no video to upload'})
-            capture_count = 0
-            return response
-        else:
-            return jsonify({'status': 'success', 'message': f'Image captured and uploaded ({capture_count}/8)'})
-    else:
-        return jsonify(result)
 
 @app.route('/api/video_feed')
 def video_feed():
     return Response(camera_manager.generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
-# Update live view routes
 @app.route('/api/start_live_view', methods=['GET'])
-def start_live_view_route():
-    if camera_manager.start_live_view():
-        return jsonify(status="Live view started")
-    return jsonify(status="Failed to start live view"), 500
+def start_live_view():
+    camera_manager.start_live_view()
+    #camera_manager.start_video_recording()
+    return jsonify(status="Live view and video recording started")
 
 @app.route('/api/stop_live_view', methods=['GET'])
-def stop_live_view_route():
+def stop_live_view():
+    camera_manager.stop_video_recording()
     camera_manager.stop_live_view()
-    return jsonify(status="Live view stopped")
+    return jsonify(status="Live view and video recording stopped")
+
+@app.route('/api/capture', methods=['POST'])
+def capture_image():
+    data = request.get_json()
+    uuid = data.get('uuid', 'default_uuid')
+    result = camera_manager.capture_image(uuid)
+    return jsonify(result)
+
+# Route to download a file
+@app.route('/api/get_photo', methods=['GET'])
+def download_file():
+    # Assuming the files are stored in a specific directory on WSL
+    uuid = request.args.get('uuid')
+    if (not uuid):
+        return jsonify({'status': 'error', 'message': 'No uuid'}), 200
+    file_directory = os.path.join(os.path.dirname(os.path.abspath(__file__)),  uuid)
+    try:
+        file_list = os.listdir(file_directory)
+        print("###########")
+        print("file_list")
+        print(file_list)
+        print("###########")
+        images = [file for file in file_list if file.lower().endswith(('.png', '.jpg'))]
+        image_urls = [
+            {
+                'id': idx, 
+                'url': f"http://{request.host}/api/get_photo/uploads"+os.path.join(f"/{uuid}", image.replace("\\","/"))
+            } for idx, image in enumerate(sorted(images, key=lambda x: datetime.strptime(x.removesuffix('.png'), '%Y-%m-%d-%H-%M-%S')))
+        ]
+        videos = [file for file in file_list if file.lower().endswith(('.mp4'))]
+        video_urls = [
+            {
+                'id': idx, 
+                'url': f"http://{request.host}/api/get_photo/uploads"+os.path.join(f"/{uuid}", image.replace("\\","/"))
+            } for idx, image in enumerate(sorted(videos, key=lambda x: datetime.strptime(x.removesuffix('.mp4'), '%Y-%m-%d-%H-%M-%S')))
+        ]
+
+        return jsonify({'status': 'success', 'images': image_urls, 'video':video_urls})
+    except Exception as e:
+        print(e)
+        return jsonify({'status': 'error', 'message': 'File not found'}), 404
+
+@app.route('/api/get_photo/uploads/<path:file_path>', methods=['GET'])
+def serve_photo(file_path):
+    file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), file_path.replace("\\","/"))
+    if os.path.exists(file_path):
+        return send_file(file_path, mimetype="image/png")
+    else:
+        return jsonify({'status': 'error', 'message': 'File not found'}), 404
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    try:
+        app.run(host='0.0.0.0', port=5000)
+    except Exception as e:
+        print(str(e))
+    finally:
+        camera_manager.stop_video_recording()
+        camera_manager.stop_live_view()

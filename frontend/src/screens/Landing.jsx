@@ -12,7 +12,7 @@ import background_mn from '../assets/Landing/mn/BG.png';
 
 // QR
 import { QRCodeSVG } from 'qrcode.react';
-import { getAudio } from '../api/config';
+import { playAudio } from '../api/config';
 
 function Print() {
      const { t } = useTranslation();
@@ -38,6 +38,7 @@ function Print() {
 
      const clearSessionStorageAndLeaveOut = () => {
           sessionStorage.clear();
+          playAudio("click_sound.wav")
           navigate('/');
      }
 

@@ -12,7 +12,7 @@ import background_mn from '../assets/Prints/mn/BG.png';
 
 // QR
 import { QRCodeSVG } from 'qrcode.react';
-import { getAudio } from '../api/config';
+import { playAudio } from '../api/config';
 
 function Print() {
      const { t } = useTranslation();
@@ -33,13 +33,9 @@ function Print() {
                setBackground(background_mn);
           }
      }, []);
-
-     const playAudio = async () => {
-          const res = await getAudio({ file_name: "thank_being.wav" })
-     }
      
      useEffect(() => {
-          playAudio()
+          playAudio("thank_being.wav")
      }, [])
 
      const handleMouseEnter = (image) => {
@@ -52,6 +48,7 @@ function Print() {
 
      const clearSessionStorageAndLeaveOut = () => {
           sessionStorage.clear();
+          playAudio("click_sound.wav")
           navigate('/landing');
      }
 

@@ -17,7 +17,7 @@ import ok_button from '../../assets/Photo/Snap/OK.png';
 import ok_button_inactive from '../../assets/Photo/Snap/OkInactive.png';
 import take_again_button from '../../assets/Photo/Snap/TakeAgain.png';
 import take_again_button_inactive from '../../assets/Photo/Snap/TakeAgainInactive.png';
-import { getAudio, getPhotos, deletePhoto, sendCaptureReq, startLiveView, videoFeedUrl } from '../../api/config';
+import { playAudio, getPhotos, sendCaptureReq, startLiveView, videoFeedUrl } from '../../api/config';
 import Uid from "react-uuid"
 
 function Photo() {
@@ -271,19 +271,13 @@ function Photo() {
           // console.log('currentPhotoCount>>>', currentPhotoCount)
           const photos = await getPhotos(uuid);
           sessionStorage.setItem("getphotos", photos);
-          console.log("photots: ", photos);
+          console.log("photos: ", photos);
           if (photos && photos.images && photos.images.length > 0) {
                const latestImage = photos.images[photos.images.length - 1];
-               // console.log('latestImage>>>', latestImage)
-               const imageName = latestImage.url.replace(/\\/g, '/').split('/').pop();
-               const formattedImage = {
-                    ...latestImage,
-                    url: `${import.meta.env.VITE_REACT_APP_API}/serve_photo/${uuid}/${imageName}`
-               };
-               console.log("url: ", formattedImage);
+               console.log("latest image:", latestImage)
                if (photos.videos != undefined) {
                     if (photos.videos.length != 0) {
-                         const videoUrl = photos.videos[0].url.replace("get_photo", "download_photo")
+                         const videoUrl = photos.videos[0].url
                          // console.log('videoUrl>>>', videoUrl)
                          sessionStorage.setItem("videoUrl", videoUrl)
                     }
@@ -301,18 +295,12 @@ function Photo() {
                     const firstRetakePhotoIndex = firstRetakePhoto.id;
                     // console.log('firstRetakePhotoIndex>>>', firstRetakePhotoIndex)
 
-                    // call api to delete the photo inside uuid
-                    // get the photo name and photo type
-                    const photoName = firstRetakePhoto.url.split('/').pop();
-                    await deletePhoto(uuid, photoName);
-
-
                     // loop capturePhotos and find photo with id = firstRetakePhotoIndex.  then replace url with formattedImage.url.replace(/\\/g, '/').replace('serve_photo', `get_photo/uploads`)
                     const newCapturePhotos = capturePhotos.map((photo) => {
                          if (photo.id === firstRetakePhotoIndex) {
                               return {
                                    ...photo,
-                                   url: formattedImage.url.replace(/\\/g, '/').replace('serve_photo', `api/get_photo/uploads`)
+                                   url: latestImage.url
                               };
                          }
                          return photo;
@@ -323,14 +311,7 @@ function Photo() {
                     // remove all photos in selectedReTakePhotos
                     setSelectedReTakePhotos([]);
                } else {
-                    setCapturePhotos((prevPhotos) => {
-                         const newPhotos = [...prevPhotos];
-                         newPhotos[currentPhotoCount] = {
-                              id: formattedImage.id,
-                              url: formattedImage.url.replace(/\\/g, '/').replace('serve_photo', `api/get_photo/uploads`)
-                         };
-                         return newPhotos;
-                    });
+                    setCapturePhotos([...photos.images]);
                }
           } else {
                navigate(-1);
@@ -514,20 +495,16 @@ function Photo() {
      };
 
      const playCntSound = async () => {
-          await getAudio({ file_name: "count.wav" });
+          await playAudio("count.wav" );
      };
 
      const playTakePhotoAudio = async () => {
-          await getAudio({ file_name: "take_photo.wav" });
-      };
-  
-      const playAudio = async () => {
-          await getAudio({ file_name: "look_up_smile.wav" });
-      };
-  
-      useEffect(() => {
-          playAudio();
-      }, []);
+          await playAudio("take_photo.wav");
+     };
+
+     useEffect(() => {
+          playAudio("look_up_smile.wav");
+     }, []);
 
      useEffect(() => {
           if (uuid && cameraConnected) {
@@ -567,6 +544,7 @@ function Photo() {
                // console.log("Capture photos >>", capturePhotos.map(photo => photo.id));
 
                const result = await copyImageApi();
+               await fetch(`${import.meta.env.VITE_REACT_APP_API}/api/stop_live_view`)
                navigate("/photo-choose");
           }
      };

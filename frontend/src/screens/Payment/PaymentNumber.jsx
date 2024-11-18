@@ -33,7 +33,7 @@ import confirm_vn from '../../assets/Frame/Layout/Confirm/vn/confirm.png';
 import confirm_vn_hover from '../../assets/Frame/Layout/Confirm/vn/confirm_click.png';
 import confirm_mn from '../../assets/Frame/Layout/Confirm/mn/confirm.png';
 import confirm_mn_hover from '../../assets/Frame/Layout/Confirm/mn/confirm_click.png';
-import { getClickAudio, sendDongNum } from '../../api/config';
+import { playAudio, sendDongNum } from '../../api/config';
 
 function PaymentNumber(props) {
   const [background, setBackground] = useState(background_en);
@@ -88,17 +88,17 @@ function PaymentNumber(props) {
     setCheck(p => !p)
   }
   const onAdd = () => {
-    getClickAudio()
+    playAudio("click_sound.wav")
     setPhotoNum(p => (p < 10 ? p + 1 : p));
   };
 
   const onMinus = () => {
-    getClickAudio()
+    playAudio("click_sound.wav")
     setPhotoNum(p => (p > 1 ? p - 1 : p));
   };
 
   const goToPayment = async (photoNum, checkCoupon) => {
-    getClickAudio()
+    playAudio("click_sound.wav")
     sessionStorage.setItem("photoNum", photoNum)
     const res = await sendDongNum(photoNum, checkCoupon === true ? 1 : 0) // work on this later
     navigate('/payment');
@@ -157,7 +157,7 @@ function PaymentNumber(props) {
       style={{ backgroundImage: `url(${background})` }}
     >
       <div className="go-back" style={{ backgroundImage: `url(${goBackBg})`, top:`4.4%`, left: `6%`}} onClick={() => {
-        getClickAudio()
+        playAudio("click_sound.wav")
         navigate("/layout")
       }} onMouseEnter={() => hoverGoBackBtn(language)} onMouseLeave={() => hoverGoBackBtn(language)}></div>
 

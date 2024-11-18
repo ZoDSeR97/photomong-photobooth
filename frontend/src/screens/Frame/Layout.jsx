@@ -29,7 +29,7 @@ import confirm_vn from '../../assets/Frame/Layout/Confirm/vn/confirm.png';
 import confirm_vn_hover from '../../assets/Frame/Layout/Confirm/vn/confirm_click.png';
 import confirm_mn from '../../assets/Frame/Layout/Confirm/mn/confirm.png';
 import confirm_mn_hover from '../../assets/Frame/Layout/Confirm/mn/confirm_click.png';
-import { getAudio, getClickAudio, originAxiosInstance } from '../../api/config';
+import { playAudio, originAxiosInstance } from '../../api/config';
 import FrameCarousel from '../../components/FrameCarousel';
 
 import scroll_left from '../../assets/Photo/Snap/ScrollLeft.png';
@@ -180,7 +180,7 @@ function Layout() {
           //라우팅 할 때 리스트 한번에 보내기
           // sessionStorage.setItem('selectedLayout', JSON.stringify(layouts));
           // setClickedIndex(index === clickedIndex ? null : index);
-          getClickAudio()
+          playAudio("click_sound.wav")
           if (clickedTitles.includes(clickedTitle)) {
                setClickedTitles(prevTitles => prevTitles.filter(clickedTitle => clickedTitle != clickedTitle));
 
@@ -287,11 +287,8 @@ function Layout() {
           }
      }, []);
 
-     const playAudio = async () => {
-          const res = await getAudio({ file_name: "choose_frame_style.wav" })
-     }
      useEffect(() => {
-          playAudio()
+          playAudio("choose_frame_style.wav")
      }, [])
 
      return (
@@ -306,7 +303,7 @@ function Layout() {
                }}
           >
                <div className="go-back" style={{ backgroundImage: `url(${goBackBg})`, top: `4.4%`, left: `6%` }} onClick={() => {
-                    getClickAudio()
+                    playAudio("click_sound.wav")
                     navigate("/background")
                }} onMouseEnter={() => hoverGoBackBtn(language)} onMouseLeave={() => hoverGoBackBtn(language)}></div>
                <div className="style-section"

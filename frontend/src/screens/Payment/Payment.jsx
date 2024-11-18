@@ -64,7 +64,7 @@ import background_en from '../../assets/Payment/BG.png';
 import background_vn from '../../assets/Payment/Common/vn/BG.png';
 import backgrond_kr from '../../assets/Payment/Common/kr/BG.png';
 import background_mn from '../../assets/Payment/Common/mn/BG.png';
-import { getAudio, getClickAudio } from '../../api/config';
+import { playAudio } from '../../api/config';
 
 function Payment() {
   const { t } = useTranslation();
@@ -118,12 +118,9 @@ function Payment() {
       setPromoButton(promo_mn);
     }
   }, [])
-  const playAudio = async () => {
-    const res = await getAudio({ file_name: "choose_pay_method.wav" })
-  }
 
   useEffect(() => {
-    playAudio()
+    playAudio("choose_pay_method.wav")
   }, [])
 
   const hoverMouseEffect = (image) => {
@@ -189,13 +186,15 @@ function Payment() {
   }
 
   const goToPay = (method) => {
-    getClickAudio()
+    playAudio("click_sound.wav")
     navigate(`/payment-${method}`);
   }
 
   return (
     <div className='payment-container' style={{ backgroundImage: `url(${background})` }}>
-      <div className="go-back" style={{ backgroundImage: `url(${goBackBg})`, top: `4.4%`, left: `6%` }} onClick={() => navigate("/layout")} onMouseEnter={() => hoverGoBackBtn(language)} onMouseLeave={() => hoverGoBackBtn(language)}></div>
+      <div className="go-back" style={{ backgroundImage: `url(${goBackBg})`, top: `4.4%`, left: `6%` }} onClick={() => {
+        playAudio("click_sound.wav") 
+        navigate("/layout")}} onMouseEnter={() => hoverGoBackBtn(language)} onMouseLeave={() => hoverGoBackBtn(language)}></div>
       <div className="payment-line">
         <div className="payment-method" style={{ backgroundImage: `url(${cashButton})` }} onMouseEnter={() => hoverMouseEffect('cash')} onMouseLeave={() => hoverMouseEffect('cash')} onClick={() => goToPay('cash')}></div>
         {

@@ -23,7 +23,7 @@ import goback_mn from '../../assets/Common/mn/goback.png';
 import goback_mn_hover from '../../assets/Common/mn/gobackhover.png';
 import scroll_left from '../../assets/Photo/Snap/ScrollLeft.png';
 import scroll_right from '../../assets/Photo/Snap/ScrollRight.png';
-import { getAudio, getClickAudio, originAxiosInstance } from '../../api/config';
+import { playAudio, originAxiosInstance } from '../../api/config';
 
 // Language
 import confirm_en from '../../assets/Frame/Layout/confirm.png';
@@ -94,12 +94,8 @@ function Frame() {
     fetchFrames();
   }, []);
 
-  const playAudio = async () => {
-    const res = await getAudio({ file_name: "choose_frame_layout.wav" })
-  }
-
   useEffect(() => {
-    playAudio()
+    playAudio("choose_frame_layout.wav")
   }, [])
 
   /**
@@ -183,7 +179,7 @@ function Frame() {
   const handleClick = (index, clickedTitle) => {
     if (dragging) return;
 
-    //getClickAudio();
+    playAudio("click_sound.wav")
 
     if (clickedTitles.includes(clickedTitle)) {
       setClickedTitles(prevTitles => prevTitles.filter(clickedTitle => clickedTitle != clickedTitle));
@@ -202,7 +198,7 @@ function Frame() {
   }
 
   const goToBg = (titleFrame, price) => {
-    getClickAudio()
+    playAudio("click_sound.wav")
     console.log(titleFrame)
     sessionStorage.setItem('selectedFrame', JSON.stringify({
       frame: titleFrame
@@ -223,7 +219,7 @@ function Frame() {
       }}
     >
       <div className="go-back-frame" style={{ backgroundImage: `url(${goBackBg})`,  top:`7.6%`, left: `6%`}} onClick={() => {
-        getClickAudio()
+        playAudio("click_sound.wav")
         navigate("/")}} onMouseEnter={() => hoverGoBackBtn(language)} onMouseLeave={() => hoverGoBackBtn(language)}></div>
       <div className="style-section"
         draggable={false}
