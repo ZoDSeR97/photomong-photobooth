@@ -1,18 +1,24 @@
 from contextlib import contextmanager
+from datetime import datetime
+from flask import Flask, jsonify, Response, request, send_file
+from flask_cors import CORS, cross_origin
+from PIL import Image
+from dotenv import load_dotenv
+import gphoto2 as gp
+import numpy as np
 import cv2
 import threading
 import queue
 import os
 import logging
-from datetime import datetime
-from flask import Flask, jsonify, Response, request, send_file
-from flask_cors import CORS
-import gphoto2 as gp
-import numpy as np
 import time
-import atexit
+import serial
+import serial.tools.list_ports
+import requests
+import base64
 
 app = Flask(__name__)
+load_dotenv()  # take environment variables from .env.
 CORS(app, supports_credentials=True, resources={r"/*": {"origins": "*"}})
 
 # Globals
@@ -266,6 +272,14 @@ class CameraManager:
 
 # Flask endpoints
 camera_manager = CameraManager()
+
+# Find Arduino port
+def find_arduino_port():
+    ports = list(serial.tools.list_ports.comports())
+    for p in ports:
+        if 'Arduino' in p.description:
+            return p.device
+    return None
 
 @app.route('/api/video_feed')
 def video_feed():
@@ -523,6 +537,15 @@ def create_cash_payment():
 
 if __name__ == '__main__':
     try:
+        # Initialize serial communication with Arduino
+        arduino_port = find_arduino_port()
+        if arduino_port:
+            ser = serial.Serial(arduino_port, 9600, timeout=1)
+            logging.info(f"Arduino connected on {arduino_port}")
+        else:
+            logging.error("Arduino not found. Please check the connection.")
+            sys.exit("Arduino not found") 
+
         app.run(host='0.0.0.0', port=5000)
     except Exception as e:
         print(str(e))
