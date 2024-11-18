@@ -2,7 +2,7 @@
 set batch1="%~dp0bindingArduino.bat"
 set batch2="%~dp0bindingCam.bat"
 
-start wsl -e bash -c "cd; exec bash"
+start wsl -e bash -c "cd; cd Flask/; exec bash"
 
 :: Wait for the batch files to finish, if needed (optional delay or pause)
 timeout /t 5 > nul
