@@ -4,6 +4,7 @@ flask-socketio
 pillow
 python-dotenv
 opencv-python
+gphoto2
 numpy
 pyserial
 requests

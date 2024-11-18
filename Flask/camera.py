@@ -28,6 +28,10 @@ VIDEO_WRITER_ACTIVE = False
 video_writer = None
 video_lock = threading.Lock()
 live_view_thread = None
+print_amount = 1
+check_coupon
+inserted_money = 0
+amount_to_pay = 0
 PREVIEW_INTERVAL = 0.0167  # 17ms between frames
 
 class CameraManager:
@@ -467,6 +471,17 @@ def print_photo():
         return jsonify({'status':'error', 'message': 'Failed to send print request'}), 500
 
 # Start cash payment route
+@app.route('/api/get_print_amount', methods=['GET'])
+def get_print_amount():
+    global print_amount, check_coupon
+    print_amount = request.args.get('printAmount', type=int)
+    check_coupon = request.args.get('checkCoupon', type=int)
+
+    if print_amount is not None:
+        return jsonify({'printAmountReceived': print_amount})
+    else:
+        return jsonify({'error': 'No print amount provided'}), 400
+
 @app.route('/api/cash/start', methods=['POST'])
 def start_cash_payment():
     global inserted_money, amount_to_pay #stop_thread counter, money
@@ -520,9 +535,7 @@ def reset_bill_acceptor():
 # Stop cash payment
 @app.route('/api/cash/stop', methods=['POST'])
 def stop_cash_payment():
-    global stop_thread
     ser.write(b'STOP\n')
-    stop_thread = True
     response = ser.readline().decode('utf-8').strip()
     logging.info("Cash payment stopped")
     return jsonify({"message": response}), 200
