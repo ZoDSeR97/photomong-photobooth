@@ -75,7 +75,7 @@ import print_mn_click from '../assets/Sticker/mn/print-pressed.png';
 import frame_box from '../assets/Sticker/frame_box.png';
 import CustomCarousel from '../components/CustomCarousel';
 import VerticalCustomCarousel from '../components/VerticalCustomCarousel';
-import { getPhotos, originAxiosInstance } from '../api/config';
+import { getPhotos, originAxiosInstance, playAudio } from '../api/config';
 let playAddEmojiSound = false;
 function Sticker() {
      const { t } = useTranslation();
