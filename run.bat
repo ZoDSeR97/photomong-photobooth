@@ -6,10 +6,11 @@ set batch2="%~dp0bindingCam.bat"
 PowerShell -Command "Start-Process cmd -ArgumentList '/c %batch1%' -Verb RunAs"
 PowerShell -Command "Start-Process cmd -ArgumentList '/c %batch2%' -Verb RunAs"
 
+cd frontend
+start cmd /k "npm install -g bun && bun install && bun run dev"
+
 :: Wait for the batch files to finish, if needed (optional delay or pause)
 timeout /t 5 > nul
 
 :: Run kiosk
-cd frontend
-start cmd /k "npm install -g bun && bun install && bun run dev"
 start chrome.exe --kiosk http://localhost:5173
