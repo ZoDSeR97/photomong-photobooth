@@ -59,6 +59,43 @@ class CameraManager:
         gp.use_python_logging()
         gp.check_result(gp.gp_log_add_func(gp.GP_LOG_DEBUG, cb))
 
+    def apply_optimal_settings(self):
+        """Apply settings for high quality photos."""
+        try:
+            # Get camera config
+            config = self.camera.get_config()
+            
+            # Common settings to adjust for better photos
+            settings = {
+                'iso': '100',                    # Low ISO for less noise
+                'aperture': '5.6',               # Good balance of depth of field
+                'shutterspeed': '1/125',         # Fast enough to prevent blur
+                'imageformat': 'RAW',            # Maximum quality
+                'whitebalance': 'Auto',          # Auto white balance
+                'focusmode': 'AF-S',             # Single auto focus
+                'meteringmode': 'Matrix',        # Evaluative metering
+                'exposurecompensation': '0'      # No exposure compensation
+            }
+            
+            # Apply each setting
+            for setting_name, value in settings.items():
+                try:
+                    # Find the config item
+                    setting = config.get_child_by_name(setting_name)
+                    if setting:
+                        setting.set_value(value)
+                        logging.info(f"Set {setting_name} to {value}")
+                except gp.GPhoto2Error as e:
+                    logging.warning(f"Could not set {setting_name}: {str(e)}")
+            
+            # Save settings to camera
+            camera.set_config(config)
+            logging.info("Successfully applied all available settings")
+            
+        except Exception as e:
+            logging.error(f"Error applying settings: {str(e)}")
+            raise
+
     @contextmanager
     def camera_lock(self):
         """Thread-safe context manager for camera operations"""
@@ -357,7 +394,7 @@ def serve_photo(file_path):
 # Print image using rundll32
 def print_image_with_rundll32(image_path, frame_type):
     try:
-        printer_name = 'DS-RX1 (Photostrips)' if frame_type == 'stripx2' else 'DS-RX1'
+        printer_name = 'RX1-Photostrips' if frame_type == 'stripx2' else 'DS-RX1'
         logging.info(f"Printing to {printer_name}")
         
         # Print the image using rundll32
