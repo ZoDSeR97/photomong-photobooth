@@ -7,10 +7,12 @@ from dotenv import load_dotenv
 import gphoto2 as gp
 import numpy as np
 import cv2
+import werkzeug
+import subprocess
+import logging
 import threading
 import queue
 import os
-import logging
 import time
 import serial
 import serial.tools.list_ports
@@ -32,6 +34,7 @@ print_amount = 1
 check_coupon = 0
 inserted_money = 0
 amount_to_pay = 0
+lock = threading.Lock()  # For thread safety on shared resources
 PREVIEW_INTERVAL = 0.0167  # 17ms between frames
 
 class CameraManager:
