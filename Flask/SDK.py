@@ -136,7 +136,7 @@ frame_map = {
 
 # Load Canon EDSDK
 try:
-    edsdk = ctypes.CDLL("./EDSDK_64/DLL/EDSDK.dll")
+    edsdk = ctypes.CDLL("./EDSDK/EDSDK.dll")
     logging.info("EDSDK loaded successfully")
 except Exception as e:
     logging.error(f"Failed to load EDSDK: {e}")

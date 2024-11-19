@@ -60,43 +60,6 @@ class CameraManager:
         gp.use_python_logging()
         gp.check_result(gp.gp_log_add_func(gp.GP_LOG_DEBUG, cb))
 
-    def apply_optimal_settings(self):
-        """Apply settings for high quality photos."""
-        try:
-            # Get camera config
-            config = self.camera.get_config()
-            
-            # Common settings to adjust for better photos
-            settings = {
-                'iso': '100',                    # Low ISO for less noise
-                'aperture': '5.6',               # Good balance of depth of field
-                'shutterspeed': '1/125',         # Fast enough to prevent blur
-                'imageformat': 'RAW',            # Maximum quality
-                'whitebalance': 'Auto',          # Auto white balance
-                'focusmode': 'AF-S',             # Single auto focus
-                'meteringmode': 'Matrix',        # Evaluative metering
-                'exposurecompensation': '0'      # No exposure compensation
-            }
-            
-            # Apply each setting
-            for setting_name, value in settings.items():
-                try:
-                    # Find the config item
-                    setting = config.get_child_by_name(setting_name)
-                    if setting:
-                        setting.set_value(value)
-                        logging.info(f"Set {setting_name} to {value}")
-                except gp.GPhoto2Error as e:
-                    logging.warning(f"Could not set {setting_name}: {str(e)}")
-            
-            # Save settings to camera
-            self.camera.set_config(config)
-            logging.info("Successfully applied all available settings")
-            
-        except Exception as e:
-            logging.error(f"Error applying settings: {str(e)}")
-            raise
-
     @contextmanager
     def camera_lock(self):
         """Thread-safe context manager for camera operations"""
@@ -265,7 +228,6 @@ class CameraManager:
         self.reset_error_state()
 
         with self.camera_lock():
-            self.apply_camera_settings()
             for attempt in range(retries):
                 try:
                     if not self.check_camera_ready():
@@ -608,9 +570,9 @@ if __name__ == '__main__':
         print(str(e))
     finally:
         try:
-            if camera_manager.video_writer_active:
+            if VIDEO_WRITER_ACTIVE:
                 camera_manager.stop_video_recording()
-            if camera_manager.live_view_active:
+            if LIVE_VIEW_ACTIVE:
                 camera_manager.stop_live_view()
             if camera_manager.camera:
                 camera_manager.camera.exit()

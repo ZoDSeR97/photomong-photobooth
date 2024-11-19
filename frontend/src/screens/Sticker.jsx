@@ -1135,12 +1135,12 @@ function Sticker() {
                );
           }
           else if (selectedFrame === "Stripx2") {
-               const calcedHeight = height / 6 + 10;
+               const calcedHeight = height / 6 + 20;
                const calcedWidth = calcedHeight * 1.48;
 
-               const x11 = 172;
+               const x11 = 170;
                const x12 = calcedWidth + x11 + 30;
-               const y1 = 34;
+               const y1 = 32;
 
                return imgTag.length === 0 ? <></> : (
                     <>
