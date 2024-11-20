@@ -1,11 +1,9 @@
-import React, { useEffect, useState, createRef, useCallback, useRef, useLayoutEffect } from 'react';
-import { useTranslation } from 'react-i18next';
+import { useEffect, useState, createRef, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import i18n from '../translations/i18n';
 import "../css/Sticker.css";
 import sticker_frame from '../assets/Sticker/sticker_frame.png';
 import sticker_taskbar from '../assets/Sticker/sticker_taskbar.png';
-import { Image as KonvaImage, Layer, Stage, Rect, Transformer } from 'react-konva';
+import { Image as KonvaImage, Layer, Stage } from 'react-konva';
 import { StickerItem } from '../screens/StickerItem';
 // Sticker
 import { stickers } from './stickers.data';
@@ -76,25 +74,19 @@ import frame_box from '../assets/Sticker/frame_box.png';
 import CustomCarousel from '../components/CustomCarousel';
 import VerticalCustomCarousel from '../components/VerticalCustomCarousel';
 import { getPhotos, originAxiosInstance, playAudio } from '../api/config';
-let playAddEmojiSound = false;
 function Sticker() {
-     const { t } = useTranslation();
      const navigate = useNavigate();
      const uuid = sessionStorage.getItem("uuid")
      const photoNum = sessionStorage.getItem("photoNum")
-     const [src, setSrc] = useState(null);
-     const [hoveredImage, setHoveredImage] = useState(null);
      const [selectedLayout, setSelectedLayout] = useState(null);
      const [selectedPhotos, setSelectedPhotos] = useState([]);
      const [filterEffect, setFilterEffect] = useState(null);
      const [layoutList, setLayoutList] = useState([]);
      const [myBackgrounds, setMyBackgrounds] = useState([]);
-     const bgLength = myBackgrounds.length;
      const [selectedFrame, setSelectedFrame] = useState(null);
      const [images, setImages] = useState([]);
      const [selectedId, selectShape] = useState(null);
      const [clickPrint, setClickPrint] = useState(false);
-     const [orderCode, setOrderCode] = useState(null);
      const [language, setLanguage] = useState('en');
 
      const [backgroundImage, setBackgroundImage] = useState(background_en);
@@ -112,7 +104,6 @@ function Sticker() {
      const [printButton, setPrintButton] = useState(null);
      const [printRefs, setPrintRefs] = useState([]);
      const [goBackButton, setGoBackButton] = useState(goback_en);
-     const [clickedButton, setClickedButton] = useState(false);
      const [stickerDrag, setStickerDrag] = useState(false);
      const [photos, setPhotos] = useState([]);
      const [width, setWidth] = useState(0);
@@ -121,7 +112,7 @@ function Sticker() {
      const [backgroundList, setBackgroundList] = useState([]);
      const [tempImage, setTempImage] = useState();
      const [stageRefs, setStageRefs] = useState([]);
-     const [playFirst, setPlayFirst] = useState(0)
+     const [isRendered, setIsRendered] = useState(false);
      const [frameSize, setFrameSize] = useState({
           width: "",
           height: ""
@@ -222,23 +213,9 @@ function Sticker() {
           }
      }, []);
 
-     const applyContrastFilter = (data, value) => {
-          const factor = (259 * (value + 255)) / (255 * (259 - value));
-          for (let i = 0; i < data.length; i += 4) {
-               data[i] = truncate(factor * (data[i] - 128) + 128);
-               data[i + 1] = truncate(factor * (data[i + 1] - 128) + 128);
-               data[i + 2] = truncate(factor * (data[i + 2] - 128) + 128);
-          }
-     };
-
-     const truncate = (value) => {
-          return Math.min(255, Math.max(0, value));
-     };
-
      const applyStyles = (img, styles) => {
           Object.assign(img, styles);
      };
-
 
      const applyFilters = (img, filters) => {
           const canvas = document.createElement('canvas');
@@ -257,44 +234,6 @@ function Sticker() {
           return newImage;
      };
 
-
-     const applyGrayscaleFilter = (data, value) => {
-          for (let i = 0; i < data.length; i += 4) {
-               const avg = data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114;
-               data[i] = data[i] * (1 - value) + avg * value;
-               data[i + 1] = data[i + 1] * (1 - value) + avg * value;
-               data[i + 2] = data[i + 2] * (1 - value) + avg * value;
-          }
-     };
-
-     const applySepiaFilter = (data, value) => {
-          for (let i = 0; i < data.length; i += 4) {
-               const r = data[i];
-               const g = data[i + 1];
-               const b = data[i + 2];
-               data[i] = r * (1 - value) + (r * 0.393 + g * 0.769 + b * 0.189) * value;
-               data[i + 1] = g * (1 - value) + (r * 0.349 + g * 0.686 + b * 0.168) * value;
-               data[i + 2] = b * (1 - value) + (r * 0.272 + g * 0.534 + b * 0.131) * value;
-          }
-     };
-
-     const applyOpacityFilter = (data, value) => {
-          for (let i = 3; i < data.length; i += 4) {
-               data[i] = data[i] * value;
-          }
-     };
-
-     const applySaturateFilter = (data, value) => {
-          for (let i = 0; i < data.length; i += 4) {
-               const r = data[i];
-               const g = data[i + 1];
-               const b = data[i + 2];
-               const gray = 0.299 * r + 0.587 * g + 0.114 * b;
-               data[i] = gray * (1 - value) + r * value;
-               data[i + 1] = gray * (1 - value) + g * value;
-               data[i + 2] = gray * (1 - value) + b * value;
-          }
-     };
      const addStickerToPanel = ({ bgIdx, src, width, x, y }) => {
           const uiRatio = 1; // UI용 스티커 배율
           const printRatio = getPrintRatio(); // 프린트용 스티커 배율
@@ -338,7 +277,6 @@ function Sticker() {
           });
      };
 
-
      const resetAllButtons = useCallback(() => {
           images.forEach((subList) => {
                subList.forEach((image) => {
@@ -377,7 +315,7 @@ function Sticker() {
 
           playPrintAudio()
           setClickPrint(true);
-          callPrinter();
+          await callPrinter();
           await uploadCloud();
 
           // setTimeout(() => {
@@ -546,8 +484,6 @@ function Sticker() {
 
                console.log(`${i} : ` + String(formDataToFlask))
 
-
-
                const localPrintResponse = await fetch(printUrl, {
                     method: 'POST',
                     body: formDataToFlask,
@@ -634,43 +570,8 @@ function Sticker() {
 
      // Chunk the selected photos array into arrays of 2 photos each
      const stickersData = stickers.filter(sticker => sticker.category === selectedCategory);
-     const selectedPhotoRows = chunkArray(selectedPhotos, 2);
      //스크롤 하면 인덱스에 따라 스티커 타입 정하기
      const myStickers = chunkArray(stickersData, 4);
-
-     const [isDragging, setIsDragging] = useState(false);
-     const [position, setPosition] = useState({ x: 100, y: 100 }); // 초기 위치
-     const [radius, setRadius] = useState(50); // 초기 반지름
-
-     const handleMouseDown = (e) => {
-          setIsDragging(true);
-     };
-
-     const handleMouseUp = () => {
-          setIsDragging(false);
-     };
-
-     const handleMouseMove = (e) => {
-          if (!isDragging) return;
-
-          const newPosition = {
-               x: e.clientX,
-               y: e.clientY
-          };
-          setPosition(newPosition);
-     };
-
-     const handleMouseLeave2 = () => {
-          setIsDragging(false);
-     };
-
-     const handleMouseWheel = (e) => {
-          if (e.deltaY > 0) {
-               setRadius(radius - 5);
-          } else {
-               setRadius(radius + 5);
-          }
-     };
 
      const onDragStart = (event) => {
           setDragStartY(event.clientY); // 드래그 시작 위치의 Y 좌표를 저장
@@ -762,89 +663,6 @@ function Sticker() {
           };
      }, [isDown, startY, scrollTop, stickerDrag]);
 
-     const getImgListLayout = (selectedFrame, selectedItems) => {
-          if (selectedItems.length === 0) {
-               return <></>;
-          }
-          if (selectedFrame === "Stripx2") {
-               return (
-                    <div className='selected-photos-s2-list'>
-                         {/* 1 row */}
-                         <div className='selected-photos-s2-row'>
-                              <img className='stripx2img' src={selectedItems[0].url} />
-                              <img className='stripx2img' src={selectedItems[1].url} />
-                         </div>
-                         {/* 2 row */}
-                         <div className='selected-photos-s2-row'>
-                              <img className='stripx2img' src={selectedItems[2].url} />
-                              <img className='stripx2img' src={selectedItems[3].url} />
-                         </div>
-                         {/* 3 row */}
-                         <div className='selected-photos-s2-row'>
-                              <img className='stripx2img' src={selectedItems[4].url} />
-                              <img className='stripx2img' src={selectedItems[5].url} />
-                         </div>
-                         {/* 4 row */}
-                         <div className='selected-photos-s2-row'>
-                              <img className='stripx2img' src={selectedItems[6].url} />
-                              <img className='stripx2img' src={selectedItems[7].url} />
-                         </div>
-                    </div>
-               );
-          }
-          else if (selectedFrame === "2cut-x2") {
-               return (
-                    <div className='selected-photos-2-list'>
-                         {selectedItems.map((it, idx) =>
-                              idx === 0 ? (
-                                   <div className='selected-photo-2-container-first'>
-                                        <div className='selected-photo-2' style={{ backgroundImage: `url(${it.url})` }} />
-                                   </div>
-                              ) : (
-                                   <div className='selected-photo-2-container'>
-                                        <div className='selected-photo-2' style={{ backgroundImage: `url(${it.url})` }} />
-                                   </div>
-                              )
-                         )}
-                    </div>
-               );
-          }
-          else if (selectedFrame === "4-cutx2") {
-               return (
-                    <div className='cut4x2-container'>
-                         <img className='cut4x2-0' src={selectedItems[0].url} />
-                         <img className='cut4x2-1' src={selectedItems[1].url} />
-                         <img className='cut4x2-2' src={selectedItems[2].url} />
-                         <img className='cut4x2-3' src={selectedItems[3].url} />
-                    </div>
-               );
-          }
-          else if (selectedFrame === "6-cutx2") {
-               return (
-                    <div className='cut6x2-container'>
-                         {/* 1 row */}
-                         <div className='cut6x2-row'>
-                              <img className='cut6x2-img' src={selectedItems[0].url} />
-                              <img className='cut6x2-img' src={selectedItems[1].url} />
-                         </div>
-                         {/* 2 row */}
-                         <div className='cut6x2-row'>
-                              <img className='cut6x2-img' src={selectedItems[2].url} />
-                              <img className='cut6x2-img' src={selectedItems[3].url} />
-                         </div>
-                         {/* 3 row */}
-                         <div className='cut6x2-row'>
-                              <img className='cut6x2-img' src={selectedItems[4].url} />
-                              <img className='cut6x2-img' src={selectedItems[5].url} />
-                         </div>
-                    </div>
-               );
-          }
-          else {
-
-          }
-     };
-
      function adjustStickerToBackgroundSize(width, height, stickerX, stickerY, stickerWidth, stickerHeight) {
           const backgroundImageSize = { width: width, height: height };
           const backgroundWidth = backgroundImageSize.width;
@@ -880,7 +698,7 @@ function Sticker() {
                          tempImg.src = photo.url;
 
                          tempImg.onload = () => {
-                              applyStyles(tempImg, { width: 2400, height: 1600, filter: filterEffect});
+                              applyStyles(tempImg, { width: 2400, height: 1600, filter: filterEffect });
                               // tempImg.style.filter= photo.filter
                               resolve(tempImg);
                          };
@@ -1044,256 +862,123 @@ function Sticker() {
      };
 
      const showKonvaImgLayout = useCallback((selectedFrame, width, height, imgTag, ratio) => {
+               if (!imgTag.length) return <></>;
 
-          if (selectedFrame === "3-cutx2") {
-               const calcedHeight = height / 5.3;
-               const calcedWidth = calcedHeight * 1.02;
-               const x11 = 17;
-               const x12 = calcedWidth + x11 + 10;
-               const y1 = 18;
-               const crop1 = getCrop(
-                    { width: imgTag[0].width, height: imgTag[0].height },
-                    { width: calcedWidth, height: calcedHeight }
-               );
-               return imgTag.length === 0 ? <></> : (
+               // Frame configurations
+               const frameConfigs = {
+                    "3-cutx2": {
+                         calcedHeight: height / 5.3,
+                         calcedWidth: (height / 5.3) * 1.02,
+                         xOffset: [17, 17 + (height / 5.3) * 1.02 + 10],
+                         yOffset: 18,
+                         chunkSize: 2,
+                         extraImage: false,
+                    },
+                    "5-cutx2": {
+                         calcedWidth: width / 2 - 22,
+                         calcedHeight: height / 2 - 30,
+                         xOffset: [17, 17 + width / 2 - 22 + 10],
+                         yOffset: 18,
+                         chunkSize: 2,
+                         extraImage: true,
+                    },
+                    "Stripx2": {
+                         calcedHeight: height / 6 + 20,
+                         calcedWidth: (height / 6 + 20) * 1.48,
+                         xOffset: [170, 170 + (height / 6 + 20) * 1.48 + 30],
+                         yOffset: 32,
+                         chunkSize: 2,
+                         extraImage: false,
+                         scaleX: -1,
+                    },
+                    "2cut-x2": {
+                         calcedWidth: width / 2.1,
+                         calcedHeight: (width / 2.1) * 1.13,
+                         xOffset: [220, 220 + width / 2.1 + 7],
+                         yOffset: 29,
+                         chunkSize: 2,
+                         scaleX: -1,
+                    },
+                    "4-cutx2": {
+                         calcedHeight: height / 2.4,
+                         calcedWidth: (height / 2.4) * 1.33,
+                         xOffset: [222.5, 222.5 + (height / 2.4) * 1.33 + 17],
+                         yOffset: 20,
+                         chunkSize: 2,
+                         scaleX: -1,
+                    },
+                    default: {
+                         calcedWidth: (width / 2.3) * 1.0,
+                         calcedHeight: width / 2.4,
+                         xOffset: [155, 155 + (width / 2.3) * 1.0 + 5],
+                         yOffset: 20,
+                         chunkSize: 2,
+                         scaleX: -1,
+                    },
+               };
+
+               const {
+                    calcedWidth,
+                    calcedHeight,
+                    xOffset,
+                    yOffset,
+                    chunkSize,
+                    extraImage = false,
+                    scaleX = 1,
+               } = frameConfigs[selectedFrame] || frameConfigs.default;
+
+               // Render logic
+               const renderImages = () =>
+                    chunkArray(imgTag, chunkSize).map((row, rowIndex) =>
+                         row.map((tag, photoIndex) => {
+                              const x = xOffset[photoIndex];
+                              const y = yOffset + rowIndex * (calcedHeight + 10);
+                              const crop = getCrop(
+                                   { width: tag.width, height: tag.height },
+                                   { width: calcedWidth, height: calcedHeight }
+                              );
+                              return (
+                                   <KonvaImage
+                                        crop={{
+                                             x: crop.x,
+                                             y: crop.y,
+                                             width: crop.width - crop.x,
+                                             height: crop.height - crop.y,
+                                        }}
+                                        width={calcedWidth * ratio}
+                                        height={calcedHeight * ratio}
+                                        x={x * ratio}
+                                        y={y * ratio}
+                                        image={tag}
+                                        key={`${rowIndex}-${photoIndex}`}
+                                        scaleX={scaleX}
+                                   />
+                              );
+                         })
+                    );
+               return (
                     <>
-                         <KonvaImage
-                              crop={{
-                                   x: crop1.x,
-                                   y: crop1.y,
-                                   width: crop1.width - crop1.x,
-                                   height: crop1.height
-                              }}
-
-                              width={calcedWidth * 2 + 10}
-                              height={calcedHeight}
-                              x={x11}
-                              y={y1}
-                              image={imgTag[0]}
-                         />
-                         {chunkArray(imgTag.slice(1), 2).map((row, rowIndex) => (
-                              row.map((tag, photoIndex) => {
-                                   const x = photoIndex === 0 ? x11 : x12;
-                                   const y = calcedHeight + y1 + 10 + rowIndex * (calcedHeight + 10);
-                                   const crop = getCrop(
-                                        { width: tag.width, height: tag.height },
-                                        { width: calcedWidth, height: calcedHeight }
-                                   );
-                                   return (
-                                        <KonvaImage
-                                             crop={{
-                                                  x: crop.x,
-                                                  y: crop.y,
-                                                  width: crop.width - crop.x,
-                                                  height: crop.height
-                                             }}
-                                             width={calcedWidth}
-                                             height={calcedHeight}
-                                             x={x}
-                                             y={y}
-                                             image={tag}
-                                             key={photoIndex}
-                                        />
-                                   );
-                              })
-                         ))}
+                         {renderImages()}
+                         {extraImage && (
+                              <KonvaImage
+                                   width={calcedWidth * 2 + 10}
+                                   height={calcedHeight}
+                                   x={xOffset[0]}
+                                   y={yOffset + 2 * (calcedHeight + 10)}
+                                   image={imgTag[chunkSize]}
+                              />
+                         )}
                     </>
                );
-          } else if (selectedFrame === "5-cutx2") {
-               const calcedWidth = width / 2 - 22;
-               const calcedHeight = height / 2 - 30;
-               const x11 = 17;
-               const x12 = calcedWidth + x11 + 10;
-               const y1 = 18;
+          },
+          [selectedFrame, width, height, tempImage]
+     );
 
-               return imgTag.length === 0 ? <></> : (
-                    <>
-                         {chunkArray(imgTag.slice(0, 4), 2).map((row, rowIndex) => (
-                              row.map((tag, photoIndex) => {
-                                   const x = photoIndex === 0 ? x11 : x12;
-                                   const y = y1 + rowIndex * (calcedHeight + 10);
-                                   return (
-                                        <KonvaImage
-                                             width={calcedWidth}
-                                             height={calcedHeight}
-                                             x={x}
-                                             y={y}
-                                             image={tag}
-                                             key={photoIndex}
-                                        />
-                                   );
-                              })
-                         ))}
-                         <KonvaImage
-                              width={calcedWidth * 2 + 10}
-                              height={calcedHeight}
-                              x={x11}
-                              y={y1 + 2 * (calcedHeight + 10)}
-                              image={imgTag[4]}
-                         />
-                    </>
-               );
-          }
-          else if (selectedFrame === "Stripx2") {
-               const calcedHeight = height / 6 + 20;
-               const calcedWidth = calcedHeight * 1.48;
-
-               const x11 = 170;
-               const x12 = calcedWidth + x11 + 30;
-               const y1 = 32;
-
-               return imgTag.length === 0 ? <></> : (
-                    <>
-                         {chunkArray(imgTag, 2).map((row, rowIndex) => (
-                              row.map((tag, photoIndex) => {
-                                   const x = photoIndex === 0 ? x11 : x12;
-                                   const y = y1 + rowIndex * (calcedHeight + 8);
-                                   const crop = getCrop(
-                                        { width: tag.width, height: tag.height },
-                                        { width: calcedWidth, height: calcedHeight }
-                                   );
-                                   return (
-                                        <KonvaImage
-                                             crop={{
-                                                  x: crop.x,
-                                                  y: crop.y,
-                                                  width: crop.width - crop.x,
-                                                  height: crop.height
-                                             }}
-                                             width={calcedWidth * ratio}
-                                             height={calcedHeight * ratio}
-                                             x={x * ratio}
-                                             y={y * ratio}
-                                             image={tag}
-                                             key={photoIndex}
-                                             scaleX={-1}
-                                        />
-                                   );
-                              })
-                         ))}
-                    </>
-               );
-          }
-
-          if (selectedFrame === "2cut-x2") {
-               const calcedWidth = width / 2.1;
-               const calcedHeight = calcedWidth * 1.13;
-               const x11 = 220;
-               const x12 = calcedWidth + x11 + 7;
-               const y1 = 29;
-
-               return imgTag.length === 0 ? <></> : (
-                    <>
-                         {chunkArray(imgTag, 2).map((row, rowIndex) => (
-                              row.map((tag, photoIndex) => {
-                                   const x = photoIndex === 0 ? x11 : x12;
-                                   const y = y1 + rowIndex * (calcedHeight + 6);
-                                   const crop = getCrop(
-                                        { width: tag.width, height: tag.height },
-                                        { width: calcedWidth, height: calcedHeight }
-                                   );
-                                   return (
-                                        <KonvaImage
-                                             crop={{
-                                                  x: crop.x,
-                                                  y: crop.y,
-                                                  width: crop.width - (-1.) * crop.x,
-                                                  height: crop.height
-                                             }}
-                                             width={calcedWidth * ratio}
-                                             height={calcedHeight * ratio}
-                                             x={x * ratio}
-                                             y={y * ratio}
-                                             image={tag}
-                                             key={photoIndex}
-                                             scaleX={-1}
-                                        />
-                                   );
-                              })
-                         ))}
-                    </>
-               );
-          }
-          else if (selectedFrame === "4-cutx2") {
-               const calcedHeight = height / 2.4;
-               const calcedWidth = calcedHeight * 1.33;
-               const x11 = 222.5;
-               const x12 = calcedWidth + x11 + 17;
-               const y1 = 20;
-
-               return imgTag.length === 0 ? <></> : (
-                    <>
-                         {chunkArray(imgTag, 2).map((row, rowIndex) => (
-                              row.map((tag, photoIndex) => {
-                                   const x = photoIndex === 0 ? x11 : x12;
-                                   const y = y1 + rowIndex * (calcedHeight + 12);
-                                   const crop = getCrop(
-                                        { width: tag.width, height: tag.height },
-                                        { width: calcedWidth, height: calcedHeight }
-                                   );
-                                   return (
-                                        <KonvaImage
-                                             crop={{
-                                                  x: crop.x,
-                                                  y: crop.y,
-                                                  width: crop.width - (-1) * crop.x,
-                                                  height: crop.height
-                                             }}
-                                             width={calcedWidth * ratio}
-                                             height={calcedHeight * ratio}
-                                             x={x * ratio}
-                                             y={y * ratio}
-                                             image={tag}
-                                             key={photoIndex}
-                                             scaleX={-1}
-                                        />
-                                   );
-                              })
-                         ))}
-                    </>
-               );
-
-          }
-          else {
-               const calcedWidth = (width / 2.3) * 1.0;
-               const calcedHeight = width / 2.4;
-               const x11 = 155;
-               const x12 = calcedWidth + x11 + 5;
-               const y1 = 20;
-
-               return imgTag.length === 0 ? <></> : (
-                    <>
-                         {chunkArray(imgTag, 2).map((row, rowIndex) => (
-                              row.map((tag, photoIndex) => {
-                                   const x = photoIndex === 0 ? x11 : x12;
-                                   const y = y1 + rowIndex * (calcedHeight + 6);
-                                   const crop = getCrop(
-                                        { width: tag.width, height: tag.height },
-                                        { width: calcedWidth, height: calcedHeight }
-                                   );
-                                   return (
-                                        <KonvaImage
-                                             crop={{
-                                                  x: crop.x,
-                                                  y: crop.y,
-                                                  width: crop.width - (-1.) * crop.x,
-                                                  height: crop.height - crop.y
-                                             }}
-                                             width={calcedWidth * ratio}
-                                             height={calcedHeight * ratio}
-                                             x={x * ratio}
-                                             y={y * ratio}
-                                             image={tag}
-                                             key={photoIndex}
-                                             scaleX={-1}
-                                        />
-                                   );
-                              })
-                         ))}
-                    </>
-               );
-          }
-     }, [selectedFrame, frameSize, tempImage]);
+     useEffect(()=>{
+          setIsRendered(false);
+          const timer = setTimeout(()=>setIsRendered(true),0);
+          return () => clearTimeout(timer)
+     }, [selectedFrame, width, height, tempImage])
 
      useEffect(() => {
           const smallRatio = 0.8;
@@ -1322,23 +1007,6 @@ function Sticker() {
           } else {
                return "konva-horizontal-image";
           }
-     };
-     const updateStickerSize = (id, newWidth) => {
-          setImages((prevImages) =>
-               prevImages.map((imageList, index) =>
-                    imageList.map((image) =>
-                         image.id === id ? { ...image, width: newWidth } : image
-                    )
-               )
-          );
-
-          setStickerImgs((prevImages) =>
-               prevImages.map((imageList, index) =>
-                    imageList.map((image) =>
-                         image.id === id ? { ...image, width: newWidth * 3 } : image // UI용 스티커 크기의 3배로 설정
-                    )
-               )
-          );
      };
      // 670번째 줄
      const updateStickerPositionAndSize = (index, newX, newY, newWidth, newHeight) => {
@@ -1405,9 +1073,10 @@ function Sticker() {
 
      return (
           <div className='sticker-container' style={{ backgroundImage: `url(${backgroundImage})` }}>
-               <div className="go-back" style={{ backgroundImage: `url(${goBackButton})`, top:`4.4%`, left: `6%`}} onClick={() => {
+               <div className="go-back" style={{ backgroundImage: `url(${goBackButton})`, top: `4.4%`, left: `6%` }} onClick={() => {
                     playAudio("click_sound.wav")
-                    navigate("/filter")}} onMouseEnter={hoverGoBackButton} onMouseLeave={hoverGoBackButton}></div>
+                    navigate("/filter")
+               }} onMouseEnter={hoverGoBackButton} onMouseLeave={hoverGoBackButton}></div>
                {/* 프린트용 */}
                <div className='print'>
                     <Stage
@@ -1600,7 +1269,11 @@ function Sticker() {
                          <div className="sticker-category-item" style={{ backgroundImage: `url(${cartoon})` }} onClick={() => filterStickerByCategory('CARTOON')} onMouseEnter={() => hoverStickerButton('cartoon')} onMouseLeave={() => hoverStickerButton('cartoon')}></div>
                          <div className="sticker-category-item" style={{ backgroundImage: `url(${y2k})` }} onClick={() => filterStickerByCategory('Y2K')} onMouseEnter={() => hoverStickerButton('y2k')} onMouseLeave={() => hoverStickerButton('y2k')}></div>
                     </div>
-                    <div className="sticker-print-btn" style={{ backgroundImage: `url(${printButton})` }} onClick={printFrameWithSticker} onMouseEnter={hoverPrintButton} onMouseLeave={hoverPrintButton}></div>
+                    {
+                         isRendered
+                         &&
+                         <div className="sticker-print-btn" style={{ backgroundImage: `url(${printButton})` }} onClick={printFrameWithSticker} onMouseEnter={hoverPrintButton} onMouseLeave={hoverPrintButton}></div>
+                    }
                </div>
           </div>
      );
