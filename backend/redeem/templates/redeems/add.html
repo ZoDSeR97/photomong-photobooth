@@ -10,6 +10,28 @@
             <p class="card-description">{{ message }}</p>
           {% endfor %}
         {% endif %}
+
+        <!-- Generate Preview Button -->
+        <form method="get" class="mb-4">
+          <button type="submit" name="generate" class="btn btn-info">
+            Preview 1000 Codes
+          </button>
+        </form>
+
+        <!-- Display Generated Codes -->
+        {% if generated_codes %}
+        <div class="mb-4">
+          <h5>Generated Codes Preview:</h5>
+          <div class="border p-3" style="max-height: 200px; overflow-y: auto;">
+            {% for code in generated_codes %}
+              <code class="me-2">{{ code }}</code>
+              {% if forloop.counter|divisibleby:5 %}<br>{% endif %}
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Main Form -->
         <form method="post" novalidate class="forms-sample">
           {% csrf_token %}
           <div class="form-group">
@@ -31,7 +53,11 @@
             <label for="is_active">Active</label>
             <input type="checkbox" id="is_active" name="is_active" placeholder="Active" checked />
           </div>
-          <button type="submit" class="btn btn-gradient-primary me-2">Submit</button>
+
+          <!-- Added Bulk Generate Button -->
+          <button type="submit" name="generate_bulk" class="btn btn-success me-2">Generate 1000 Codes</button>
+
+          <button type="submit" class="btn btn-gradient-primary me-2">Submit Single Code</button>
           <a href="{% url 'redeems' %}" class="btn btn-light">Cancel</a>
         </form>
       </div>
