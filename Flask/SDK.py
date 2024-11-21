@@ -1,129 +1,37 @@
+from unittest import result
 from flask import Flask, jsonify, Response, request, send_file
 from flask_cors import CORS, cross_origin
+from contextlib import contextmanager
 from PIL import Image
-from datetime import datetime
 from dotenv import load_dotenv
+from datetime import datetime
 from pathlib import Path
+import ctypes
+from ctypes import *
 import os
-import subprocess
-import tempfile
-import werkzeug
-import logging
-import requests
 import time
 import threading
+import numpy as np
+import cv2
 import queue
-import shutil
-import atexit
-import ctypes
+import logging
 import serial
 import serial.tools.list_ports
-import sys
+import requests
 import base64
-import numpy as np
-import uuid
-import simpleaudio as sa
+import werkzeug
+import subprocess
+import sys
 
-# Initialize Flask app
 app = Flask(__name__)
 load_dotenv()  # take environment variables from .env.
 CORS(app, supports_credentials=True, resources={r"/*": {"origins": "*"}})
-
-# Setup logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
-# Global variables for camera and live view state
-camera_ref = None
-evf_image_ref = None
-live_view_active = False
-frame_queue = queue.Queue(maxsize=100)  # Buffer for live view frames
-capture_count = 0
+camera_server = None
+lock = threading.Lock()  # For thread safety on shared resources
 inserted_money = 0
 amount_to_pay = 0
 print_amount = 1
 check_coupon = 0
-
-# Mappings
-EDS_ERR_CODES = {
-    # General errors
-    0: "Operation completed successfully",
-    1: "Operation not implemented",
-    2: "Internal SDK error",
-    3: "Memory allocation failed",
-    4: "Memory deallocation failed",
-    5: "Operation cancelled",
-    6: "Incompatible SDK version",
-    7: "Operation not supported",
-    8: "Unexpected exception occurred",
-    9: "Protection violation",
-    10: "Missing subcomponent",
-    11: "Selection unavailable",
-
-    # File errors
-    32: "File I/O error",
-    33: "Too many open files",
-    34: "File not found",
-    35: "File open error",
-    36: "File close error",
-    37: "File seek error",
-    38: "File tell error",
-    39: "File read error",
-    40: "File write error",
-    41: "File permission error",
-    42: "File disk full",
-    43: "File already exists",
-    44: "File format unrecognized",
-    45: "File data corrupt",
-    46: "File naming error",
-
-    # Device errors
-    128: "Device not found",
-    129: "Device busy",
-    130: "Device invalid",
-    131: "Device emergency",
-    132: "Device memory full",
-    133: "Device internal error",
-    134: "Device invalid parameter",
-    135: "Device no disk",
-    136: "Device disk error",
-    137: "Device CF gate changed",
-    138: "Device dial changed",
-    139: "Device not installed",
-    140: "Device stay awake",
-    141: "Device not released",
-
-    # Take picture errors
-    36097: "AF failed during photo capture",
-    36098: "Take picture reserved",
-    36099: "Mirror up operation failed",
-    36100: "Sensor cleaning in progress",
-    36101: "Silent mode operation failed",
-    36102: "No memory card inserted",
-    36103: "Memory card error",
-    36104: "Memory card write protected",
-    36105: "Movie crop operation failed",
-    36106: "Flash charging required",
-    36107: "No lens attached",
-    36108: "Special movie mode error",
-    36109: "Live view prohibited mode",
-
-    # Communication errors
-    192: "Port in use",
-    193: "Device disconnected",
-    194: "Device incompatible",
-    195: "Communication buffer full",
-    196: "USB bus error",
-
-    # PTP errors
-    8195: "Session not open",
-    8196: "Invalid transaction ID",
-    8199: "Incomplete transfer",
-    8200: "Invalid storage ID",
-    8202: "Device property not supported",
-    8217: "PTP device busy",
-    8222: "Session already open",
-    8223: "Transaction cancelled",
-}
 
 frame_map = {
     'Stripx2': ('stripx2.png', os.getenv("API_PRINTER_CUT")),
@@ -134,29 +42,12 @@ frame_map = {
     '6-cutx2': ('cutx6.png', os.getenv("API_PRINTER_6"))
 }
 
-# Load Canon EDSDK
-try:
-    edsdk = ctypes.CDLL("./EDSDK/EDSDK.dll")
-    logging.info("EDSDK loaded successfully")
-except Exception as e:
-    logging.error(f"Failed to load EDSDK: {e}")
-    sys.exit("Failed to load EDSDK")
-
-def play_sound_thread(file_path):
-    try:
-        wave_obj = sa.WaveObject.from_wave_file(file_path)
-        play_obj = wave_obj.play()
-        play_obj.wait_done()  # Wait until the sound has finished playing
-    except Exception as e:
-        print(f"Failed to play sound: {str(e)}")
-
 # Initialize serial communication
 def initialize_serial():
     """Initialize serial communication with Arduino"""
     try:
         ports = list(serial.tools.list_ports.comports())
-        arduino_port = next(
-            (p.device for p in ports if 'Arduino' in p.description), None)
+        arduino_port = next((p.device for p in ports if 'Arduino' in p.description), None)
 
         if arduino_port:
             ser = serial.Serial(arduino_port, 9600, timeout=1)
@@ -170,247 +61,286 @@ def initialize_serial():
         logging.error(f"Error initializing serial communication: {e}")
         return None
 
+class EDSDKWrapper:
+    def __init__(self):
+        self.sdk = None
+        self.camera = None
+        self.session = None
+        self.live_view_active = False
+        self.recording = False
+        self.frame_queue = queue.Queue(maxsize=180)
+        self.video_writer = None
+        self.initialize_camera()
 
-def log_sdk_error(code):
-    """Logs SDK errors using the error code mapping."""
-    error_message = EDS_ERR_CODES.get(code, "Unknown error")
-    logging.error(f"Canon SDK Error {code}: {error_message}")
-
-# Camera Event Handler
-@ctypes.CFUNCTYPE(ctypes.c_int, ctypes.c_int, ctypes.c_void_p, ctypes.c_void_p)
-def camera_event_callback(event, param, context):
-    if event == 0x00000200:  # Property changed event
-        logging.info("Camera property changed")
-    return 0
-
-def initialize_sdk():
-    """Initialize the Canon SDK"""
-    result = edsdk.EdsInitializeSDK()
-    if result != 0:
-        log_sdk_error(result)
-        return False
-    logging.info("Canon SDK initialized successfully")
-    return True
-
-def terminate_sdk():
-    """Terminate the Canon SDK"""
-    edsdk.EdsTerminateSDK()
-    logging.info("Canon SDK terminated")
-
-def open_camera_session():
-    """Open a session with the camera and register events"""
-    global camera_ref
-
-    camera_list = ctypes.c_void_p()
-    camera_ref = ctypes.c_void_p()
-
-    result = edsdk.EdsGetCameraList(ctypes.byref(camera_list))
-    if result != 0:
-        log_sdk_error(result)
-        return None
-
-    count = ctypes.c_int()
-    result = edsdk.EdsGetChildCount(camera_list, ctypes.byref(count))
-    if result != 0 and count.value == 0:
-        log_sdk_error(result)
-        edsdk.EdsRelease(camera_list)
-        return None
-
-    result = edsdk.EdsGetChildAtIndex(camera_list, 0, ctypes.byref(camera_ref))
-    # Release camera list after obtaining camera ref
-    edsdk.EdsRelease(camera_list)
-    if result != 0:
-        log_sdk_error(result)
-        return None
-
-    result = edsdk.EdsOpenSession(camera_ref)
-    if result != 0:
-        log_sdk_error(result)
-        edsdk.EdsRelease(camera_ref)
-        camera_ref = None
-        return None
-
-    logging.info("Camera session opened successfully")
-    return camera_ref
-
-
-def close_camera_session():
-    """Close the camera session"""
-    global camera_ref
-    if camera_ref:
-        edsdk.EdsCloseSession(camera_ref)
-        edsdk.EdsRelease(camera_ref)
-        camera_ref = None
-        logging.info("Camera session closed")
-
-
-def start_live_view():
-    """Start the live view stream"""
-    global camera_ref, live_view_active, evf_image_ref
-
-    if not camera_ref:
-        camera_ref = open_camera_session()
-        if not camera_ref:
-            return False
-
-    try:
-        live_view_setting = ctypes.c_uint32(1)
-        result = edsdk.EdsSetPropertyData(
-            camera_ref, 0x00000050, 0, 4, ctypes.byref(live_view_setting))
-        if result != 0:
-            log_sdk_error(result)
-            return False
-
-        evf_image_ref = ctypes.c_void_p()
-        result = edsdk.EdsCreateEvfImageRef(
-            camera_ref, ctypes.byref(evf_image_ref))
-        if result != 0:
-            log_sdk_error(result)
-            return False
-
-        live_view_active = True
-        threading.Thread(target=live_view_thread, daemon=True).start()
-        logging.info("Live view started successfully")
-        return True
-
-    except Exception as e:
-        logging.error(f"Error starting live view: {e}")
-        return False
-
-
-def live_view_thread():
-    """Thread for continuously capturing live view frames"""
-    global live_view_active, camera_ref, evf_image_ref
-
-    while live_view_active and camera_ref and evf_image_ref:
+    def initialize_camera(self):
         try:
-            result = edsdk.EdsDownloadEvfImage(camera_ref, evf_image_ref)
-            if result == 0:
-                stream = ctypes.c_void_p()
-                edsdk.EdsCreateMemoryStream(0, ctypes.byref(stream))
+            print("Initializing SDK...")
+            self.sdk = windll.LoadLibrary("./EDSDK_64/Dll/EDSDK.dll")
+            err = self.sdk.EdsInitializeSDK()
+            if err != 0:
+                raise Exception(f"Failed to initialize SDK. Error: {err}")
 
-                length = ctypes.c_ulonglong()
-                edsdk.EdsGetLength(stream, ctypes.byref(length))
+            print("Getting camera list...")
+            camera_list = c_void_p()
+            self.sdk.EdsGetCameraList(byref(camera_list))
+            camera = c_void_p()
+            err = self.sdk.EdsGetChildAtIndex(camera_list, 0, byref(camera))
+            if err != 0:
+                raise Exception(f"Failed to get camera. Error: {err}")
+            self.camera = camera
 
-                image_data = (ctypes.c_ubyte * length.value)()
-                edsdk.EdsGetPointer(stream, ctypes.byref(image_data))
-
-                if not frame_queue.full():
-                    frame_queue.put(bytes(image_data))
-
-                edsdk.EdsRelease(stream)
-            time.sleep(1 / 30)
+            print("Opening session...")
+            if self.camera is None:
+                raise Exception("No camera selected")
+            print(camera)
+            err = self.sdk.EdsOpenSession(self.camera)
+            if err != 0:
+                raise Exception(f"Failed to open session. Error: {err}")
+            self.session = True
 
         except Exception as e:
-            logging.error(f"Error in live view thread: {e}")
-            break
+            logging.error(f"Failed to initialize camera: {e}")
 
-    live_view_active = False
+    def download_evf_data(self):
+        """Download live view data from camera"""
+        evf_image = c_void_p()
+        self.sdk.EdsCreateEvfImageRef(byref(evf_image))
+        self.sdk.EdsDownloadEvfImage(self.camera, evf_image)
 
-def stop_live_view():
-    """Stop the live view stream"""
-    global live_view_active, camera_ref, evf_image_ref
+        stream = c_void_p()
+        self.sdk.EdsGetPointer(evf_image, byref(stream))
 
-    live_view_active = False
-    live_view_setting = ctypes.c_uint32(0)
-    edsdk.EdsSetPropertyData(camera_ref, 0x00000050, 0, 4, ctypes.byref(live_view_setting))
+        length = c_ulonglong()
+        self.sdk.EdsGetLength(stream, byref(length))
 
-    if evf_image_ref:
-        edsdk.EdsRelease(evf_image_ref)
-        evf_image_ref = None
+        image_data = (c_ubyte * length.value)()
+        self.sdk.EdsRead(stream, 0, length, image_data)
 
-    with frame_queue.mutex:
-        frame_queue.queue.clear()
-    logging.info("Live view stopped")
+        nparr = np.frombuffer(image_data, np.uint8)
+        img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
-def capture_image(uuid_str):
-    """Capture an image and save it to disk"""
-    global camera_ref
-    if not camera_ref:
-        camera_ref = open_camera_session()
-        if not camera_ref:
-            return False, "Failed to open camera session"
+        return img
 
+    def start_live_view(self):
+        """Start live view mode"""
+        if not self.session:
+            raise Exception("No active session")
+
+        # Set camera to live view mode
+        err = self.sdk.EdsSendCommand(self.camera, 0x01, 4)  # Start live view
+        if err != 0:
+            raise Exception("Failed to start live view")
+
+        self.live_view_active = True
+        threading.Thread(target=self._live_view_thread, daemon=True).start()
+
+    def _live_view_thread(self):
+        """Background thread for live view processing"""
+        while self.live_view_active:
+            frame = self.download_evf_data()
+            if frame is not None:
+                if self.frame_queue.full():
+                    self.frame_queue.get_nowait()  # Remove oldest frame
+                self.frame_queue.put(frame)
+
+                if self.recording and self.video_writer:
+                    self.video_writer.write(frame)
+
+            time.sleep(0.0167)  # ~60fps
+
+    def generate_frames(self):
+        """Generator function for streaming frames"""
+        while True:
+            print(self.frame_queue.qsize())
+            if not self.frame_queue.empty():
+                frame = self.frame_queue.get_nowait()
+                ret, buffer = cv2.imencode('.jpg', frame)
+                yield (b'--frame\r\nContent-Type: image/jpeg\r\n\r\n' + buffer.tobytes() + b'\r\n')
+            else:
+                time.sleep(0.0167)
+
+    def start_recording(self, uuid):
+        """Start video recording from live view"""
+        if not self.live_view_active:
+            self.start_live_view()
+
+        # Prepare the file path
+        current_directory = os.path.dirname(os.path.abspath(__file__))
+        date_str = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
+        filename = os.path.join(current_directory, f'{uuid}/{date_str}.mp4')
+
+        # Ensure directory exists
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
+
+        frame = self.frame_queue.get()
+        height, width = frame.shape[:2]
+        self.video_writer = cv2.VideoWriter(
+            filename,
+            cv2.VideoWriter_fourcc(*'mp4v'),
+            60.0,
+            (width, height)
+        )
+        self.recording = True
+
+    def take_photo(self, uuid):
+        """Take a high-quality still photo"""
+        # Stop recording and live view during photo capture
+        was_recording = self.recording
+        was_live_view = self.live_view_active
+
+        if was_recording:
+            self.stop_recording()
+
+        if was_live_view:
+            self.stop_live_view()
+
+        # Take photo
+        self.sdk.EdsSendCommand(self.camera, 0, 0)  # Take photo command
+        time.sleep(2)  # Wait for image capture
+
+        # Download image
+        volume = c_void_p()
+        self.sdk.EdsGetChildAtIndex(self.camera, 0, byref(volume))
+
+        dir_item = c_void_p()
+        self.sdk.EdsGetChildAtIndex(volume, 0, byref(dir_item))
+
+        # Prepare the file path
+        current_directory = os.path.dirname(os.path.abspath(__file__))
+        date_str = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
+        filename = os.path.join(current_directory, f'{uuid}/{date_str}.jpg')
+
+        # Ensure directory exists
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
+
+        stream = c_void_p()
+        self.sdk.EdsCreateFileStream(
+            filename,
+            1,  # Create
+            2,  # Read/Write
+            byref(stream)
+        )
+
+        self.sdk.EdsDownload(dir_item, stream)
+        self.sdk.EdsDownloadComplete(dir_item)
+
+        # Restart previous states
+        if was_live_view:
+            self.start_live_view()
+
+        if was_recording:
+            self.start_recording()
+
+        # Verify file exists and has size
+        if os.path.exists(filename) and os.path.getsize(filename) > 0:
+            self.error_count = 0
+            self.start_live_view()
+            return {'status': 'success', 'file_saved_as': filename}
+        else:
+            raise Exception("Captured file is empty or missing")
+
+    def stop_recording(self):
+        """Stop video recording"""
+        self.recording = False
+        if self.video_writer:
+            self.video_writer.release()
+            self.video_writer = None
+
+    def stop_live_view(self):
+        """Stop live view mode"""
+        self.live_view_active = False
+        self.sdk.EdsSendCommand(self.camera, 0x01, 0)  # Stop live view
+
+    def close_session(self):
+        """Close communication session"""
+        if self.session:
+            self.stop_live_view()
+            self.stop_recording()
+            self.sdk.EdsCloseSession(self.camera)
+            self.session = None
+
+    def terminate_sdk(self):
+        """Terminate SDK"""
+        if self.camera:
+            self.close_session()
+        self.sdk.EdsTerminateSDK()
+
+@app.route('/api/start_live_view', methods=['GET'])
+def start_live_view():
     try:
-        save_dir = os.path.join(os.getcwd(), uuid_str)
-        os.makedirs(save_dir, exist_ok=True)
-
-        filename = f"{datetime.now().strftime('%Y-%m-%d-%H-%M-%S')}.jpg"
-        filepath = os.path.join(save_dir, filename)
-
-        stream = ctypes.c_void_p()
-        result = edsdk.EdsCreateFileStream(filepath.encode(), 1, 2, ctypes.byref(stream))
-        if result != 0:
-            log_sdk_error(result)
-            return False, "Failed to create file stream"
-
-        result = edsdk.EdsSendCommand(camera_ref, 0, 0)
-        if result != 0:
-            log_sdk_error(result)
-            edsdk.EdsRelease(stream)
-            return False, "Failed to capture image"
-
-        edsdk.EdsDownload(stream, ctypes.c_uint64(0), stream)
-        edsdk.EdsDownloadComplete(stream)
-        edsdk.EdsRelease(stream)
-
-        logging.info(f"Image captured and saved to {filepath}")
-        return True, filepath
-
+        if not camera_server.live_view_active:
+            camera_server.start_live_view()
+        return jsonify({"status": "success", "message": "Live view started"})
     except Exception as e:
-        logging.error(f"Error capturing image: {e}")
-        return False, str(e)
+        return jsonify({"status": "error", "message": str(e)})
 
-# Flask Routes
-@app.route('/api/get_print_amount', methods=['GET'])
-def get_print_amount():
-    global print_amount, check_coupon
-    print_amount = request.args.get('printAmount', type=int)
-    check_coupon = request.args.get('checkCoupon', type=int)
-
-    if print_amount is not None:
-        return jsonify({'printAmountReceived': print_amount})
-    else:
-        return jsonify({'error': 'No print amount provided'}), 400
+@app.route('/api/stop_live_view', methods=['GET'])
+def stop_live_view():
+    try:
+        if not camera_server.live_view_active:
+            camera_server.stop_live_view()
+        return jsonify({"status": "success", "message": "Live view stopped"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)})
 
 @app.route('/api/video_feed')
 def video_feed():
-    def generate():
-        while live_view_active:
-            try:
-                frame = frame_queue.get_nowait()
-                yield (b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
-            except queue.Empty:
-                continue
-
-    return Response(generate(), mimetype='multipart/x-mixed-replace; boundary=frame')
-
-@app.route('/api/start_live_view', methods=['GET'])
-def start_live_view_route():
-    if start_live_view():
-        return jsonify({"status": "success", "message": "Live view started"})
-    return jsonify({"status": "error", "message": "Failed to start live view"}), 500
-
-@app.route('/api/stop_live_view', methods=['GET'])
-def stop_live_view_route():
-    stop_live_view()
-    return jsonify({"status": "success", "message": "Live view stopped"})
+    return Response(camera_server.generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @app.route('/api/capture', methods=['POST'])
-@cross_origin()
-def capture_route():
-    data = request.get_json()
-    uuid_str = data.get('uuid')
+def take_photo():
+    try:
+        data = request.get_json()
+        uuid = data.get('uuid', 'default_uuid')
+        result = camera_server.take_photo(uuid)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)})
 
-    if not uuid_str:
-        return jsonify({'status': 'error', 'message': 'UUID is required'}), 400
+# Route to download a file
+@app.route('/api/get_photo', methods=['GET'])
+def download_file():
+    # Assuming the files are stored in a specific directory on WSL
+    uuid = request.args.get('uuid')
+    if (not uuid):
+        return jsonify({'status': 'error', 'message': 'No uuid'}), 200
+    file_directory = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),  uuid)
+    try:
+        file_list = os.listdir(file_directory)
+        print("###########")
+        print("file_list")
+        print(file_list)
+        print("###########")
+        images = [file for file in file_list if file.lower().endswith(
+            ('.png', '.jpg'))]
+        image_urls = [
+            {
+                'id': idx,
+                'url': f"http://{request.host}/api/get_photo/uploads"+os.path.join(f"/{uuid}", image.replace("\\", "/"))
+            } for idx, image in enumerate(sorted(images, key=lambda x: datetime.strptime(x.removesuffix('.png'), '%Y-%m-%d-%H-%M-%S')))
+        ]
+        videos = [file for file in file_list if file.lower().endswith(('.mp4'))]
+        video_urls = [
+            {
+                'id': idx,
+                'url': f"http://{request.host}/api/get_photo/uploads"+os.path.join(f"/{uuid}", image.replace("\\", "/"))
+            } for idx, image in enumerate(sorted(videos, key=lambda x: datetime.strptime(x.removesuffix('.mp4'), '%Y-%m-%d-%H-%M-%S')))
+        ]
 
-    success, result = capture_image(uuid_str)
-
-    if success:
-        return jsonify({'status': 'success', 'message': 'Image captured', 'file_path': result})
+        return jsonify({'status': 'success', 'images': image_urls, 'video': video_urls})
+    except Exception as e:
+        print(e)
+        return jsonify({'status': 'error', 'message': 'File not found'}), 404
+    
+@app.route('/api/get_photo/uploads/<path:file_path>', methods=['GET'])
+def serve_photo(file_path):
+    file_path = os.path.join(os.path.dirname(
+        os.path.abspath(__file__)), file_path.replace("\\", "/"))
+    if os.path.exists(file_path):
+        return send_file(file_path, mimetype="image/jpg")
     else:
-        return jsonify({'status': 'error', 'message': f'Failed to capture image: {result}'}), 500
+        return jsonify({'status': 'error', 'message': 'File not found'}), 404
 
 # Cash payment routes (keeping the existing implementation)
 @app.route('/api/cash/start', methods=['POST'])
@@ -465,9 +395,7 @@ def reset_bill_acceptor():
 # Stop cash payment
 @app.route('/api/cash/stop', methods=['POST'])
 def stop_cash_payment():
-    global stop_thread
     ser.write(b'STOP\n')
-    stop_thread = True
     response = ser.readline().decode('utf-8').strip()
     logging.info("Cash payment stopped")
     return jsonify({"message": response}), 200
@@ -592,7 +520,6 @@ def download_file():
 
     return jsonify({'status': 'success', 'images': image_urls})
 
-
 @app.route('/api/get_photo/uploads/<path:file_path>', methods=['GET'])
 def serve_photo(file_path):
     full_path = Path(__file__).parent / file_path
@@ -601,61 +528,21 @@ def serve_photo(file_path):
     else:
         return jsonify({'status': 'error', 'message': 'File not found'}), 404
 
-""" @app.route('/api/play_sound/', methods=['POST'])
-def play_sound():
-    data = request.get_json()
-    if not data or 'file_name' not in data:
-        return jsonify({"error": "File name is required"}), 400
-
-    file_name = data['file_name']
-    print(file_name)
-
-    # Path to the directory containing the sound files
-    sound_files_directory = "playsound/"
-
-    # Construct the full file path
-    file_path = os.path.join(sound_files_directory, file_name)
-    print(file_path)
-    print(datetime.now())
-
-    # Check if the file exists
-    if not os.path.isfile(file_path):
-        return jsonify({"error": "File not found"}), 404
-
-    # Play the sound file using simpleaudio in a separate thread
-    threading.Thread(target=play_sound_thread, args=(file_path,), daemon=True).start()
-
-    return jsonify({"status": "Playing sound", "file_name": file_name}), 200 """
-
-# Cleanup function
-def cleanup():
-    """Cleanup function to be called on exit"""
-    stop_live_view()
-    close_camera_session()
-    terminate_sdk()
-
-# Register cleanup
-atexit.register(cleanup)
-
 if __name__ == '__main__':
     try:
         # Initialize SDK
-        if not initialize_sdk():
+        camera_server = EDSDKWrapper()
+        if not camera_server:
             sys.exit("Failed to initialize SDK")
-
-        """ # Initialize serial communication
+        
+        # Initialize serial communication
         ser = initialize_serial()
         if not ser:
-            sys.exit("Failed to initialize serial communication") """
+            sys.exit("Failed to initialize serial communication")
 
-        # Create lock for thread safety
-        lock = threading.Lock()
-
-        # Start Flask app
-        app.run(host="0.0.0.0", port=5000)
-
+        app.run(host='0.0.0.0', port=5000, threaded=True, debug=True)
     except Exception as e:
-        logging.error(f"Application error: {e}")
-        sys.exit(1)
+        print(str(e))
     finally:
-        cleanup()
+        camera_server.close_session()
+        camera_server.terminate_sdk()
