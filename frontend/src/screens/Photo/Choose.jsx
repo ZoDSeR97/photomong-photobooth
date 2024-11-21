@@ -455,7 +455,7 @@ function Choose() {
                <div className="go-back" style={{ backgroundImage: `url(${goBackButton})`, top:`4.4%`, left: `6%` }} onClick={() => {
                     playAudio("click_sound.wav")
                     navigate("/photo")}} onMouseEnter={() => hoverGoBackButton(language)} onMouseLeave={() => hoverGoBackButton(language)}></div>
-               <div className="left-big-frame">
+               <div className="left-big-frame" style={{left: `-27%`}}>
                     {/* 프레임속 회색네모 갯수만큼 나오는 곳 */}
                     <div ref={parentRef} className={displayClassNameForBackground()} style={{ backgroundImage: `url(${myBackground})` }}>
                          {showSelectedPhotos()}

@@ -565,7 +565,7 @@ if __name__ == '__main__':
             logging.error("Arduino not found. Please check the connection.")
             sys.exit("Arduino not found") 
 
-        app.run(host='0.0.0.0', port=5000)
+        app.run(host='0.0.0.0', port=5000, threaded=True)
     except Exception as e:
         print(str(e))
     finally:

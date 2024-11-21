@@ -90,7 +90,7 @@
 .left-photo-div {
      position: absolute;
      top: 14%;
-     left: 0;
+     left: -4.5%;
      width: 33%;
      height: 20%;
      background-size: contain;
@@ -202,7 +202,7 @@
 .right-photo-div {
      position: absolute;
      top: 32%;
-     left: 11%;
+     left: 6%;
      width: 12%;
      height: 18%;
      background-size: contain;
@@ -442,7 +442,7 @@
 
 .right-choose-container {
      position: absolute;
-     top: 30%;
+     top: 33%;
      right: 7%;
      display: flex;
      flex-direction: column;
@@ -456,8 +456,8 @@
 
 .choose-image {
      width: 100%;
-     height: 128px;
-     background-size: contain;
+     height: 200px;
+     background-size: cover;
      background-image: url('../assets/Photo/Choose/photo_box.png');
      background-repeat: no-repeat;
      background-position: center;
@@ -760,15 +760,15 @@
 
 .choose-photo-item-2cut-0-0-right {
 
-     width: 152px;
-     height: 185px;
+     width: 156px;
+     height: 186px;
      background-size: cover;
      background-repeat: revert-layer;
      background-position: center;
      margin: 1%;
      position: absolute;
-     top: 31.5%;
-     left: 36.4%;
+     top: 31.4%;
+     left: 36.2%;
 }
 
 .choose-photo-item-2cut-0-1 {
@@ -784,15 +784,15 @@
 }
 
 .choose-photo-item-2cut-0-1-right {
-     width: 152px;
-     height: 185px;
+     width: 156px;
+     height: 186px;
      background-size: cover;
      background-repeat: revert-layer;
      background-position: center;
      margin: 1%;
      position: absolute;
-     top: 31.5%;
-     left: 60%;
+     top: 31.4%;
+     left: 59.6%;
 }
 
 /** Frame 6 cut **/
@@ -951,7 +951,7 @@
      background-position: center;
      margin: 1%;
      position: absolute;
-     top: 9%;
+     top: 8%;
      left: 23.9%;
 }
 .choose-photo-item-0-0-right {
@@ -962,7 +962,7 @@
      background-position: center;
      margin: 1%;
      position: absolute;
-     top: 9%;
+     top: 8%;
      left: 30.9%;
 }
 
@@ -974,7 +974,7 @@
      background-position: center;
      margin: 1%;
      position: absolute;
-     top: 9%;
+     top: 8%;
      left: 52%;
 }
 .choose-photo-item-0-1-right {
@@ -985,7 +985,7 @@
      background-position: center;
      margin: 1%;
      position: absolute;
-     top: 9%;
+     top: 8%;
      left: 59.2%;
 }
 
@@ -997,7 +997,7 @@
      background-position: center;
      margin: 1%;
      position: absolute;
-     top: 25%;
+     top: 25.4%;
      left: 23.9%;
 }
 .choose-photo-item-1-0-right {
@@ -1020,7 +1020,7 @@
      background-position: center;
      margin: 1%;
      position: absolute;
-     top: 25%;
+     top: 25.4%;
      left: 52%;
 }
 .choose-photo-item-1-1-right {
@@ -1043,7 +1043,7 @@
      background-position: center;
      margin: 1%;
      position: absolute;
-     top: 43%;
+     top: 42.5%;
      left: 23.9%;
 }
 .choose-photo-item-2-0-right {
@@ -1054,7 +1054,7 @@
      background-position: center;
      margin: 1%;
      position: absolute;
-     top: 43%;
+     top: 42.5%;
      left: 30.9%;
 }
 
@@ -1066,7 +1066,7 @@
      background-position: center;
      margin: 1%;
      position: absolute;
-     top: 43%;
+     top: 42.5%;
      left: 52%;
 }
 .choose-photo-item-2-1-right {
@@ -1077,7 +1077,7 @@
      background-position: center;
      margin: 1%;
      position: absolute;
-     top: 43%;
+     top: 42.5%;
      left: 59.2%;
 }
 
@@ -1089,7 +1089,7 @@
      background-position: center;
      margin: 1%;
      position: absolute;
-     top: 59%;
+     top: 60%;
      left: 23.9%;
 }
 .choose-photo-item-3-0-right {
@@ -1100,7 +1100,7 @@
      background-position: center;
      margin: 1%;
      position: absolute;
-     top: 59%;
+     top: 60%;
      left: 30.9%;
 }
 
@@ -1112,7 +1112,7 @@
      background-position: center;
      margin: 1%;
      position: absolute;
-     top: 59%;
+     top: 60%;
      left: 52%;
 }
 .choose-photo-item-3-1-right {
@@ -1123,7 +1123,7 @@
      background-position: center;
      margin: 1%;
      position: absolute;
-     top: 59%;
+     top: 60%;
      left: 59.2%;
 }
 
