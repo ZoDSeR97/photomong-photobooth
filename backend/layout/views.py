@@ -83,7 +83,7 @@ class LayoutByBackgroundAPI(APIView):
     def get(self, request, background, frame, *args, **kwargs):
         background = Background.objects.get(title=background)
         frame = Frame.objects.get(title=frame)
-        layouts = Layout.objects.filter(background=background.id, frame=frame.id)
+        layouts = Layout.objects.filter(background=background.id, frame=frame.id).order_by('-created_date')
         serializer = LayoutSerializer(layouts, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
