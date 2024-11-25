@@ -499,13 +499,19 @@ def download_file():
         print("file_list")
         print(file_list)
         print("###########")
-        images = [file for file in file_list if file.lower().endswith(
-            ('.png', '.jpg', '.jpeg', '.mp4'))]
+        images = [file for file in file_list if file.lower().endswith(('.png', '.jpg', '.jpeg'))]
         image_urls = [
             {
-                'id': idx,
-                'url': f"{request.scheme}://{request.host}/api/get_photo/uploads"+os.path.join(f"/{uuid}", image.replace("\\", "/"))
-            } for idx, image in enumerate(images)
+                'id': idx, 
+                'url': f"http://{request.host}/api/get_photo/uploads"+os.path.join(f"/{uuid}", image.replace("\\","/"))
+            } for idx, image in enumerate(sorted(images, key=lambda x: datetime.strptime(x.removesuffix('.png'), '%Y-%m-%d-%H-%M-%S')))
+        ]
+        videos = [file for file in file_list if file.lower().endswith(('.mp4'))]
+        video_urls = [
+            {
+                'id': idx, 
+                'url': f"http://{request.host}/api/get_photo/uploads"+os.path.join(f"/{uuid}", image.replace("\\","/"))
+            } for idx, image in enumerate(sorted(videos, key=lambda x: datetime.strptime(x.removesuffix('.mp4'), '%Y-%m-%d-%H-%M-%S')))
         ]
 
         return jsonify({'status': 'success', 'images': image_urls})

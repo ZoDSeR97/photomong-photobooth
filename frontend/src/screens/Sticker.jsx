@@ -77,7 +77,6 @@ import { getPhotos, originAxiosInstance, playAudio } from '../api/config';
 function Sticker() {
      const navigate = useNavigate();
      const uuid = sessionStorage.getItem("uuid")
-     const photoNum = sessionStorage.getItem("photoNum")
      const [selectedLayout, setSelectedLayout] = useState(null);
      const [selectedPhotos, setSelectedPhotos] = useState([]);
      const [filterEffect, setFilterEffect] = useState(null);
@@ -390,28 +389,6 @@ function Sticker() {
                console.log(error);
           }
      };
-     const convertUrl = (url) => {
-          // 'uploads'를 'get_photos/uploads'로 변경
-          // let newUrl = url.replace('uploads', 'get_photo/uploads');
-          let newUrl = url
-
-          // // URL을 슬래시('/')로 분리
-          // const urlParts = newUrl.split('/');
-
-          // // UUID를 제거하고 슬래시를 하나로 유지
-          // const newUrlParts = urlParts.filter((part, index) => {
-          //     // UUID의 형태를 가지는 부분을 제거
-          //     if (index === 4 && /^[0-9a-fA-F-]{36}$/.test(part)) {
-          //         return false;
-          //     }
-          //     return true;
-          // });
-
-          // // URL 다시 합치기
-          // newUrl = newUrlParts.join('/');
-
-          return newUrl;
-     };
 
      const callPrinter = async () => {
           const stageRef = printRefs[bgIdx];
@@ -429,7 +406,6 @@ function Sticker() {
 
           const formData = new FormData();
           formData.append("photo", newFile);
-          let newPhotoNum = selectedFrame === "Stripx2" ? photoNum : (parseInt(photoNum) + 1).toString();
           formData.append("uuid", uuid);
           formData.append("frame", selectedFrame);
           // formData.append("photoNum", newPhotoNum);
@@ -444,60 +420,11 @@ function Sticker() {
                     }
                }
           );
-
-          console.log('Print response:', response.data);
-          console.log(response.data);
-
-          const printUrl = response.data.print_url;
-          const printData = response.data.print_data;
-          /* const uploadsDataPath = response.data.print_data.file_path;
-
-          console.log(uploadsDataPath)
-          console.log(uploadsDataPath)
-          console.log(uploadsDataPath)
-          console.log(uploadsDataPath) */
-
-          const res = await getPhotos(uuid);
-          console.log(res)
-          // const filtered = res.unsorted_images.filter(img => img.url.includes(uploadsDataPath));
-
-          let newUrl = convertUrl(res.images.url);
-          const fileResponse = await fetch(newUrl);
-          const fileBlob = await fileResponse.blob();
-
-          const formDataToFlask = new FormData();
-          formDataToFlask.append('file', new File([fileBlob], "print_image.png", { type: fileBlob.type }));
-          formDataToFlask.append('frame', printData.frame);
-          console.log("photoNum")
-          console.log(photoNum)
-          const myImage = sessionStorage.getItem('uploadedCloudPhotoUrl');
-
-          for (let i = 0; i < newPhotoNum; i++) {
-               // const fileResponse = await fetch(res.images[i].url.replace('uploads', 'get_photo/uploads'));
-               // const fileResponse = await fetch(res.images[i].url);
-               const fileResponse = await fetch(myImage);
-               const fileBlob = await fileResponse.blob();
-
-               const formDataToFlask = new FormData();
-               formDataToFlask.append('file', new File([fileBlob], "print_image.png", { type: fileBlob.type }));
-               formDataToFlask.append('frame', printData.frame);
-
-               console.log(`${i} : ` + String(formDataToFlask))
-
-               const localPrintResponse = await fetch(printUrl, {
-                    method: 'POST',
-                    body: formDataToFlask,
-               });
-
-               if (localPrintResponse.ok) {
-                    console.log(`Print job ${i + 1} started successfully.`);
-               } else {
-                    console.log(`Failed to start print job ${i + 1}.`);
-               }
+          if (response.ok) {
+               console.log(`Print job started successfully.`);
+          } else {
+               console.log(`Failed to start print job.`);
           }
-          // } catch (error) {
-          //     console.error('Error during printing process:', error);
-          // }
      };
 
      const hoverGoBackButton = () => {
@@ -909,9 +836,9 @@ function Sticker() {
                     },
                     default: {
                          calcedWidth: (width / 2.3) * 1.0,
-                         calcedHeight: width / 2.41,
-                         xOffset: [155, 155 + (width / 2.3) * 1.0 + 5],
-                         yOffset: 16,
+                         calcedHeight: width / 2.46,
+                         xOffset: [162, 158 + (width / 2.3) * 1.0 + 5],
+                         yOffset: 21.3,
                          chunkSize: 2,
                          scaleX: -1,
                     },

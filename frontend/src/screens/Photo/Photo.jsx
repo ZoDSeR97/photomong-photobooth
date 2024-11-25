@@ -244,7 +244,6 @@ function Photo() {
                          return prevCountdown - 1;
                     } else {
                          clearInterval(timerRef.current);
-                         playTakePhotoAudio();
                          takeSnapshot()
                               .then(() => {
                                    setCountdown(8);
@@ -498,10 +497,6 @@ function Photo() {
           await playAudio("count.wav" );
      };
 
-     const playTakePhotoAudio = async () => {
-          await playAudio("take_photo.wav");
-     };
-
      useEffect(() => {
           playAudio("look_up_smile.wav");
      }, []);
@@ -602,7 +597,6 @@ function Photo() {
                          playCntSound();
                          setCountdown(countdown - 1);
                     } else {
-                         playTakePhotoAudio();
                          takePhoto();
                     }
                }, 1000);
