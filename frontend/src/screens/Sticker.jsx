@@ -625,7 +625,7 @@ function Sticker() {
                          tempImg.src = photo.url;
 
                          tempImg.onload = () => {
-                              applyStyles(tempImg, { width: 2400, height: 1600, filter: filterEffect });
+                              applyStyles(tempImg, { width: 2400, height: 1600, filter: filterEffect});
                               // tempImg.style.filter= photo.filter
                               resolve(tempImg);
                          };
@@ -805,42 +805,42 @@ function Sticker() {
                          calcedWidth: width / 2 - 22,
                          calcedHeight: height / 2 - 30,
                          xOffset: [17, 17 + width / 2 - 22 + 10],
-                         yOffset: 18,
+                         yOffset: 20,
                          chunkSize: 2,
                          extraImage: true,
                     },
                     "Stripx2": {
-                         calcedHeight: height / 6 + 20,
+                         calcedHeight: height / 6 + 28,
                          calcedWidth: (height / 6 + 20) * 1.48,
-                         xOffset: [170, 170 + (height / 6 + 20) * 1.48 + 30],
-                         yOffset: 27.5,
+                         xOffset: [18, 6 + (height / 6 + 20) * 1.48 + 30],
+                         yOffset: 24.8,
                          chunkSize: 2,
                          extraImage: false,
-                         scaleX: -1,
+                         
                     },
                     "2cut-x2": {
-                         calcedWidth: width / 2.1,
-                         calcedHeight: (width / 2.1) * 1.13,
-                         xOffset: [233, 223 + width / 2.1 + 7],
-                         yOffset: 29,
+                         calcedWidth: width / 2.2,
+                         calcedHeight: (width / 2.2) * 1.13,
+                         xOffset: [19, 15 + width / 2.2 + 7],
+                         yOffset: 29.8,
                          chunkSize: 2,
-                         scaleX: -1,
+                         
                     },
                     "4-cutx2": {
                          calcedHeight: height / 2.4,
                          calcedWidth: (height / 2.4) * 1.33,
-                         xOffset: [222.5, 220.5 + (height / 2.4) * 1.33 + 17],
-                         yOffset: 20,
+                         xOffset: [52, 52 + (height / 2.4) * 1.33 + 17],
+                         yOffset: 24,
                          chunkSize: 2,
-                         scaleX: -1,
+                         
                     },
                     default: {
+                         calcedHeight: width / 2.3,
                          calcedWidth: (width / 2.3) * 1.0,
-                         calcedHeight: width / 2.46,
-                         xOffset: [162, 158 + (width / 2.3) * 1.0 + 5],
-                         yOffset: 21.3,
+                         xOffset: [18, 20 + (width / 2.3) * 1.0 + 5],
+                         yOffset: 20,
                          chunkSize: 2,
-                         scaleX: -1,
+                         
                     },
                };
 
@@ -859,7 +859,7 @@ function Sticker() {
                     chunkArray(imgTag, chunkSize).map((row, rowIndex) =>
                          row.map((tag, photoIndex) => {
                               const x = xOffset[photoIndex];
-                              const y = yOffset + rowIndex * (calcedHeight + 10);
+                              const y = yOffset + rowIndex * (calcedHeight);
                               const crop = getCrop(
                                    { width: tag.width, height: tag.height },
                                    { width: calcedWidth, height: calcedHeight }

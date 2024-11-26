@@ -324,7 +324,7 @@ function Photo() {
                     <div className="choose-photo-row">
                          <div
                               className="choose-photo-item-3cut-top-line"
-                              style={{ backgroundImage: `url(${capturePhotos[0].url})` }}
+                              style={{ backgroundImage: `url(${capturePhotos[0].url})`, transform: "scaleX(-1)"}}
                               onClick={() => handleRetakePhoto(0)}
                          />
                     </div>
@@ -338,7 +338,7 @@ function Photo() {
                                    <div
                                         key={photoIndex}
                                         className={displayClassNameForPhoto(rowIndex, photoIndex, selectedIndex)}
-                                        style={{ backgroundImage: `url(${capturePhotos[selectedIndex].url})` }}
+                                        style={{ backgroundImage: `url(${capturePhotos[selectedIndex].url})`, transform: "scaleX(-1)"}}
                                         onClick={() => handleRetakePhoto(selectedIndex)}
                                    />
                               ))}
@@ -351,7 +351,7 @@ function Photo() {
                          <div className="choose-photo-row">
                               <div
                                    className="choose-photo-item-5cut-last-line"
-                                   style={{ backgroundImage: `url(${capturePhotos[capturePhotos.length - 1].url})` }}
+                                   style={{ backgroundImage: `url(${capturePhotos[capturePhotos.length - 1].url})`, transform: "scaleX(-1)"}}
                                    onClick={() => handleRetakePhoto(capturePhotos.length - 1)}
                               />
                          </div>
@@ -364,7 +364,7 @@ function Photo() {
                                         <div
                                              key={photoIndex}
                                              className={displayClassNameForPhoto(rowIndex, photoIndex, selectedIndex)}
-                                             style={{ backgroundImage: `url(${capturePhotos[selectedIndex].url})` }}
+                                             style={{ backgroundImage: `url(${capturePhotos[selectedIndex].url})`, transform: "scaleX(-1)"}}
                                              onClick={() => handleRetakePhoto(selectedIndex)}
                                         />
                                    ))}
@@ -381,7 +381,7 @@ function Photo() {
                                         <div
                                              key={photoIndex}
                                              className={displayClassNameForPhoto(rowIndex, photoIndex, selectedIndex)}
-                                             style={{ backgroundImage: `url(${capturePhotos[selectedIndex].url})` }}
+                                             style={{ backgroundImage: `url(${capturePhotos[selectedIndex].url})`, transform: "scaleX(-1)"}}
                                              onClick={() => handleRetakePhoto(selectedIndex)}
                                         />
                                    ))}
@@ -400,7 +400,7 @@ function Photo() {
                                         key={photoIndex}
                                         className={displayClassNameForPhoto(rowIndex, photoIndex, selectedIndex)}
                                         style={{
-                                             backgroundImage: `url(${selectedPhotoHere ? selectedPhotoHere.url : ''})`
+                                             backgroundImage: `url(${selectedPhotoHere ? selectedPhotoHere.url : ''})`, transform: "scaleX(-1)"
                                         }}
                                         onClick={() => handleRetakePhoto(selectedIndex)}
                                    />
@@ -660,6 +660,7 @@ function Photo() {
                     objectFit: "cover",
                     position: "absolute",
                     top: "15%", // Adjust this value to move the element down
+                    transform: "scaleX(-1)"
                };
                return { ...baseStyle, width: "714px", height: "700px", left: "12%" };
           } else if (frame === "Stripx2") {
@@ -667,6 +668,7 @@ function Photo() {
                     objectFit: "cover",
                     position: "absolute",
                     top: "20%", // Adjust this value to move the element down
+                    transform: "scaleX(-1)"
                };
                return { ...baseStyle, width: "882px", height: "600px", left: "2%" };
           } else if (frame === "2cut-x2") {
@@ -674,6 +676,7 @@ function Photo() {
                     objectFit: "cover",
                     position: "absolute",
                     top: "15%", // Adjust this value to move the element down
+                    transform: "scaleX(-1)"
                };
                return { ...baseStyle, width: "600px", height: "678px", left: "18%" };
           } else if (frame === "4-cutx2") {
@@ -681,6 +684,7 @@ function Photo() {
                     objectFit: "cover",
                     position: "absolute",
                     top: "20%", // Adjust this value to move the element down
+                    transform: "scaleX(-1)"
                };
                return { ...baseStyle, width: "798px", height: "600px", left: "6%" };
           } else {
