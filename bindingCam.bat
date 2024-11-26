@@ -1,8 +1,6 @@
 @echo off
 echo Searching for Canon...
 
-set "arduinoBusid="
-
 REM Search for Canon camera
 for /f "tokens=1,2,* delims= " %%a in ('usbipd list ^| findstr /C:"Canon"') do (
     set "canonBusid=%%a"
