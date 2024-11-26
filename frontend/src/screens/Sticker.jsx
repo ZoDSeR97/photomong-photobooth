@@ -837,7 +837,7 @@ function Sticker() {
                     default: {
                          calcedHeight: width / 2.3,
                          calcedWidth: (width / 2.3) * 1.0,
-                         xOffset: [18, 20 + (width / 2.3) * 1.0 + 5],
+                         xOffset: [18, 19 + (width / 2.3) * 1.0 + 5],
                          yOffset: 20,
                          chunkSize: 2,
                          

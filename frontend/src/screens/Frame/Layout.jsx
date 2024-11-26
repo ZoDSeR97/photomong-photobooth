@@ -181,14 +181,15 @@ function Layout() {
           // sessionStorage.setItem('selectedLayout', JSON.stringify(layouts));
           // setClickedIndex(index === clickedIndex ? null : index);
           playAudio("click_sound.wav")
-          if (clickedTitles.includes(clickedTitle)) {
+          setClickedTitles([clickedTitle]);
+          /* if (clickedTitles.includes(clickedTitle)) {
                setClickedTitles(prevTitles => prevTitles.filter(clickedTitle => clickedTitle != clickedTitle));
 
 
           } else {
                setClickedTitles(prevTitles => [...prevTitles, clickedTitle]);
 
-          }
+          } */
 
 
           setConfirmClick(confirmButton)
