@@ -1,6 +1,3 @@
-REM
-echo Starting app.py in WSL with sudo...
-
 @echo off
 echo Searching for Canon...
 

@@ -17,6 +17,7 @@ start cmd /k "npm install -g bun && bun run dev"
 :: Wait for the batch files to finish, if needed (optional delay or pause)
 timeout /t 5 > nul
 
+echo Starting app.py in WSL with sudo...
 start wsl -e bash -c "cd; sudo python3 /home/user/Flask/app.py; exec bash"
 
 :: Run kiosk
