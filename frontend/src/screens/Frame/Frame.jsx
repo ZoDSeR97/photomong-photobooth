@@ -144,14 +144,6 @@ function Frame() {
     }
   }
 
-  const handleMouseEnter = (image) => {
-    setHoveredImage(image);
-  }
-
-  const handleMouseLeave = () => {
-    setHoveredImage(null);
-  }
-
   const onDrag = (e) => {
     setDragging(true);
   }
