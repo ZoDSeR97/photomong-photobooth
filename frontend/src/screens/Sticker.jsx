@@ -314,7 +314,7 @@ function Sticker() {
 
           playPrintAudio()
           setClickPrint(true);
-          await callPrinter();
+          callPrinter();
           await uploadCloud();
 
           // setTimeout(() => {
@@ -836,8 +836,8 @@ function Sticker() {
                     },
                     default: {
                          calcedHeight: width / 2.3,
-                         calcedWidth: (width / 2.3) * 1.0,
-                         xOffset: [18, 19 + (width / 2.3) * 1.0 + 5],
+                         calcedWidth: (width / 2.3) * 1,
+                         xOffset: [18, 24 + (width / 2.3) * 1.0],
                          yOffset: 20,
                          chunkSize: 2,
                          
@@ -869,8 +869,8 @@ function Sticker() {
                                         crop={{
                                              x: crop.x,
                                              y: crop.y,
-                                             width: crop.width - crop.x,
-                                             height: crop.height - crop.y,
+                                             width: crop.width,
+                                             height: crop.height,
                                         }}
                                         width={calcedWidth * ratio}
                                         height={calcedHeight * ratio}
