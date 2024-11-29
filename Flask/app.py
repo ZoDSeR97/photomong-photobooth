@@ -46,7 +46,7 @@ class CameraManager:
         self.is_busy = False
         self.last_error_time = None
         self.error_count = 0
-        self.MAX_ERRORS = 3
+        self.MAX_ERRORS = 5
         self.ERROR_TIMEOUT = 300  # 5 minutes timeout after max errors
         self.frame_queue = frame_queue
         self.init_logging()
