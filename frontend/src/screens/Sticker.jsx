@@ -311,6 +311,9 @@ function Sticker() {
           if (clickPrint === true) {
                return;
           }
+          if (isSel){
+               setIsSel(false);
+          }
 
           playPrintAudio()
           setClickPrint(true);
@@ -1142,6 +1145,7 @@ function Sticker() {
                                                                  const newX = event.target.x();
                                                                  const newY = event.target.y();
                                                                  updateStickerPositionAndSize(i, newX, newY, image.width, image.height);
+                                                                 setIsSel(false);
                                                             }}
                                                             key={i}
                                                             image={image}

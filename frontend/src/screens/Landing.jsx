@@ -20,7 +20,7 @@ function Print() {
      const [hoveredImage, setHoveredImage] = useState(null);
 
      const [background, setBackground] = useState(background_en);
-    
+
      useEffect(() => {
           const storedLanguage = sessionStorage.getItem('language');
           if (storedLanguage === 'en') {
@@ -29,7 +29,7 @@ function Print() {
                setBackground(background_kr);
           } else if (storedLanguage === 'vi') {
                setBackground(background_vn);
-          }else if (storedLanguage === 'mn') {
+          } else if (storedLanguage === 'mn') {
                setBackground(background_mn);
           }
      }, []);
@@ -42,11 +42,11 @@ function Print() {
           navigate('/');
      }
 
-  
+
 
      return (
           <div className='print-container' style={{ backgroundImage: `url(${background})` }} onClick={clearSessionStorageAndLeaveOut}>
-           <iframe width="760" height="515" src="https://www.youtube.com/embed/fhMZQmgYV-o?si=dltO--EukMN6wga6" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+               <iframe width="760" height="515" src="https://www.youtube.com/embed/fhMZQmgYV-o?si=dltO--EukMN6wga6" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
           </div>
      );
 }

@@ -38,14 +38,6 @@ function Print() {
           playAudio("thank_being.wav")
      }, [])
 
-     const handleMouseEnter = (image) => {
-          setHoveredImage(image);
-     }
-
-     const handleMouseLeave = () => {
-          setHoveredImage(null);
-     }
-
      const clearSessionStorageAndLeaveOut = () => {
           sessionStorage.clear();
           playAudio("click_sound.wav")
@@ -86,9 +78,9 @@ function Print() {
                <div className="qr-code-container">
                     <QRCodeComponent />
                </div>
-               <div className="gif-qr-code-container">
+               {/* <div className="gif-qr-code-container">
                     <GifQRCodeComponent />
-               </div>
+               </div> */}
           </div>
      );
 }
