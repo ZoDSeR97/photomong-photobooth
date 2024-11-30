@@ -167,7 +167,9 @@ function Cash() {
       setInsertedMoney(responseData.total_money);
       sessionStorage.setItem("paid", responseData.total_money);
       if (parseInt(responseData.total_money) >= parseInt(amountToPay)) {
-        setHoveredImage(done);
+        await axios.post(`${import.meta.env.VITE_REACT_APP_API}/api/cash/reset`, {})
+        await axios.post(`${import.meta.env.VITE_REACT_APP_API}/api/cash/stop`, {})
+          .then(setHoveredImage(done))
       }
     } catch (error) {
       console.error(error);
@@ -177,11 +179,10 @@ function Cash() {
   useEffect(() => {
     const intervalId = setInterval(() => {
       const ooCode = sessionStorage.getItem('orderCodeNum');
-      if (ooCode) {
-        console.log(ooCode);
+      if (ooCode && parseInt(insertedMoney) < parseInt(amountToPay)) {
         checkPaymentStatus(ooCode);
       }
-    }, 1000);
+    }, 500);
 
     return () => clearInterval(intervalId);
   }, [amountToPay]);
@@ -192,8 +193,8 @@ function Cash() {
         playAudio("click_sound.wav")
         // Run both requests in parallel
         await Promise.all([
-          axios.post(`${import.meta.env.VITE_REACT_APP_API}/api/cash/stop`, {}),
           axios.post(`${import.meta.env.VITE_REACT_APP_API}/api/cash/reset`, {}),
+          axios.post(`${import.meta.env.VITE_REACT_APP_API}/api/cash/stop`, {}),
           fetch(`${import.meta.env.VITE_REACT_APP_BACKEND}/payments/api/cash/webhook?order=${orderCode}`)
             .then(response => {
               if (!response.ok) throw new Error('Network response was not ok');

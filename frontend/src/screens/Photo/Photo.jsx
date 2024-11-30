@@ -25,7 +25,7 @@ function Photo() {
      const navigate = useNavigate();
      const webcamRef = useRef(null);
      const [cameraConnected, setCameraConnected] = useState(true);
-     const [countdown, setCountdown] = useState(8);
+     const [countdown, setCountdown] = useState(5);
      const [photoCount, setPhotoCount] = useState(0);
      const [flash, setFlash] = useState(false);
      const [backgroundImage, setBackgroundImage] = useState(background_en);
@@ -217,7 +217,7 @@ function Photo() {
                sessionStorage.setItem('photos', JSON.stringify(photosWithIds));
                navigate('/photo-choose')
           } else {
-               setCountdown(8);
+               setCountdown(5);
           }
      }
 
@@ -246,7 +246,7 @@ function Photo() {
                          clearInterval(timerRef.current);
                          takeSnapshot()
                               .then(() => {
-                                   setCountdown(8);
+                                   setCountdown(5);
                                    if (status === "working") {
                                         startTimer();
                                    }
@@ -263,7 +263,7 @@ function Photo() {
                return;
           }
           setStatus("working");
-          setCountdown(8);
+          setCountdown(5);
      };
 
      const getLatestPhoto = async (currentPhotoCount) => {
@@ -513,7 +513,7 @@ function Photo() {
      }, [photoCount, uuid]);
 
      useEffect(() => {
-          if (capturePhotos.length > 0 && capturePhotos.length === totalSnapshotPhoto) {
+          if (capturePhotos.length > 0 && capturePhotos.length === totalSnapshotPhoto && selectedReTakePhotos.length === 0) {
                sessionStorage.setItem("uuid", uuid);
                setStatus("done");
                setOkButtonUrl(ok_button);
