@@ -168,7 +168,6 @@ function Cash() {
       sessionStorage.setItem("paid", responseData.total_money);
       if (parseInt(responseData.total_money) >= parseInt(amountToPay)) {
         await axios.post(`${import.meta.env.VITE_REACT_APP_API}/api/cash/reset`, {})
-        await axios.post(`${import.meta.env.VITE_REACT_APP_API}/api/cash/stop`, {})
           .then(setHoveredImage(done))
       }
     } catch (error) {
@@ -182,7 +181,7 @@ function Cash() {
       if (ooCode && parseInt(insertedMoney) < parseInt(amountToPay)) {
         checkPaymentStatus(ooCode);
       }
-    }, 500);
+    }, 100);
 
     return () => clearInterval(intervalId);
   }, [amountToPay]);
@@ -194,7 +193,6 @@ function Cash() {
         // Run both requests in parallel
         await Promise.all([
           axios.post(`${import.meta.env.VITE_REACT_APP_API}/api/cash/reset`, {}),
-          axios.post(`${import.meta.env.VITE_REACT_APP_API}/api/cash/stop`, {}),
           fetch(`${import.meta.env.VITE_REACT_APP_BACKEND}/payments/api/cash/webhook?order=${orderCode}`)
             .then(response => {
               if (!response.ok) throw new Error('Network response was not ok');
