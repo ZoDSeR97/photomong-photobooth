@@ -1001,6 +1001,14 @@ function Sticker() {
           playAudio("add_emoji.wav")
      }, [])
 
+     useEffect(() => {
+          if (isSel) {
+               setTimeout(() => {
+                    setIsSel(false);
+               }, 5000);
+          }
+     }, [isSel]);
+
      return (
           <div className='sticker-container' style={{ backgroundImage: `url(${backgroundImage})` }}>
                <div className="go-back" style={{ backgroundImage: `url(${goBackButton})`, top: `4.4%`, left: `6%` }} onClick={() => {

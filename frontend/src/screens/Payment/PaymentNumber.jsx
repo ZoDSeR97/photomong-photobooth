@@ -99,8 +99,13 @@ function PaymentNumber(props) {
 
   const goToPayment = async (photoNum, checkCoupon) => {
     playAudio("click_sound.wav")
-    sessionStorage.setItem("photoNum", photoNum)
-    const res = await sendDongNum(photoNum, checkCoupon === true ? 1 : 0) // work on this later
+    if (import.meta.env.VITE_BOOTH_TYPE !== 'REG' && JSON.parse(sessionStorage.getItem('selectedFrame')).frame !== 'Stripx2') {
+      sessionStorage.setItem("photoNum", photoNum+1)
+      const res = await sendDongNum(photoNum+1, checkCoupon === true ? 1 : 0) // work on this later
+    } else {
+      sessionStorage.setItem("photoNum", photoNum)
+      const res = await sendDongNum(photoNum, checkCoupon === true ? 1 : 0) // work on this later
+    }
     navigate('/payment');
   }
 
@@ -135,14 +140,12 @@ function PaymentNumber(props) {
   const getDong = () => {
     let amount = 0, add = 20000;
     if(import.meta.env.VITE_BOOTH_TYPE == "REG"){
-      amount = 70000
+      amount = 80000
     } else {
       amount = 100000
     }
     if (language === "mn" && import.meta.env.VITE_LOCATION == "MN") {
       amount /= 10
-      if (amount < 10000)
-        amount += 1000
       add /= 10
       add += 2000
     }

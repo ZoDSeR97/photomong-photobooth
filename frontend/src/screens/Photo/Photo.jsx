@@ -240,7 +240,8 @@ function Photo() {
                setCountdown((prevCountdown) => {
                     setTakeAgainButtonUrl(take_again_button_inactive);
                     if (prevCountdown > 0) {
-                         playCntSound();
+                         if (prevCountdown === 4) 
+                              playCntSound();
                          return prevCountdown - 1;
                     } else {
                          clearInterval(timerRef.current);
@@ -251,7 +252,7 @@ function Photo() {
                                         startTimer();
                                    }
                               })
-                         return 8;
+                         return 5;
                     }
                });
           }, 1000);
@@ -594,7 +595,8 @@ function Photo() {
           if (!cameraConnected) {
                const timer = setInterval(() => {
                     if (countdown > 0) {
-                         playCntSound();
+                         if (countdown === 4)
+                              playCntSound();
                          setCountdown(countdown - 1);
                     } else {
                          takePhoto();
@@ -654,7 +656,6 @@ function Photo() {
      const getLiveStyle = () => {
           const frame = JSON.parse(sessionStorage.getItem('selectedFrame')).frame;
 
-
           if (frame === "6-cutx2") {
                const baseStyle = {
                     objectFit: "cover",
@@ -688,7 +689,13 @@ function Photo() {
                };
                return { ...baseStyle, width: "798px", height: "600px", left: "6%" };
           } else {
-               return {};
+               const baseStyle = {
+                    objectFit: "cover",
+                    position: "absolute",
+                    top: "15%", // Adjust this value to move the element down
+                    transform: "scaleX(-1)"
+               };
+               return { ...baseStyle, width: "714px", height: "700px", left: "12%" };
           }
      };
 
