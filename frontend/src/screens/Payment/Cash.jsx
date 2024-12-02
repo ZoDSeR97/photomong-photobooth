@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import i18n from '../../translations/i18n';
@@ -60,6 +60,7 @@ function Cash() {
   const [insertedImage, setInsertedImage] = useState(inserted);
   const [paidImage, setPaidImage] = useState(null);
   const [doneImage, setDoneImage] = useState(null);
+  const [clicked, setClicked] = useState(false);
 
   useEffect(() => {
     const storedLanguage = sessionStorage.getItem('language');
@@ -130,13 +131,19 @@ function Cash() {
         const framePrice = sessionStorage.getItem('sales');
         setAmountToPay(framePrice);
 
-        const response = await fetch(`${import.meta.env.VITE_REACT_APP_BACKEND}/payments/api/cash/create?device=${deviceNumber}&amount=${framePrice}`)
+        if (sessionStorage.getItem('orderCodeNum')){
+          setOrderCode(sessionStorage.getItem('orderCodeNum'));
+        } else {
+          const response = await fetch(`${import.meta.env.VITE_REACT_APP_BACKEND}/payments/api/cash/create?device=${deviceNumber}&amount=${framePrice}`)
 
-        const responseData = await response.json();
-        if (responseData) {
-          sessionStorage.setItem('orderCodeNum', responseData.order_code);
-          setOrderCode(responseData.order_code);
+          const responseData = await response.json();
+          if (responseData) {
+            sessionStorage.setItem('orderCodeNum', responseData.order_code);
+            setOrderCode(responseData.order_code);
+          }
         }
+
+        
       } catch (error) {
         console.error(error);
       }
@@ -160,35 +167,38 @@ function Cash() {
         };
     }, []); */
 
-  const checkPaymentStatus = async (orderCodeNum) => {
+  const checkPaymentStatus = useCallback(async (orderCodeNum) => {
     try {
       const response = await fetch(`${import.meta.env.VITE_REACT_APP_API}/api/cash/status`)
       const responseData = await response.json();
-      setInsertedMoney(responseData.total_money);
+      setInsertedMoney(p => p<responseData.total_money? response.total_money:p);
       sessionStorage.setItem("paid", responseData.total_money);
-      if (parseInt(responseData.total_money) >= parseInt(amountToPay)) {
-        await axios.post(`${import.meta.env.VITE_REACT_APP_API}/api/cash/reset`, {})
-          .then(setHoveredImage(done))
+      if (Number(responseData.total_money) >= Number(amountToPay)) {
+        setHoveredImage(done);
       }
     } catch (error) {
       console.error(error);
     }
-  }
+  },[amountToPay]);
 
   useEffect(() => {
     const intervalId = setInterval(() => {
       const ooCode = sessionStorage.getItem('orderCodeNum');
-      if (ooCode && parseInt(insertedMoney) < parseInt(amountToPay)) {
+      if (ooCode && Number(insertedMoney) < Number(amountToPay)) {
         checkPaymentStatus(ooCode);
       }
-    }, 100);
+    }, 500);
 
     return () => clearInterval(intervalId);
-  }, [amountToPay]);
+  }, [amountToPay, insertedMoney, checkPaymentStatus]);
 
   const continuePay = async () => {
-    if (orderCode && parseInt(insertedMoney) >= parseInt(amountToPay)) {
+    if(clicked)
+      return;
+
+    if (orderCode && Number(insertedMoney) >= Number(amountToPay)) {
       try {
+        setClicked(true)
         playAudio("click_sound.wav")
         // Run both requests in parallel
         await Promise.all([
@@ -242,8 +252,10 @@ function Cash() {
   return (
     <div className='cash-container' style={{ backgroundImage: `url(${background})` }}>
       <div className="go-back" style={{ backgroundImage: `url(${goBackButton})`, top: `4.4%`, left: `6%` }} onClick={() => {
-        playAudio("click_sound.wav")
-        navigate("/payment")}} onMouseEnter={() => hoverGoBackButton(language)} onMouseLeave={() => handleMouseLeave(language)}></div>
+        if (!clicked){
+          playAudio("click_sound.wav")
+          navigate("/payment")
+        }}} onMouseEnter={() => hoverGoBackButton(language)} onMouseLeave={() => handleMouseLeave(language)}></div>
       <div className="paid-cash" style={{ backgroundImage: `url(${paidImage})` }}>
         <div className="paid-cash-text">{amountToPay}</div>
       </div>

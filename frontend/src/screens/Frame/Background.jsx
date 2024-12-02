@@ -63,8 +63,7 @@ function Background() {
                } else if (storedLanguage === 'vi') {
                     setBackgroundContainer(background_vn);
                     setGoBackBg(goback_vn);
-               }
-               else if (storedLanguage === 'mn') {
+               } else if (storedLanguage === 'mn') {
                     setBackgroundContainer(background_mn);
                     setGoBackBg(goback_mn);
                }

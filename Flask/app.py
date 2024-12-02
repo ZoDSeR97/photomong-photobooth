@@ -19,6 +19,7 @@ import serial
 import serial.tools.list_ports
 import requests
 import base64
+import imageio
 
 app = Flask(__name__)
 load_dotenv()  # take environment variables from .env.
@@ -29,6 +30,7 @@ frame_queue = queue.Queue(maxsize=180)
 LIVE_VIEW_ACTIVE = False
 VIDEO_WRITER_ACTIVE = False
 video_writer = None
+video_frames = []
 video_lock = threading.Lock()
 live_view_thread = None
 print_amount = 1
@@ -512,9 +514,9 @@ def check_payment_status():
     with lock:  # Ensure thread-safe access to the serial port
         try:
             ser.write(b'CHECK\n')
-            line = ser.readline().decode('utf-8').strip().split(':').pop()
+            line = ser.readline().decode('utf-8').split(':').pop().strip()
             print(line)
-            if line.strip().isdigit():
+            if line.isdigit():
                 inserted_money = int(line)*baseV
                 logging.info(f"Current inserted money: {inserted_money}, Current amount to pay: {amount_to_pay}")
                 if inserted_money < amount_to_pay:
@@ -534,7 +536,9 @@ def check_payment_status():
 @app.route('/api/cash/reset', methods=['POST'])
 def reset_bill_acceptor():
     ser.write(b'RESET\n')
-    response = ser.readline().decode('utf-8').strip()
+    response = ser.readline().decode('utf-8').split(':').pop().strip()
+    while response != "RESET_OK":
+        response = ser.readline().decode('utf-8').split(':').pop().strip()
     logging.info("Bill acceptor reset")
     return jsonify({"message": response}), 200
 

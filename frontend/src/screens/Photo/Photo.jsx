@@ -32,6 +32,7 @@ function Photo() {
      const [loadBgImage, setLoadBgImage] = useState(load_en);
      const [capturing, setCapturing] = useState(false);
      const [capturePhotos, setCapturePhotos] = useState([]);
+     const [captureVideos, setCaptureVideos] = useState([]);
      const [webphotos, setWebPhotos] = useState([]);
 
      const [showFirstSet, setShowFirstSet] = useState(true);
@@ -274,6 +275,7 @@ function Photo() {
           console.log("photos: ", photos);
           if (photos && photos.images && photos.images.length > 0) {
                const latestImage = photos.images[photos.images.length - 1];
+               const latestVideo = photos.videos[photos.videos.length - 1];
                console.log("latest image:", latestImage)
                if (photos.videos != undefined) {
                     if (photos.videos.length != 0) {
@@ -306,12 +308,22 @@ function Photo() {
                          return photo;
                     });
 
-                    setCapturePhotos(newCapturePhotos);
+                    const newCaptureVideos = captureVideos.map(video => {
+                         if(video.id === firstRetakePhotoIndex){
+                              return {
+                                   ...video,
+                                   url: latestVideo.url
+                              }
+                         }
+                    });
 
+                    setCapturePhotos(newCapturePhotos);
+                    setCaptureVideos(newCaptureVideos);
                     // remove all photos in selectedReTakePhotos
                     setSelectedReTakePhotos([]);
                } else {
                     setCapturePhotos([...photos.images]);
+                    setCaptureVideos([...photos.videos]);
                }
           } else {
                navigate(-1);
@@ -531,6 +543,7 @@ function Photo() {
                sessionStorage.setItem("uuid", uuid);
 
                sessionStorage.setItem('photos', JSON.stringify(capturePhotos));
+               sessionStorage.setItem('videos', JSON.stringify(captureVideos));
                // log capturePhotos
                // console.log("Capture photos >>", capturePhotos);
 

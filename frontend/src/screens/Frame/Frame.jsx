@@ -42,18 +42,6 @@ function Frame() {
   const [language, setLanguage] = useState('en');
 
   // Frames 
-  const [frameRow11, setFrameRow11] = useState([]);
-  const [frameRow11Hover, setFrameRow11Hover] = useState([]);
-  const [frameRow12, setFrameRow12] = useState([]);
-  const [frameRow12Hover, setFrameRow12Hover] = useState([]);
-  const [frameRow13, setFrameRow13] = useState([]);
-  const [frameRow13Hover, setFrameRow13Hover] = useState([]);
-  const [frameRow21, setFrameRow21] = useState([]);
-  const [frameRow21Hover, setFrameRow21Hover] = useState([]);
-  const [frameRow22, setFrameRow22] = useState([]);
-  const [frameRow22Hover, setFrameRow22Hover] = useState([]);
-  const [frameRow23, setFrameRow23] = useState([]);
-  const [frameRow23Hover, setFrameRow23Hover] = useState([]);
   const [frameBackground, setFrameBackground] = useState([]);
 
   // Frames
@@ -105,33 +93,6 @@ function Frame() {
     try {
       const response = await originAxiosInstance.get(`${import.meta.env.VITE_REACT_APP_BACKEND}/frames/api`)
       const frames = response.data
-
-      frames.forEach(frame => {
-        if (frame.position === 'row-1-1') {
-          setFrameRow11(import.meta.env.VITE_REACT_APP_BACKEND + frame.photo);
-          setFrameRow11Hover(import.meta.env.VITE_REACT_APP_BACKEND + frame.photo_hover)
-        }
-        if (frame.position === 'row-1-2') {
-          setFrameRow12(import.meta.env.VITE_REACT_APP_BACKEND + frame.photo);
-          setFrameRow12Hover(import.meta.env.VITE_REACT_APP_BACKEND + frame.photo_hover);
-        }
-        // if (frame.position === 'row-1-3') {
-        //   setFrameRow13(import.meta.env.VITE_REACT_APP_BACKEND + frame.photo);
-        //   setFrameRow13Hover(import.meta.env.VITE_REACT_APP_BACKEND + frame.photo_hover)
-        // }
-        if (frame.position === 'row-2-1') {
-          setFrameRow21(import.meta.env.VITE_REACT_APP_BACKEND + frame.photo);
-          setFrameRow21Hover(import.meta.env.VITE_REACT_APP_BACKEND + frame.photo_hover);
-        }
-        if (frame.position === 'row-2-2') {
-          setFrameRow22(import.meta.env.VITE_REACT_APP_BACKEND + frame.photo);
-          setFrameRow22Hover(import.meta.env.VITE_REACT_APP_BACKEND + frame.photo_hover);
-        }
-        // if (frame.position === 'row-2-3') {
-        //   setFrameRow23(import.meta.env.VITE_REACT_APP_BACKEND + frame.photo);
-        //   setFrameRow23Hover(import.meta.env.VITE_REACT_APP_BACKEND + frame.photo_hover);
-        // }
-      });
 
       setFrames(frames.map(frame => ({
         ...frame,
