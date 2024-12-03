@@ -202,9 +202,9 @@ function Payment() {
             <div className="payment-method" style={{ backgroundImage: `url(${qpayButton})` }} onMouseEnter={() => hoverMouseEffect('qpay')} onMouseLeave={() => hoverMouseEffect('qpay')} onClick={() => goToPay('qpay')} />
             :
             <>
-              <div className="payment-method" style={{ backgroundImage: `url(${vnpayButton})` }} onMouseEnter={() => hoverMouseEffect('vnpay')} onMouseLeave={() => hoverMouseEffect('vnpay')} onClick={() => goToPay('vnpay')} />
+              {/* <div className="payment-method" style={{ backgroundImage: `url(${vnpayButton})` }} onMouseEnter={() => hoverMouseEffect('vnpay')} onMouseLeave={() => hoverMouseEffect('vnpay')} onClick={() => goToPay('vnpay')} /> */}
               <div className="payment-method" style={{ backgroundImage: `url(${momoButton})` }} onMouseEnter={() => hoverMouseEffect('momo')} onMouseLeave={() => hoverMouseEffect('momo')} onClick={() => goToPay('momo')} />
-              <div className="payment-method" style={{ backgroundImage: `url(${zalopayButton})` }} onMouseEnter={() => hoverMouseEffect('zalopay')} onMouseLeave={() => hoverMouseEffect('zalopay')} onClick={() => goToPay('zalopay')} />
+              {/* <div className="payment-method" style={{ backgroundImage: `url(${zalopayButton})` }} onMouseEnter={() => hoverMouseEffect('zalopay')} onMouseLeave={() => hoverMouseEffect('zalopay')} onClick={() => goToPay('zalopay')} /> */}
             </>
         }
         <div className="payment-method" style={{ backgroundImage: `url(${promoButton})` }} onMouseEnter={() => hoverMouseEffect('promo')} onMouseLeave={() => hoverMouseEffect('promo')} onClick={() => goToPay('promo')} />
