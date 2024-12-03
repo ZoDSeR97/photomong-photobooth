@@ -170,7 +170,7 @@ function Cash() {
                i18n.changeLanguage(storedLanguage);
           }
 
-          const storedFrameAmount = sessionStorage.getItem('framePrice');
+          const storedFrameAmount = sessionStorage.getItem('sales');
           console.log(storedFrameAmount);
           if (storedFrameAmount) {
                setFrameAmount(storedFrameAmount);
