@@ -30,7 +30,6 @@ frame_queue = queue.Queue(maxsize=180)
 LIVE_VIEW_ACTIVE = False
 VIDEO_WRITER_ACTIVE = False
 video_writer = None
-video_frames = []
 video_lock = threading.Lock()
 live_view_thread = None
 print_amount = 1
@@ -51,6 +50,7 @@ class CameraManager:
         self.MAX_ERRORS = 5
         self.ERROR_TIMEOUT = 300  # 5 minutes timeout after max errors
         self.frame_queue = frame_queue
+        self.gif_writer = None  # Added for GIF writing
         self.init_logging()
         self.initialize_camera()
 
@@ -166,13 +166,14 @@ class CameraManager:
                 preview_file = self.camera.capture_preview(self.context)
                 preview_data = preview_file.get_data_and_size()
                 frame = cv2.imdecode(np.frombuffer(preview_data, np.uint8), cv2.IMREAD_COLOR)
+                frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)  # Convert BGR to RGB
 
                 if self.frame_queue.full():
-                    self.frame_queue.get()
-                self.frame_queue.put(frame)
+                    self.frame_queue.get_nowait()
+                self.frame_queue.put_nowait(frame_rgb)
 
                 if VIDEO_WRITER_ACTIVE:
-                    self._write_video_frame(frame)
+                    self._write_video_frame(frame_rgb)
 
                 time.sleep(PREVIEW_INTERVAL)
             except gp.GPhoto2Error as e:
@@ -183,42 +184,45 @@ class CameraManager:
         """Generate frames for live view."""
         while True:
             try:
-                frame = self.frame_queue.get()
+                frame = self.frame_queue.get_nowait()
                 _, buffer = cv2.imencode('.jpg', frame)
                 yield (b'--frame\r\nContent-Type: image/jpeg\r\n\r\n' + buffer.tobytes() + b'\r\n\r\n')
             except queue.Empty:
                 continue
 
     def _write_video_frame(self, frame):
-        """Write frame to the video file."""
-        global video_writer
+        """Write frame to the GIF file."""
+        global gif_writer
         with video_lock:
-            if video_writer is not None:
-                video_writer.write(frame)
+            if gif_writer is not None:
+                gif_writer.append_data(frame)
 
     def start_video_recording(self, uuid):
-        """Start video recording."""
-        global video_writer, VIDEO_WRITER_ACTIVE
+        """Start video recording as a GIF."""
+        global gif_writer, VIDEO_WRITER_ACTIVE
         VIDEO_WRITER_ACTIVE = True
         current_directory = os.path.dirname(os.path.abspath(__file__))
         date_str = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
-        filename = os.path.join(current_directory, f'{uuid}/{date_str}.mp4')
-        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-        frame = self.frame_queue.queue[0] if not self.frame_queue.empty() else None
+        filename = os.path.join(current_directory, f'{uuid}/{date_str}.gif')
 
+        # Create a GIF writer
+        frame = self.frame_queue.get_nowait() if not self.frame_queue.empty() else None
         if frame is not None:
             height, width, _ = frame.shape
             with video_lock:
-                video_writer = cv2.VideoWriter(filename, fourcc, 60, (width, height))
+                # Adjust duration as needed (e.g., 1/60 for 60 FPS)
+                gif_writer = imageio.get_writer(filename, mode='I', duration=1/60)
+                logging.info(f"Recording GIF to {filename}")
 
     def stop_video_recording(self):
-        """Stop video recording."""
-        global video_writer, VIDEO_WRITER_ACTIVE
+        """Stop GIF recording."""
+        global gif_writer, VIDEO_WRITER_ACTIVE
         VIDEO_WRITER_ACTIVE = False
         with video_lock:
-            if video_writer is not None:
-                video_writer.release()
-                video_writer = None
+            if gif_writer is not None:
+                gif_writer.close()
+                gif_writer = None
+                logging.info("GIF recording stopped.")
 
     def capture_image(self, uuid, retries=5):
         """Capture an image and save it as PNG."""
@@ -338,7 +342,7 @@ def download_file():
                 'url': f"http://{request.host}/api/get_photo/uploads"+os.path.join(f"/{uuid}", image.replace("\\","/"))
             } for idx, image in enumerate(sorted(images, key=lambda x: datetime.strptime(x.removesuffix('.png'), '%Y-%m-%d-%H-%M-%S')))
         ]
-        videos = [file for file in file_list if file.lower().endswith(('.mp4'))]
+        videos = [file for file in file_list if file.lower().endswith(('.gif'))]
         video_urls = [
             {
                 'id': idx, 
