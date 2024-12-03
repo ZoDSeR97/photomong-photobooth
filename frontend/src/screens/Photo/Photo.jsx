@@ -322,8 +322,8 @@ function Photo() {
                     // remove all photos in selectedReTakePhotos
                     setSelectedReTakePhotos([]);
                } else {
-                    setCapturePhotos([...photos.images]);
-                    setCaptureVideos([...photos.videos]);
+                    setCapturePhotos(prev => [...prev, latestImage.url]);
+                    setCaptureVideos(prev => [...prev, latestVideo.url]);
                }
           } else {
                navigate(-1);
