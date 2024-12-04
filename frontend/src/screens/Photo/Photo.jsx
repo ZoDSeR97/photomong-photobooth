@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import Webcam from 'react-webcam';
@@ -197,7 +197,7 @@ function Photo() {
           return className;
      };
 
-     const takePhoto = () => {
+     const takePhoto = useCallback(() => {
           setFlash(true);
           setCapturing(true);
           const imageSrc = webcamRef.current.getScreenshot();
@@ -220,9 +220,9 @@ function Photo() {
           } else {
                setCountdown(5);
           }
-     }
+     },[webphotos, photoCount, totalSnapshotPhoto, navigate]);
 
-     const takeSnapshot = async () => {
+     const takeSnapshot = useCallback(async () => {
           await sleep(100);
           setCapturing(true);
           try {
@@ -234,9 +234,9 @@ function Photo() {
           }
           setFlash(false);
           setCapturing(false);
-     };
+     }, [uuid]);
 
-     const startTimer = () => {
+     const startTimer = useCallback(() => {
           timerRef.current = setInterval(async () => {
                setCountdown((prevCountdown) => {
                     setTakeAgainButtonUrl(take_again_button_inactive);
@@ -257,7 +257,7 @@ function Photo() {
                     }
                });
           }, 1000);
-     };
+     },[status, takeSnapshot]);
 
      const reTakePhoto = () => {
           // if retake button is inactive then do nothing
@@ -268,7 +268,7 @@ function Photo() {
           setCountdown(5);
      };
 
-     const getLatestPhoto = async (currentPhotoCount) => {
+     const getLatestPhoto = useCallback(async (currentPhotoCount) => {
           // console.log('currentPhotoCount>>>', currentPhotoCount)
           const photos = await getPhotos(uuid);
           sessionStorage.setItem("getphotos", photos);
@@ -329,7 +329,7 @@ function Photo() {
                navigate(-1);
                console.log("No photos available.");
           }
-     };
+     }, [capturePhotos, navigate, selectedReTakePhotos, uuid, captureVideos]);
 
      const showSelectedPhotos = () => {
           if (selectedFrame === '3-cutx2' && capturePhotos.length > 0) {
@@ -523,7 +523,7 @@ function Photo() {
                     setShowFirstSet(false);
                }
           }
-     }, [photoCount, uuid]);
+     }, [photoCount, uuid, cameraConnected, getLatestPhoto]);
 
      useEffect(() => {
           if (capturePhotos.length > 0 && capturePhotos.length === totalSnapshotPhoto && selectedReTakePhotos.length === 0) {
@@ -532,7 +532,7 @@ function Photo() {
                setOkButtonUrl(ok_button);
                // goToFilter();
           }
-     }, [capturePhotos, navigate]);
+     }, [capturePhotos, navigate, selectedReTakePhotos.length, totalSnapshotPhoto, uuid]);
 
      const goToFilter = async () => {
           // if ok button is inactive, do not go to filter
@@ -617,7 +617,7 @@ function Photo() {
                }, 1000);
                return () => clearInterval(timer); // Cleanup timer on unmount
           }
-     }, [countdown]);
+     }, [cameraConnected, countdown, takePhoto]);
 
      useEffect(() => {
           if (uuid && status === 'working' && cameraConnected) {
@@ -631,7 +631,7 @@ function Photo() {
           return () => {
                clearInterval(timerRef.current);
           };
-     }, [uuid, status]);
+     }, [uuid, status, cameraConnected, startTimer]);
 
      const copyImageApi = async () => {
           const sessionSelectedLayout = sessionStorage.getItem('selectedLayout');

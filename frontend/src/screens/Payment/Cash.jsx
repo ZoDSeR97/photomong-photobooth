@@ -152,7 +152,7 @@ function Cash() {
     if (!orderCode) {
       fetchCashPayment();
     }
-  }, []);
+  }, [orderCode]);
 
   /* useEffect(() => {
         const socket = new WebSocket('ws://127.0.0.1.5000'); // Adjust the URL as needed
@@ -167,7 +167,7 @@ function Cash() {
         };
     }, []); */
 
-  const checkPaymentStatus = useCallback(async (orderCodeNum) => {
+  const checkPaymentStatus = useCallback(async () => {
     try {
       const response = await fetch(`${import.meta.env.VITE_REACT_APP_API}/api/cash/status`)
       const responseData = await response.json();
@@ -185,7 +185,7 @@ function Cash() {
     const intervalId = setInterval(() => {
       const ooCode = sessionStorage.getItem('orderCodeNum');
       if (ooCode && Number(insertedMoney) < Number(amountToPay)) {
-        checkPaymentStatus(ooCode);
+        checkPaymentStatus();
       }
     }, 500);
 
@@ -216,10 +216,6 @@ function Cash() {
       }
     }
   };
-
-  const handleMouseEnter = (image) => {
-    setHoveredImage(image);
-  }
 
   const handleMouseLeave = () => {
     setHoveredImage(null);
