@@ -268,14 +268,14 @@ function Photo() {
           setCountdown(5);
      };
 
-     const getLatestPhoto = useCallback(async (currentPhotoCount) => {
+     const getLatestPhoto = async (currentPhotoCount) => {
           // console.log('currentPhotoCount>>>', currentPhotoCount)
           const photos = await getPhotos(uuid);
           sessionStorage.setItem("getphotos", photos);
           console.log("photos: ", photos);
           if (photos && photos.images && photos.images.length > 0) {
                const latestImage = photos.images[photos.images.length - 1];
-               const latestVideo = photos.videos[photos.videos.length - 1];
+               //const latestVideo = photos.videos[photos.videos.length - 1];
                console.log("latest image:", latestImage)
                if (photos.videos != undefined) {
                     if (photos.videos.length != 0) {
@@ -308,28 +308,28 @@ function Photo() {
                          return photo;
                     });
 
-                    const newCaptureVideos = captureVideos.map(video => {
+                    /* const newCaptureVideos = captureVideos.map(video => {
                          if(video.id === firstRetakePhotoIndex){
                               return {
                                    ...video,
                                    url: latestVideo.url
                               }
                          }
-                    });
+                    }); */
 
                     setCapturePhotos(newCapturePhotos);
-                    setCaptureVideos(newCaptureVideos);
+                    //setCaptureVideos(newCaptureVideos);
                     // remove all photos in selectedReTakePhotos
                     setSelectedReTakePhotos([]);
                } else {
-                    setCapturePhotos(prev => [...prev, latestImage.url]);
-                    setCaptureVideos(prev => [...prev, latestVideo.url]);
+                    setCapturePhotos(prev => [...prev, latestImage]);
+                    //setCaptureVideos(prev => [...prev, latestVideo]);
                }
           } else {
                navigate(-1);
                console.log("No photos available.");
           }
-     }, [capturePhotos, navigate, selectedReTakePhotos, uuid, captureVideos]);
+     };
 
      const showSelectedPhotos = () => {
           if (selectedFrame === '3-cutx2' && capturePhotos.length > 0) {
@@ -523,7 +523,7 @@ function Photo() {
                     setShowFirstSet(false);
                }
           }
-     }, [photoCount, uuid, cameraConnected, getLatestPhoto]);
+     }, [photoCount, uuid, cameraConnected]);
 
      useEffect(() => {
           if (capturePhotos.length > 0 && capturePhotos.length === totalSnapshotPhoto && selectedReTakePhotos.length === 0) {
@@ -742,7 +742,7 @@ function Photo() {
                                    alt="Live View"
                                    className='photo-webcam'
                               />
-                         ) || (<Webcam
+                         ) /* || (<Webcam
                               audio={false}
                               ref={webcamRef}
                               forceScreenshotSourceSize={true}
@@ -756,7 +756,7 @@ function Photo() {
                               }}
                               screenshotFormat='image/jpeg'
                               className='photo-webcam'
-                         />)
+                         />) */
                          }
                     </div>
                </div>

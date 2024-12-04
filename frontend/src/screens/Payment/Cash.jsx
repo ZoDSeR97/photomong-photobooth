@@ -102,7 +102,7 @@ function Cash() {
     const startCashPayment = async () => {
       try {
         const framePrice = sessionStorage.getItem('sales');
-        setAmountToPay(framePrice);
+        setAmountToPay(Number(framePrice));
 
         const requestOptions = {
           method: "POST",
@@ -129,7 +129,7 @@ function Cash() {
       try {
         const deviceNumber = import.meta.env.VITE_REACT_APP_DEVICE_NUMBER;
         const framePrice = sessionStorage.getItem('sales');
-        setAmountToPay(framePrice);
+        setAmountToPay(Number(framePrice));
 
         if (sessionStorage.getItem('orderCodeNum')){
           setOrderCode(sessionStorage.getItem('orderCodeNum'));
@@ -168,27 +168,32 @@ function Cash() {
     }, []); */
 
   const checkPaymentStatus = useCallback(async () => {
+    if (insertedMoney >= amountToPay) {
+      return; // Exit early if payment is already complete
+    }
     try {
       const response = await fetch(`${import.meta.env.VITE_REACT_APP_API}/api/cash/status`)
       const responseData = await response.json();
-      setInsertedMoney(p => p<responseData.total_money? response.total_money:p);
+      setInsertedMoney(Number(responseData.total_money));
       sessionStorage.setItem("paid", responseData.total_money);
-      if (Number(responseData.total_money) >= Number(amountToPay)) {
+      if (Number(responseData.total_money) >= amountToPay) {
         setHoveredImage(done);
       }
     } catch (error) {
       console.error(error);
     }
-  },[amountToPay]);
+  },[amountToPay, insertedMoney]);
 
   useEffect(() => {
     const intervalId = setInterval(() => {
       const ooCode = sessionStorage.getItem('orderCodeNum');
-      if (ooCode && Number(insertedMoney) < Number(amountToPay)) {
+      if (ooCode && insertedMoney < amountToPay) {
         checkPaymentStatus();
+      } else if (insertedMoney >= amountToPay) {
+        // Stop the interval when payment is complete
+        clearInterval(intervalId);
       }
     }, 500);
-
     return () => clearInterval(intervalId);
   }, [amountToPay, insertedMoney, checkPaymentStatus]);
 
@@ -196,13 +201,17 @@ function Cash() {
     if(clicked)
       return;
 
-    if (orderCode && Number(insertedMoney) >= Number(amountToPay)) {
+    if (orderCode && insertedMoney >= amountToPay) {
       try {
         setClicked(true)
         playAudio("click_sound.wav")
         // Run both requests in parallel
         await Promise.all([
-          axios.post(`${import.meta.env.VITE_REACT_APP_API}/api/cash/reset`, {}),
+          axios.post(`${import.meta.env.VITE_REACT_APP_API}/api/cash/stop`, {})
+            .then(response => {
+              if (!response.ok) throw new Error('Network response was not ok');
+              axios.post(`${import.meta.env.VITE_REACT_APP_API}/api/cash/reset`, {});
+            }),
           fetch(`${import.meta.env.VITE_REACT_APP_BACKEND}/payments/api/cash/webhook?order=${orderCode}`)
             .then(response => {
               if (!response.ok) throw new Error('Network response was not ok');
@@ -212,6 +221,7 @@ function Cash() {
         // Navigate to payment result page only after both requests complete successfully
         navigate('/payment-result');
       } catch (error) {
+        setClicked(prev => prev? false: prev);
         console.error('Error during payment process:', error);
       }
     }
@@ -248,10 +258,9 @@ function Cash() {
   return (
     <div className='cash-container' style={{ backgroundImage: `url(${background})` }}>
       <div className="go-back" style={{ backgroundImage: `url(${goBackButton})`, top: `4.4%`, left: `6%` }} onClick={() => {
-        if (!clicked){
           playAudio("click_sound.wav")
           navigate("/payment")
-        }}} onMouseEnter={() => hoverGoBackButton(language)} onMouseLeave={() => handleMouseLeave(language)}></div>
+        }} onMouseEnter={() => hoverGoBackButton(language)} onMouseLeave={() => handleMouseLeave(language)}></div>
       <div className="paid-cash" style={{ backgroundImage: `url(${paidImage})` }}>
         <div className="paid-cash-text">{amountToPay}</div>
       </div>

@@ -501,7 +501,7 @@ def start_cash_payment():
     amount_to_pay = int(data.get('amount', 0))
     
     ser.write(b'RESET\n')
-    response = ser.readline().decode('utf-8').strip()
+    response = ser.readline().decode('utf-8').split(':').pop().strip()
     
     with lock:
         inserted_money = 0  # Reset the inserted money
@@ -550,7 +550,7 @@ def reset_bill_acceptor():
 @app.route('/api/cash/stop', methods=['POST'])
 def stop_cash_payment():
     ser.write(b'STOP\n')
-    response = ser.readline().decode('utf-8').strip()
+    response = ser.readline().decode('utf-8').split(':').pop().strip()
     logging.info("Cash payment stopped")
     return jsonify({"message": response}), 200
 

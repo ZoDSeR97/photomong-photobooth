@@ -799,7 +799,7 @@ function Sticker() {
                     "3-cutx2": {
                          calcedHeight: height / 5.3,
                          calcedWidth: (height / 5.3) * 1.02,
-                         xOffset: [17, 17 + (height / 5.3) * 1.02 + 10],
+                         xOffset: [17, 37 + (height / 5.3) * 1.02],
                          yOffset: 18,
                          chunkSize: 2,
                          extraImage: false,
@@ -813,9 +813,9 @@ function Sticker() {
                          extraImage: true,
                     },
                     "Stripx2": {
-                         calcedHeight: height / 6 + 28,
-                         calcedWidth: (height / 6 + 20) * 1.48,
-                         xOffset: [18, 6 + (height / 6 + 20) * 1.48 + 30],
+                         calcedHeight: height / 6 + 29,
+                         calcedWidth: (height / 6 + 21) * 1.48,
+                         xOffset: [18, 35 + (height / 6 + 20) * 1.48],
                          yOffset: 24.8,
                          chunkSize: 2,
                          extraImage: false,
@@ -824,7 +824,7 @@ function Sticker() {
                     "2cut-x2": {
                          calcedWidth: width / 2.2,
                          calcedHeight: (width / 2.2) * 1.13,
-                         xOffset: [19, 15 + width / 2.2 + 7],
+                         xOffset: [19, 22 + width / 2.2],
                          yOffset: 29.8,
                          chunkSize: 2,
                          
@@ -832,7 +832,7 @@ function Sticker() {
                     "4-cutx2": {
                          calcedHeight: height / 2.4,
                          calcedWidth: (height / 2.4) * 1.33,
-                         xOffset: [52, 52 + (height / 2.4) * 1.33 + 17],
+                         xOffset: [52, 69 + (height / 2.4) * 1.33],
                          yOffset: 24,
                          chunkSize: 2,
                          
