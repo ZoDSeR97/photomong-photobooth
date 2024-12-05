@@ -28,6 +28,7 @@
         <i class="mdi mdi-home menu-icon"></i>
       </a>
     </li>
+    {% if user.is_staff or user.is_superuser %}
     <li class="nav-item">
       <a class="nav-link" href="{% url 'redeems' %}">
         <span class="menu-title">Redeems</span>
@@ -45,7 +46,7 @@
         <span class="menu-title">Stores</span>
         <i class="mdi mdi-store menu-icon"></i>
       </a>
-    </li>    
+    </li>
     <li class="nav-item">
       <a class="nav-link" href="{% url 'devices' %}">
         <span class="menu-title">All Devices</span>
@@ -57,6 +58,7 @@
         <span class="menu-title">Setup Photomong</span>
         <i class="mdi mdi-cloud-check menu-icon"></i>
       </a>
-    </li>            
+    </li>
+    {% endif %}           
   </ul>
 </nav>
