@@ -209,7 +209,7 @@ function Cash() {
         await Promise.all([
           axios.post(`${import.meta.env.VITE_REACT_APP_API}/api/cash/stop`, {})
             .then(response => {
-              if (!response.ok) throw new Error('Network response was not ok');
+              if (!response.ok) throw new Error('Could not Stop Cash Reader');
               axios.post(`${import.meta.env.VITE_REACT_APP_API}/api/cash/reset`, {});
             }),
           fetch(`${import.meta.env.VITE_REACT_APP_BACKEND}/payments/api/cash/webhook?order=${orderCode}`)

@@ -170,7 +170,7 @@ class CameraManager:
 
                 if self.frame_queue.full():
                     self.frame_queue.get_nowait()
-                self.frame_queue.put_nowait(frame_rgb)
+                self.frame_queue.put_nowait(frame)
 
                 if VIDEO_WRITER_ACTIVE:
                     self._write_video_frame(frame_rgb)
@@ -208,6 +208,7 @@ class CameraManager:
         # Create a GIF writer
         frame = self.frame_queue.get_nowait() if not self.frame_queue.empty() else None
         if frame is not None:
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             height, width, _ = frame.shape
             with video_lock:
                 # Adjust duration as needed (e.g., 1/60 for 60 FPS)
