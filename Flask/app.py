@@ -542,7 +542,7 @@ def check_payment_status():
 def reset_bill_acceptor():
     ser.write(b'RESET\n')
     response = ser.readline().decode('utf-8').split(':').pop().strip()
-    while response != "RESET_OK":
+    while response != "RESET_OK" and ser.in_waiting > 0:
         response = ser.readline().decode('utf-8').split(':').pop().strip()
     logging.info("Bill acceptor reset")
     return jsonify({"message": response}), 200
