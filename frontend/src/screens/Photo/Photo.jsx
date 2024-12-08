@@ -271,25 +271,14 @@ function Photo() {
      const getLatestPhoto = async (currentPhotoCount) => {
           // console.log('currentPhotoCount>>>', currentPhotoCount)
           const photos = await getPhotos(uuid);
-          sessionStorage.setItem("getphotos", photos);
           console.log("photos: ", photos);
-          if (photos && photos.images && photos.images.length > 0) {
+          if (photos?.images?.length > 0) {
                const latestImage = photos.images[photos.images.length - 1];
                //const latestVideo = photos.videos[photos.videos.length - 1];
                console.log("latest image:", latestImage)
-               if (photos.videos != undefined) {
-                    if (photos.videos.length != 0) {
-                         const videoUrl = photos.videos[0].url
-                         // console.log('videoUrl>>>', videoUrl)
-                         sessionStorage.setItem("videoUrl", videoUrl)
-                    }
-
-               }
 
                // if retake photo            
                if (selectedReTakePhotos.length > 0) {
-                    // console.log('selectedReTakePhotos>>>', selectedReTakePhotos)
-
                     // get retake photo
                     const firstRetakePhoto = selectedReTakePhotos[0];
 
@@ -622,7 +611,7 @@ function Photo() {
      useEffect(() => {
           if (uuid && status === 'working' && cameraConnected) {
                const initializeLiveView = async () => {
-                    await startLiveView();
+                    await startLiveView(uuid);
                };
                initializeLiveView();
                startTimer();
@@ -667,49 +656,13 @@ function Photo() {
      };
 
      const getLiveStyle = () => {
-          const frame = JSON.parse(sessionStorage.getItem('selectedFrame')).frame;
-
-          if (frame === "6-cutx2") {
-               const baseStyle = {
-                    objectFit: "cover",
-                    position: "absolute",
-                    top: "15%", // Adjust this value to move the element down
-                    transform: "scaleX(-1)"
-               };
-               return { ...baseStyle, width: "714px", height: "700px", left: "12%" };
-          } else if (frame === "Stripx2") {
-               const baseStyle = {
-                    objectFit: "cover",
-                    position: "absolute",
-                    top: "20%", // Adjust this value to move the element down
-                    transform: "scaleX(-1)"
-               };
-               return { ...baseStyle, width: "882px", height: "600px", left: "2%" };
-          } else if (frame === "2cut-x2") {
-               const baseStyle = {
-                    objectFit: "cover",
-                    position: "absolute",
-                    top: "15%", // Adjust this value to move the element down
-                    transform: "scaleX(-1)"
-               };
-               return { ...baseStyle, width: "600px", height: "678px", left: "18%" };
-          } else if (frame === "4-cutx2") {
-               const baseStyle = {
-                    objectFit: "cover",
-                    position: "absolute",
-                    top: "20%", // Adjust this value to move the element down
-                    transform: "scaleX(-1)"
-               };
-               return { ...baseStyle, width: "798px", height: "600px", left: "6%" };
-          } else {
-               const baseStyle = {
-                    objectFit: "cover",
-                    position: "absolute",
-                    top: "15%", // Adjust this value to move the element down
-                    transform: "scaleX(-1)"
-               };
-               return { ...baseStyle, width: "714px", height: "700px", left: "12%" };
-          }
+          const baseStyle = {
+               objectFit: "cover",
+               position: "absolute",
+               top: "15%", // Adjust this value to move the element down
+               transform: "scaleX(-1)"
+          };
+          return { ...baseStyle, width: "882px", height: "700px", left: "12%" };
      };
 
      return (

@@ -76,9 +76,9 @@ export const sendCaptureReq = async (uuid, photoNum) => {
   return data;
 };
 
-export const startLiveView = async () => {
+export const startLiveView = async (uuid) => {
   try {
-    await axios.get('http://127.0.0.1:5000/api/start_live_view')
+    await axios.get(`http://127.0.0.1:5000/api/start_live_view?uuid=${uuid}`)
   } catch (error) {
     console.error('Failed to start live view:', error);
   }

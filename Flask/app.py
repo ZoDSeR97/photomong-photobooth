@@ -26,22 +26,17 @@ load_dotenv()  # take environment variables from .env.
 CORS(app, supports_credentials=True, resources={r"/*": {"origins": "*"}})
 
 # Globals
-frame_queue = queue.Queue(maxsize=180)
-LIVE_VIEW_ACTIVE = False
-VIDEO_WRITER_ACTIVE = False
-video_writer = None
-video_lock = threading.Lock()
-live_view_thread = None
 print_amount = 1
 check_coupon = 0
 inserted_money = 0
 amount_to_pay = 0
-lock = threading.Lock()  # For thread safety on shared resources
+cash_lock = threading.Lock()  # For thread safety on shared resources
 PREVIEW_INTERVAL = 0.0167  # 17ms between frames
 
 class CameraManager:
     def __init__(self):
         self.lock = threading.Lock()
+        self.video_lock = threading.Lock()
         self.camera = None
         self.context = None
         self.is_busy = False
@@ -49,8 +44,11 @@ class CameraManager:
         self.error_count = 0
         self.MAX_ERRORS = 5
         self.ERROR_TIMEOUT = 300  # 5 minutes timeout after max errors
-        self.frame_queue = frame_queue
+        self.frame_queue = queue.Queue(maxsize=180)
         self.gif_writer = None  # Added for GIF writing
+        self._thread = None
+        self._live_view_active = False
+        self._video_writer_active = False
         self.init_logging()
         self.initialize_camera()
 
@@ -150,39 +148,49 @@ class CameraManager:
 
     def start_live_view(self):
         """Start live view."""
-        global LIVE_VIEW_ACTIVE
-        LIVE_VIEW_ACTIVE = True
-        threading.Thread(target=self._enqueue_frames, daemon=True).start()
+        if not self._live_view_active:
+            self._live_view_active = True
+            self._thread = threading.Thread(target=self._enqueue_frames, daemon=True)
+            self._thread.start()
 
     def stop_live_view(self):
         """Stop live view."""
-        global LIVE_VIEW_ACTIVE
-        LIVE_VIEW_ACTIVE = False
+        if self._live_view_active:
+            self._live_view_active = False
+            if self._thread:
+                self._thread.join()  # Wait for the thread to finish cleanly
+            try:
+                while not self.frame_queue.empty():
+                    self.frame_queue.get_nowait()
+            except queue.Empty:
+                logging.error(f"Queue is empty: {e}")
 
     def _enqueue_frames(self):
         """Fetch frames for live view."""
-        while LIVE_VIEW_ACTIVE:
+        while self._live_view_active:
             try:
                 preview_file = self.camera.capture_preview(self.context)
                 preview_data = preview_file.get_data_and_size()
                 frame = cv2.imdecode(np.frombuffer(preview_data, np.uint8), cv2.IMREAD_COLOR)
-                frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)  # Convert BGR to RGB
+                if frame is not None:
+                    frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)  # Convert BGR to RGB
 
-                if self.frame_queue.full():
-                    self.frame_queue.get_nowait()
-                self.frame_queue.put_nowait(frame)
+                    if self.frame_queue.full():
+                        self.frame_queue.get_nowait()  # Remove the oldest frame
+                    self.frame_queue.put(frame)
 
-                if VIDEO_WRITER_ACTIVE:
-                    self._write_video_frame(frame_rgb)
+                    if self._video_writer_active:
+                        self._write_video_frame(frame_rgb)
 
                 time.sleep(PREVIEW_INTERVAL)
             except gp.GPhoto2Error as e:
-                logging.error(f"Error in live view: {e}")
-                continue
-    
+                logging.error(f"GPhoto2Error in live view: {e}")
+            except Exception as e:
+                logging.error(f"Unexpected error in live view: {e}")
+
     def generate_frames(self):
         """Generate frames for live view."""
-        while True:
+        while self._live_view_active:
             try:
                 frame = self.frame_queue.get_nowait()
                 _, buffer = cv2.imencode('.jpg', frame)
@@ -192,15 +200,13 @@ class CameraManager:
 
     def _write_video_frame(self, frame):
         """Write frame to the GIF file."""
-        global gif_writer
-        with video_lock:
-            if gif_writer is not None:
-                gif_writer.append_data(frame)
+        with self.video_lock:
+            if self.gif_writer is not None:
+                self.gif_writer.append_data(frame)
 
     def start_video_recording(self, uuid):
         """Start video recording as a GIF."""
-        global gif_writer, VIDEO_WRITER_ACTIVE
-        VIDEO_WRITER_ACTIVE = True
+        self._video_writer_active = True
         current_directory = os.path.dirname(os.path.abspath(__file__))
         date_str = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
         filename = os.path.join(current_directory, f'{uuid}/{date_str}.gif')
@@ -210,24 +216,24 @@ class CameraManager:
         if frame is not None:
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             height, width, _ = frame.shape
-            with video_lock:
+            with self.video_lock:
                 # Adjust duration as needed (e.g., 1/60 for 60 FPS)
-                gif_writer = imageio.get_writer(filename, mode='I', duration=1/60)
+                self.gif_writer = imageio.get_writer(filename, mode='I', duration=1/60)
                 logging.info(f"Recording GIF to {filename}")
+        else:
+            logging.info("No frames available for GIF recording.")
 
     def stop_video_recording(self):
         """Stop GIF recording."""
-        global gif_writer, VIDEO_WRITER_ACTIVE
-        VIDEO_WRITER_ACTIVE = False
-        with video_lock:
-            if gif_writer is not None:
-                gif_writer.close()
-                gif_writer = None
+        self._video_writer_active = False
+        with self.video_lock:
+            if self.gif_writer is not None:
+                self.gif_writer.close()
+                self.gif_writer = None
                 logging.info("GIF recording stopped.")
 
     def capture_image(self, uuid, retries=5):
         """Capture an image and save it as PNG."""
-        global VIDEO_WRITER_ACTIVE
         self.stop_live_view()
         if self.error_count >= self.MAX_ERRORS and time.time() - self.last_error_time < self.ERROR_TIMEOUT:
             return {'status': 'error', 'message': 'Camera in recovery timeout'}
@@ -293,7 +299,7 @@ camera_manager = CameraManager()
 def find_arduino_port():
     ports = list(serial.tools.list_ports.comports())
     for p in ports:
-        if 'Arduino' in p.description:
+        if 'Arduino' in p.description or 'USB Serial' in p.description:
             return p.device
     return None
 
@@ -303,7 +309,7 @@ def video_feed():
 
 @app.route('/api/start_live_view', methods=['GET'])
 def start_live_view():
-    if not LIVE_VIEW_ACTIVE:
+    if not camera_manager._live_view_active:
         camera_manager.start_live_view()
         # request.args.get('uuid')
         # camera_manager.start_video_recording(uuid)
@@ -504,7 +510,7 @@ def start_cash_payment():
     ser.write(b'RESET\n')
     response = ser.readline().decode('utf-8').split(':').pop().strip()
     
-    with lock:
+    with cash_lock:
         inserted_money = 0  # Reset the inserted money
 
     return jsonify({"message": "Cash payment started"}), 200
@@ -516,7 +522,7 @@ def check_payment_status():
     baseV = 10000
     if (os.getenv('REGION')) == 'MN':
         baseV = 1000
-    with lock:  # Ensure thread-safe access to the serial port
+    with cash_lock:  # Ensure thread-safe access to the serial port
         try:
             ser.write(b'CHECK\n')
             line = ser.readline().decode('utf-8').split(':').pop().strip()
@@ -572,16 +578,15 @@ if __name__ == '__main__':
             logging.info(f"Arduino connected on {arduino_port}")
         else:
             logging.error("Arduino not found. Please check the connection.")
-            sys.exit("Arduino not found") 
 
         app.run(host='0.0.0.0', port=5000, threaded=True)
     except Exception as e:
         print(str(e))
     finally:
         try:
-            if VIDEO_WRITER_ACTIVE:
+            if camera_manager._video_writer_active:
                 camera_manager.stop_video_recording()
-            if LIVE_VIEW_ACTIVE:
+            if camera_manager._live_view_active:
                 camera_manager.stop_live_view()
             if camera_manager.camera:
                 camera_manager.camera.exit()

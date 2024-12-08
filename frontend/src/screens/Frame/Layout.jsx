@@ -103,7 +103,7 @@ function Layout() {
                // Use async function to load the image dynamically
                const loadImage = async () => {
                     const path = languagePathMap[storedLanguage] || languagePathMap.default;
-                    layoutBg = (await import(path)).default; // Use .default to access the imported image
+                    layoutBg = path; // Use .default to access the imported image
                     setLayoutBackground(layoutBg);
                };
 
@@ -198,6 +198,7 @@ function Layout() {
      const goToPayment = () => {
 
           if (confirmClick === confirmButton) {
+               playAudio("click_sound.wav")
                const selectedLayouts = []
 
                for (let i = 0; i < layouts.length; i++) {

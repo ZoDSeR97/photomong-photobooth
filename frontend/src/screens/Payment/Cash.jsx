@@ -207,7 +207,6 @@ function Cash() {
         playAudio("click_sound.wav")
         // Run both requests in parallel
         await Promise.all([
-          axios.post(`${import.meta.env.VITE_REACT_APP_API}/api/cash/stop`, {}),
           axios.post(`${import.meta.env.VITE_REACT_APP_API}/api/cash/reset`, {}),
           fetch(`${import.meta.env.VITE_REACT_APP_BACKEND}/payments/api/cash/webhook?order=${orderCode}`)
             .then(response => {

@@ -839,8 +839,8 @@ function Sticker() {
                     },
                     default: {
                          calcedHeight: width / 2.3,
-                         calcedWidth: (width / 2.3) * 1,
-                         xOffset: [18, 24 + (width / 2.3) * 1.0],
+                         calcedWidth: (width / 1.8) * 1,
+                         xOffset: [8, 14 + (width / 2.3) * 1.0],
                          yOffset: 20,
                          chunkSize: 2,
                          
@@ -869,12 +869,12 @@ function Sticker() {
                               );
                               return (
                                    <KonvaImage
-                                        crop={{
+                                        /* crop={{
                                              x: crop.x,
                                              y: crop.y,
                                              width: crop.width,
                                              height: crop.height,
-                                        }}
+                                        }} */
                                         width={calcedWidth * ratio}
                                         height={calcedHeight * ratio}
                                         x={x * ratio}

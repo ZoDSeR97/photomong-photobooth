@@ -4,7 +4,7 @@ echo Searching for Arduino...
 set "arduinoBusid="
 
 REM Search for Arduino
-for /f "tokens=1,2,* delims= " %%a in ('usbipd list ^| findstr /C:"Arduino"') do (
+for /f "tokens=1,2,* delims= " %%a in ('usbipd list ^| findstr /C:"Arduino" /C:"CH340"') do (
     set "arduinoBusid=%%a"
     set "arduinoDevicename=%%b %%c"
     REM Only set busid if it's not in GUID format
