@@ -49,6 +49,7 @@ class CameraManager:
         self._thread = None
         self._live_view_active = False
         self._video_writer_active = False
+        self.session = False
         self.init_logging()
         self.initialize_camera()
 
@@ -145,6 +146,12 @@ class CameraManager:
         except gp.GPhoto2Error as e:
             logging.error(f"Failed to recover camera: {str(e)}")
             return False
+    
+    def start_session(self):
+        self.session = True
+
+    def stop_session(self):
+        self.session = False
 
     def start_live_view(self):
         """Start live view."""
@@ -158,13 +165,15 @@ class CameraManager:
         if self._live_view_active:
             self._live_view_active = False
             if self._thread:
-                self._thread.join()  # Wait for the thread to finish cleanly
+                self._thread.join()
+                self._thread = None
             try:
                 while not self.frame_queue.empty():
                     self.frame_queue.get_nowait()
             except queue.Empty:
                 logging.error(f"Queue is empty: {e}")
-
+                pass
+           
     def _enqueue_frames(self):
         """Fetch frames for live view."""
         while self._live_view_active:
@@ -172,15 +181,14 @@ class CameraManager:
                 preview_file = self.camera.capture_preview(self.context)
                 preview_data = preview_file.get_data_and_size()
                 frame = cv2.imdecode(np.frombuffer(preview_data, np.uint8), cv2.IMREAD_COLOR)
-                if frame is not None:
-                    frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)  # Convert BGR to RGB
 
-                    if self.frame_queue.full():
-                        self.frame_queue.get_nowait()  # Remove the oldest frame
-                    self.frame_queue.put(frame)
+                if self.frame_queue.full():
+                    self.frame_queue.get_nowait()  # Remove the oldest frame
+                self.frame_queue.put(frame)
 
-                    if self._video_writer_active:
-                        self._write_video_frame(frame_rgb)
+                frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)  # Convert BGR to RGB
+                if self._video_writer_active:
+                    self._write_video_frame(frame_rgb)
 
                 time.sleep(PREVIEW_INTERVAL)
             except gp.GPhoto2Error as e:
@@ -190,13 +198,14 @@ class CameraManager:
 
     def generate_frames(self):
         """Generate frames for live view."""
-        while self._live_view_active:
-            try:
-                frame = self.frame_queue.get_nowait()
-                _, buffer = cv2.imencode('.jpg', frame)
-                yield (b'--frame\r\nContent-Type: image/jpeg\r\n\r\n' + buffer.tobytes() + b'\r\n\r\n')
-            except queue.Empty:
-                continue
+        while self.session:
+            if self._live_view_active:
+                try:
+                    frame = self.frame_queue.get_nowait()
+                    _, buffer = cv2.imencode('.jpg', frame)
+                    yield (b'--frame\r\nContent-Type: image/jpeg\r\n\r\n' + buffer.tobytes() + b'\r\n\r\n')
+                except queue.Empty:
+                    continue
 
     def _write_video_frame(self, frame):
         """Write frame to the GIF file."""
@@ -305,6 +314,7 @@ def find_arduino_port():
 
 @app.route('/api/video_feed')
 def video_feed():
+    camera_manager.start_session()
     return Response(camera_manager.generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @app.route('/api/start_live_view', methods=['GET'])
@@ -317,6 +327,7 @@ def start_live_view():
 
 @app.route('/api/stop_live_view', methods=['GET'])
 def stop_live_view():
+    camera_manager.stop_session()
     camera_manager.stop_video_recording()
     camera_manager.stop_live_view()
     return jsonify(status="Live view and video recording stopped")

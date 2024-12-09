@@ -241,7 +241,7 @@ function Photo() {
                setCountdown((prevCountdown) => {
                     setTakeAgainButtonUrl(take_again_button_inactive);
                     if (prevCountdown > 0) {
-                         if (prevCountdown === 4) 
+                         if (prevCountdown === 5) 
                               playCntSound();
                          return prevCountdown - 1;
                     } else {
@@ -597,7 +597,7 @@ function Photo() {
           if (!cameraConnected) {
                const timer = setInterval(() => {
                     if (countdown > 0) {
-                         if (countdown === 4)
+                         if (countdown === 5)
                               playCntSound();
                          setCountdown(countdown - 1);
                     } else {
@@ -611,7 +611,7 @@ function Photo() {
      useEffect(() => {
           if (uuid && status === 'working' && cameraConnected) {
                const initializeLiveView = async () => {
-                    await startLiveView(uuid);
+                    await startLiveView(uuid).then(response => console.log(response));
                };
                initializeLiveView();
                startTimer();
@@ -662,7 +662,7 @@ function Photo() {
                top: "15%", // Adjust this value to move the element down
                transform: "scaleX(-1)"
           };
-          return { ...baseStyle, width: "882px", height: "700px", left: "12%" };
+          return { ...baseStyle, width: "882px", height: "700px", left: "2%" };
      };
 
      return (
