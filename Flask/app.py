@@ -49,7 +49,6 @@ class CameraManager:
         self._thread = None
         self._live_view_active = False
         self._video_writer_active = False
-        self.session = False
         self.init_logging()
         self.initialize_camera()
 
@@ -146,12 +145,6 @@ class CameraManager:
         except gp.GPhoto2Error as e:
             logging.error(f"Failed to recover camera: {str(e)}")
             return False
-    
-    def start_session(self):
-        self.session = True
-
-    def stop_session(self):
-        self.session = False
 
     def start_live_view(self):
         """Start live view."""
@@ -167,12 +160,7 @@ class CameraManager:
             if self._thread:
                 self._thread.join()
                 self._thread = None
-            try:
-                while not self.frame_queue.empty():
-                    self.frame_queue.get_nowait()
-            except queue.Empty:
-                logging.error(f"Queue is empty: {e}")
-                pass
+                self.frame_queue = queue.Queue(maxsize=180)
            
     def _enqueue_frames(self):
         """Fetch frames for live view."""
@@ -198,7 +186,7 @@ class CameraManager:
 
     def generate_frames(self):
         """Generate frames for live view."""
-        while self.session:
+        while True:
             if self._live_view_active:
                 try:
                     frame = self.frame_queue.get_nowait()
@@ -314,7 +302,6 @@ def find_arduino_port():
 
 @app.route('/api/video_feed')
 def video_feed():
-    camera_manager.start_session()
     return Response(camera_manager.generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @app.route('/api/start_live_view', methods=['GET'])
@@ -327,7 +314,6 @@ def start_live_view():
 
 @app.route('/api/stop_live_view', methods=['GET'])
 def stop_live_view():
-    camera_manager.stop_session()
     camera_manager.stop_video_recording()
     camera_manager.stop_live_view()
     return jsonify(status="Live view and video recording stopped")

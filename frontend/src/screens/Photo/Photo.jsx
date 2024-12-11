@@ -541,7 +541,7 @@ function Photo() {
                // log capturePhotos id
                // console.log("Capture photos >>", capturePhotos.map(photo => photo.id));
 
-               const result = await copyImageApi();
+               // const result = await copyImageApi();
                await fetch(`${import.meta.env.VITE_REACT_APP_API}/api/stop_live_view`)
                navigate("/photo-choose");
           }
