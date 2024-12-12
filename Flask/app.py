@@ -43,7 +43,7 @@ class CameraManager:
         self.last_error_time = None
         self.error_count = 0
         self.MAX_ERRORS = 5
-        self.ERROR_TIMEOUT = 300  # 5 minutes timeout after max errors
+        self.ERROR_TIMEOUT = 60  # 1 minute timeout after max errors
         self.frame_queue = queue.Queue(maxsize=180)
         self.gif_writer = None  # Added for GIF writing
         self._thread = None

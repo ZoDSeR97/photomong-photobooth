@@ -103,11 +103,14 @@ function Photo() {
      }, []);
 
      const handleRetakePhoto = (selectedId) => {
+          if (capturePhotos.length < totalSnapshotPhoto)
+               return
           // console.log('Selected retake:', selectedId);
           setTakeAgainButtonUrl(take_again_button);
 
           // only set one item selectedID for retake
           setSelectedReTakePhotos([selectedId]);
+          setPhotoCount(prev => prev-1)
      };
 
      const sleep = (ms) => {
@@ -197,7 +200,7 @@ function Photo() {
           return className;
      };
 
-     const takePhoto = useCallback(() => {
+     /* const takePhoto = useCallback(() => {
           setFlash(true);
           setCapturing(true);
           const imageSrc = webcamRef.current.getScreenshot();
@@ -220,7 +223,7 @@ function Photo() {
           } else {
                setCountdown(5);
           }
-     },[webphotos, photoCount, totalSnapshotPhoto, navigate]);
+     },[webphotos, photoCount, totalSnapshotPhoto, navigate]); */
 
      const takeSnapshot = useCallback(async () => {
           await sleep(100);
@@ -515,7 +518,7 @@ function Photo() {
      }, [photoCount, uuid, cameraConnected]);
 
      useEffect(() => {
-          if (capturePhotos.length > 0 && capturePhotos.length === totalSnapshotPhoto && selectedReTakePhotos.length === 0) {
+          if (capturePhotos.length > 0 && capturePhotos.length >= totalSnapshotPhoto && selectedReTakePhotos.length < 1) {
                sessionStorage.setItem("uuid", uuid);
                setStatus("done");
                setOkButtonUrl(ok_button);
@@ -564,11 +567,6 @@ function Photo() {
           }
      }, []);
 
-
-     const togglePreviewSet = () => {
-          setShowFirstSet((prevShowFirstSet) => !prevShowFirstSet);
-     };
-
      const displayClassNameForBackground = () => {
           if (selectedFrame === '2cut-x2') {
                return 'right-choose-photos-2cut';
@@ -593,7 +591,7 @@ function Photo() {
           }
      };
 
-     useEffect(() => {
+     /* useEffect(() => {
           if (!cameraConnected) {
                const timer = setInterval(() => {
                     if (countdown > 0) {
@@ -606,7 +604,7 @@ function Photo() {
                }, 1000);
                return () => clearInterval(timer); // Cleanup timer on unmount
           }
-     }, [cameraConnected, countdown, takePhoto]);
+     }, [cameraConnected, countdown, takePhoto]); */
 
      useEffect(() => {
           if (uuid && status === 'working' && cameraConnected) {
