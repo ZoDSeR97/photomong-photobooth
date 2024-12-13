@@ -110,7 +110,6 @@ function Photo() {
 
           // only set one item selectedID for retake
           setSelectedReTakePhotos([selectedId]);
-          setPhotoCount(prev => prev-1)
      };
 
      const sleep = (ms) => {
