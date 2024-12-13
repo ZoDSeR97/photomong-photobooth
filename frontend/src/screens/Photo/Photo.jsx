@@ -518,7 +518,7 @@ function Photo() {
      }, [photoCount, uuid, cameraConnected]);
 
      useEffect(() => {
-          if (capturePhotos.length > 0 && capturePhotos.length >= totalSnapshotPhoto && selectedReTakePhotos.length < 1) {
+          if (capturePhotos.length > 0 && photoCount >= totalSnapshotPhoto && selectedReTakePhotos.length < 1) {
                sessionStorage.setItem("uuid", uuid);
                setStatus("done");
                setOkButtonUrl(ok_button);
