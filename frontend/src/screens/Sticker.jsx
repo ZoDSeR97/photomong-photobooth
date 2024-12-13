@@ -868,13 +868,24 @@ function Sticker() {
                                    { width: calcedWidth, height: calcedHeight }
                               );
                               return (
+                                   selectedFrame === '2cut-x2'?
                                    <KonvaImage
-                                        /* crop={{
+                                        crop={{
                                              x: crop.x,
                                              y: crop.y,
                                              width: crop.width,
                                              height: crop.height,
-                                        }} */
+                                        }}
+                                        width={calcedWidth * ratio}
+                                        height={calcedHeight * ratio}
+                                        x={x * ratio}
+                                        y={y * ratio}
+                                        image={tag}
+                                        key={`${rowIndex}-${photoIndex}`}
+                                        scaleX={scaleX}
+                                   />
+                                   :
+                                   <KonvaImage
                                         width={calcedWidth * ratio}
                                         height={calcedHeight * ratio}
                                         x={x * ratio}
