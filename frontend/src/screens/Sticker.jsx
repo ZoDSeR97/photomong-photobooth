@@ -822,7 +822,7 @@ function Sticker() {
                          
                     },
                     "2cut-x2": {
-                         calcedWidth: width / 22,
+                         calcedWidth: width / 2.2,
                          calcedHeight: (width / 1.96),
                          xOffset: [16, 14 + width / 2.1],
                          yOffset: 31,
