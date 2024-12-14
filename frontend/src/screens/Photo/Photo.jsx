@@ -103,7 +103,7 @@ function Photo() {
      }, []);
 
      const handleRetakePhoto = (selectedId) => {
-          if (capturePhotos.length < totalSnapshotPhoto)
+          if (capturePhotos.length < totalSnapshotPhoto || selectedReTakePhotos.length > 0)
                return
           // console.log('Selected retake:', selectedId);
           setTakeAgainButtonUrl(take_again_button);
