@@ -148,23 +148,23 @@ class CameraManager:
 
     def start_live_view(self):
         """Start live view."""
-        if not self._live_view_active:
-            self._live_view_active = True
-            self._thread = threading.Thread(target=self._enqueue_frames, daemon=True)
-            self._thread.start()
+        self.stop_live_view()
+    
+        self.frame_queue = queue.Queue(maxsize=180)
+        self._live_view_lock.set()
+        
+        self._live_view_thread = threading.Thread(target=self._enqueue_frames, daemon=True)
+        self._live_view_thread.start()
 
     def stop_live_view(self):
         """Stop live view."""
-        if self._live_view_active:
-            self._live_view_active = False
-            if self._thread:
-                self._thread.join()
-                self._thread = None
-                self.frame_queue = queue.Queue(maxsize=180)
+        self._live_view_lock.clear()
+        if self._live_view_thread and self._live_view_thread.is_alive():
+            self._live_view_thread.join(timeout=2)  # Prevent indefinite waiting
            
     def _enqueue_frames(self):
         """Fetch frames for live view."""
-        while self._live_view_active:
+        while self._live_view_lock.is_set():
             try:
                 preview_file = self.camera.capture_preview(self.context)
                 preview_data = preview_file.get_data_and_size()
@@ -306,10 +306,9 @@ def video_feed():
 
 @app.route('/api/start_live_view', methods=['GET'])
 def start_live_view():
-    if not camera_manager._live_view_active:
-        camera_manager.start_live_view()
-        # request.args.get('uuid')
-        # camera_manager.start_video_recording(uuid)
+    camera_manager.start_live_view()
+    # request.args.get('uuid')
+    # camera_manager.start_video_recording(uuid)
     return jsonify(status="Live view and video recording started")
 
 @app.route('/api/stop_live_view', methods=['GET'])
