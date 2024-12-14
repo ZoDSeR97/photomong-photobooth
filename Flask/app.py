@@ -39,16 +39,16 @@ class CameraManager:
         self.video_lock = threading.Lock()
         self.camera = None
         self.context = None
+        self.gif_writer = None  # Added for GIF writing
         self.is_busy = False
+        self._video_writer_active = False
         self.last_error_time = None
         self.error_count = 0
-        self.MAX_ERRORS = 5
-        self.ERROR_TIMEOUT = 15  # 15 seconds timeout after max errors
-        self.frame_queue = queue.Queue(maxsize=180)
-        self.gif_writer = None  # Added for GIF writing
-        self._thread = None
-        self._live_view_active = False
-        self._video_writer_active = False
+        self.MAX_ERRORS = 3
+        self.ERROR_TIMEOUT = 15  # 15s timeout after max errors
+        self.frame_queue =  queue.Queue(maxsize=180)
+        self._live_view_thread = None
+        self._live_view_lock = threading.Event()  # More robust thread control
         self.init_logging()
         self.initialize_camera()
 
@@ -147,21 +147,26 @@ class CameraManager:
             return False
 
     def start_live_view(self):
-        """Start live view."""
+        """Safely start live view."""
         self.stop_live_view()
-    
-        self.frame_queue = queue.Queue(maxsize=180)
+        
+        while not self.frame_queue.empty():
+            try:
+                self.frame_queue.get_nowait()
+            except queue.Empty:
+                break
         self._live_view_lock.set()
         
         self._live_view_thread = threading.Thread(target=self._enqueue_frames, daemon=True)
         self._live_view_thread.start()
 
     def stop_live_view(self):
-        """Stop live view."""
+        """Safely stop live view."""
         self._live_view_lock.clear()
+        
         if self._live_view_thread and self._live_view_thread.is_alive():
-            self._live_view_thread.join(timeout=2)  # Prevent indefinite waiting
-           
+            self._live_view_thread.join(timeout=1)  # Prevent indefinite waiting
+
     def _enqueue_frames(self):
         """Fetch frames for live view."""
         while self._live_view_lock.is_set():
@@ -170,30 +175,35 @@ class CameraManager:
                 preview_data = preview_file.get_data_and_size()
                 frame = cv2.imdecode(np.frombuffer(preview_data, np.uint8), cv2.IMREAD_COLOR)
 
-                if self.frame_queue.full():
-                    self.frame_queue.get_nowait()  # Remove the oldest frame
-                self.frame_queue.put(frame)
+                # Use non-blocking put with timeout
+                try:
+                    self.frame_queue.put(frame, block=False)
+                except queue.Full:
+                    self.frame_queue.get_nowait()
+                    self.frame_queue.put(frame, block=False)
 
-                frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)  # Convert BGR to RGB
                 if self._video_writer_active:
+                    frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)  # Convert BGR to RGB
                     self._write_video_frame(frame_rgb)
 
                 time.sleep(PREVIEW_INTERVAL)
             except gp.GPhoto2Error as e:
-                logging.error(f"GPhoto2Error in live view: {e}")
+                logging.error(f"Error in live view: {e}")
+                # Add a small delay to prevent rapid error logging
+                time.sleep(1)
             except Exception as e:
-                logging.error(f"Unexpected error in live view: {e}")
-
+                logging.error(f"Unexpected error: {e}")
+                break
+    
     def generate_frames(self):
         """Generate frames for live view."""
         while True:
-            if self._live_view_active:
-                try:
-                    frame = self.frame_queue.get_nowait()
-                    _, buffer = cv2.imencode('.jpg', frame)
-                    yield (b'--frame\r\nContent-Type: image/jpeg\r\n\r\n' + buffer.tobytes() + b'\r\n\r\n')
-                except queue.Empty:
-                    continue
+            try:
+                frame = self.frame_queue.get()
+                _, buffer = cv2.imencode('.jpg', frame)
+                yield (b'--frame\r\nContent-Type: image/jpeg\r\n\r\n' + buffer.tobytes() + b'\r\n\r\n')
+            except queue.Empty:
+                continue
 
     def _write_video_frame(self, frame):
         """Write frame to the GIF file."""
@@ -574,7 +584,6 @@ if __name__ == '__main__':
             logging.info(f"Arduino connected on {arduino_port}")
         else:
             logging.error("Arduino not found. Please check the connection.")
-
         app.run(host='0.0.0.0', port=5000, threaded=True)
     except Exception as e:
         print(str(e))
@@ -582,8 +591,7 @@ if __name__ == '__main__':
         try:
             if camera_manager._video_writer_active:
                 camera_manager.stop_video_recording()
-            if camera_manager._live_view_active:
-                camera_manager.stop_live_view()
+            camera_manager.stop_live_view()
             if camera_manager.camera:
                 camera_manager.camera.exit()
         except Exception as e:
