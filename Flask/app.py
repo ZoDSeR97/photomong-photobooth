@@ -404,7 +404,7 @@ def switch_printer(printer_model, frame_type):
         return jsonify({'error': 'No selected file'}), 400
 
     safe_filename = werkzeug.utils.secure_filename(file.filename)
-    temp_dir = os.path.join(f"{os.getcwd()}/print_files")
+    temp_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "print_files")
     file_path = os.path.join(temp_dir, safe_filename)
     file_path = file_path.replace('/','\\')
     print(file_path)
@@ -426,7 +426,7 @@ def switch_printer(printer_model, frame_type):
 def print_photo():
     try:
         print("print_photo")
-        folder_path = os.path.join(f"{os.getcwd()}/print_files")
+        folder_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "print_files")
         folder_path = os.path.abspath(folder_path)
         print(folder_path)
         if not os.path.exists(folder_path):
