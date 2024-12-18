@@ -360,7 +360,7 @@ def download_file():
             {
                 'id': idx, 
                 'url': f"http://{request.host}/api/get_photo/uploads"+os.path.join(f"/{uuid}", image.replace("\\","/"))
-            } for idx, image in enumerate(sorted(videos, key=lambda x: datetime.strptime(x.removesuffix('.mp4'), '%Y-%m-%d-%H-%M-%S')))
+            } for idx, image in enumerate(sorted(videos, key=lambda x: datetime.strptime(x.removesuffix('.gif'), '%Y-%m-%d-%H-%M-%S')))
         ]
 
         return jsonify({'status': 'success', 'images': image_urls, 'video':video_urls})
