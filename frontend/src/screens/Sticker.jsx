@@ -112,14 +112,12 @@ function Sticker() {
      const [tempImage, setTempImage] = useState();
      const [stageRefs, setStageRefs] = useState([]);
      const [isRendered, setIsRendered] = useState(false);
+     const [isLayerRendered, setIsLayerRendered] = useState(false);
      const [frameSize, setFrameSize] = useState({
           width: "",
           height: ""
      });
 
-     function getPrintRatio() {
-          return 5;
-     }
      const chunkArray = (arr, size) => {
           return arr.reduce((acc, _, i) => (i % size ? acc : [...acc, arr.slice(i, i + size)]), []);
      };
@@ -207,7 +205,6 @@ function Sticker() {
           // Retrieve selected frame from session storage
           const storedSelectedFrame = JSON.parse(sessionStorage.getItem('selectedFrame'));
           if (storedSelectedFrame) {
-
                setSelectedFrame(storedSelectedFrame.frame);
           }
      }, []);
@@ -235,7 +232,7 @@ function Sticker() {
 
      const addStickerToPanel = ({ bgIdx, src, width, x, y }) => {
           const uiRatio = 1; // UI용 스티커 배율
-          const printRatio = getPrintRatio(); // 프린트용 스티커 배율
+          const printRatio = 5; // 프린트용 스티커 배율
 
           const item = {
                width: width,
@@ -794,6 +791,15 @@ function Sticker() {
      const showKonvaImgLayout = useCallback((selectedFrame, width, height, imgTag, ratio) => {
                if (!imgTag.length) return <></>;
 
+               let renderCount = 0;
+
+               const handleImageLoad = () => {
+                    renderCount += 1;
+                    if (renderCount === imgTag.length) {
+                         setIsRendered(true); // Notify completion
+                    }
+               };
+
                // Frame configurations
                const frameConfigs = {
                     "3-cutx2": {
@@ -827,7 +833,7 @@ function Sticker() {
                          xOffset: [16, 14 + width / 2.1],
                          yOffset: 31,
                          chunkSize: 2,
-                         
+                         extraImage: false,
                     },
                     "4-cutx2": {
                          calcedHeight: height / 2.4,
@@ -835,7 +841,7 @@ function Sticker() {
                          xOffset: [52, 69 + (height / 2.4) * 1.33],
                          yOffset: 24,
                          chunkSize: 2,
-                         
+                         extraImage: false,
                     },
                     default: {
                          calcedHeight: width / 2.3,
@@ -843,7 +849,7 @@ function Sticker() {
                          xOffset: [8, 14 + (width / 2.3) * 1.0],
                          yOffset: 20,
                          chunkSize: 2,
-                         
+                         extraImage: false,
                     },
                };
 
@@ -867,6 +873,10 @@ function Sticker() {
                                    { width: tag.width, height: tag.height },
                                    { width: calcedWidth, height: calcedHeight }
                               );
+                              // Load image using the native Image object
+                              const imageObj = new window.Image();
+                              imageObj.src = tag.src;
+                              imageObj.onload = handleImageLoad;
                               return (
                                    selectedFrame === '2cut-x2'?
                                    <KonvaImage
@@ -880,7 +890,7 @@ function Sticker() {
                                         height={calcedHeight * ratio}
                                         x={x * ratio}
                                         y={y * ratio}
-                                        image={tag}
+                                        image={imageObj}
                                         key={`${rowIndex}-${photoIndex}`}
                                         scaleX={scaleX}
                                    />
@@ -890,7 +900,7 @@ function Sticker() {
                                         height={calcedHeight * ratio}
                                         x={x * ratio}
                                         y={y * ratio}
-                                        image={tag}
+                                        image={imageObj}
                                         key={`${rowIndex}-${photoIndex}`}
                                         scaleX={scaleX}
                                    />
@@ -901,25 +911,37 @@ function Sticker() {
                     <>
                          {renderImages()}
                          {extraImage && (
-                              <KonvaImage
-                                   width={calcedWidth * 2 + 10}
-                                   height={calcedHeight}
-                                   x={xOffset[0]}
-                                   y={yOffset + 2 * (calcedHeight + 10)}
-                                   image={imgTag[chunkSize]}
-                              />
+                              () => {
+                                   const imageObj = new window.Image();
+                                   imageObj.src = imgTag[chunkSize].src;
+                                   imageObj.onload = handleImageLoad;
+
+                                   return (
+                                        <KonvaImage
+                                             width={calcedWidth * 2 + 10}
+                                             height={calcedHeight}
+                                             x={xOffset[0]}
+                                             y={yOffset + 2 * (calcedHeight + 10)}
+                                             image={imageObj}
+                                        />
+                                   );
+                              }
                          )}
                     </>
                );
           },
-          [selectedFrame, width, height, tempImage]
+          []
      );
 
-     useEffect(()=>{
-          setIsRendered(false);
-          const timer = setTimeout(()=>setIsRendered(true),0);
-          return () => clearTimeout(timer)
-     }, [selectedFrame, width, height, tempImage])
+     useEffect(() => {
+          // Check if all necessary images are loaded
+          const allImagesLoaded =
+               backgroundList[bgIdx] &&
+               tempImage &&
+               layoutList[bgIdx];
+
+          setIsLayerRendered(allImagesLoaded);
+     }, [selectedFrame, width, height, tempImage, backgroundList, layoutList, bgIdx])
 
      useEffect(() => {
           const smallRatio = 0.8;
@@ -951,7 +973,7 @@ function Sticker() {
      };
      // 670번째 줄
      const updateStickerPositionAndSize = (index, newX, newY, newWidth, newHeight) => {
-          const printRatio = getPrintRatio()
+          const printRatio = 5
           setImages((currentImages) => {
                const newImages = [...currentImages];
                newImages[bgIdx][index] = {
@@ -1029,8 +1051,8 @@ function Sticker() {
                {/* 프린트용 */}
                <div className='print'>
                     <Stage
-                         width={frameSize.width * getPrintRatio()}
-                         height={frameSize.height * getPrintRatio()}
+                         width={frameSize.width * 5}
+                         height={frameSize.height * 5}
                          scale={{ x: 1, y: 1 }}
                          x={0}
                          y={0}
@@ -1045,20 +1067,20 @@ function Sticker() {
                               {backgroundList[bgIdx] && (
                                    <KonvaImage
                                         image={backgroundList[bgIdx].img}
-                                        width={frameSize.width * getPrintRatio()}
-                                        height={frameSize.height * getPrintRatio() - 20}
+                                        width={frameSize.width * 5}
+                                        height={frameSize.height * 5 - 20}
                                         x={0}
                                         y={10}
                                    />
                               )}
-                              {tempImage && showKonvaImgLayout(selectedFrame, frameSize.width, frameSize.height, tempImage, getPrintRatio())}
+                              {tempImage && showKonvaImgLayout(selectedFrame, frameSize.width, frameSize.height, tempImage, 5)}
                          </Layer>
                          <Layer>
                               {layoutList[bgIdx] && (
                                    <KonvaImage
                                         image={layoutList[bgIdx].img}
-                                        width={frameSize.width * getPrintRatio()}
-                                        height={frameSize.height * getPrintRatio() - 20}
+                                        width={frameSize.width * 5}
+                                        height={frameSize.height * 5 - 20}
                                         x={0}
                                         y={10}
                                    />
@@ -1220,7 +1242,7 @@ function Sticker() {
                          <div className="sticker-category-item" style={{ backgroundImage: `url(${y2k})` }} onClick={() => filterStickerByCategory('Y2K')} onMouseEnter={() => hoverStickerButton('y2k')} onMouseLeave={() => hoverStickerButton('y2k')}></div>
                     </div>
                     {
-                         isRendered
+                         isLayerRendered && isRendered
                          &&
                          <div className="sticker-print-btn" style={{ backgroundImage: `url(${printButton})` }} onClick={printFrameWithSticker} onMouseEnter={hoverPrintButton} onMouseLeave={hoverPrintButton}></div>
                     }

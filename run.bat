@@ -18,7 +18,7 @@ start cmd /k "bun run dev"
 timeout /t 5 > nul
 
 echo Starting app.py in WSL with sudo...
-start wsl -e bash -c "cd /home/user/Flask; sudo gunicorn -w 1 -b 127.0.0.1:5000 app:app; exec bash"
+start wsl -e bash -c "cd /home/user/Flask; sudo python3 app.py; exec bash"
 
 :: Run kiosk
 start chrome.exe --kiosk --touch-events http://localhost:5173
