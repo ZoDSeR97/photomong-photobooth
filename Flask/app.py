@@ -515,6 +515,8 @@ def start_cash_payment():
     
     ser.write(b'RESET\n')
     response = ser.readline().decode('utf-8').split(':').pop().strip()
+    while response != "RESET_OK" and ser.in_waiting > 0:
+        response = ser.readline().decode('utf-8').split(':').pop().strip()
     
     with cash_lock:
         inserted_money = 0  # Reset the inserted money
