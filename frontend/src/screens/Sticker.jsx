@@ -234,7 +234,7 @@ function Sticker() {
           return newImage;
      };
 
-     const addStickerToPanel = ({ bgIdx, src, width, x, y }) => {
+     const addStickerToPanel = useCallback(({ bgIdx, src, width, x, y }) => {
           const PRINT_RATIO = 5; // Scaling factor for print stickers
 
           // Helper function to create sticker item
@@ -262,7 +262,7 @@ function Sticker() {
                     index === bgIdx ? [...subList, printItem] : subList
                )
           );
-     };
+     }, []);
 
      const resetAllButtons = useCallback(() => {
           images.forEach((subList) => {
