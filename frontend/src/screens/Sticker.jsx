@@ -118,9 +118,13 @@ function Sticker() {
           height: ""
      });
 
-     const chunkArray = (arr, size) => {
-          return arr.reduce((acc, _, i) => (i % size ? acc : [...acc, arr.slice(i, i + size)]), []);
-     };
+     const chunkArray = (array, chunkSize) => {
+          const chunks = [];
+          for (let i = 0; i < array.length; i += chunkSize) {
+               chunks.push(array.slice(i, i + chunkSize));
+          }
+          return chunks;
+     }
 
      useEffect(() => {
           const photos = JSON.parse(sessionStorage.getItem('photos'));
@@ -231,46 +235,33 @@ function Sticker() {
      };
 
      const addStickerToPanel = ({ bgIdx, src, width, x, y }) => {
-          const uiRatio = 1; // UI용 스티커 배율
-          const printRatio = 5; // 프린트용 스티커 배율
+          const PRINT_RATIO = 5; // Scaling factor for print stickers
 
-          const item = {
-               width: width,
-               x: x,
-               y: y,
+          // Helper function to create sticker item
+          const createStickerItem = (scale = 1) => ({
+               width: width * scale,
+               x: x * scale,
+               y: y * scale,
                src,
-               resetButtonRef: createRef()
-          };
-
-          const printItem = {
-               width: width * printRatio,
-               x: x * printRatio,
-               y: y * printRatio,
-               src,
-               resetButtonRef: createRef()
-          };
-
-          setImages((currentImages) => {
-               const newImages = currentImages.map((subList, index) => {
-                    if (index === bgIdx) {
-                         return [...subList, item];
-                    }
-                    return subList;
-               });
-
-               return newImages;
+               resetButtonRef: createRef(),
           });
 
-          setStickerImgs((currentImages) => {
-               const newImages = currentImages.map((subList, index) => {
-                    if (index === bgIdx) {
-                         return [...subList, printItem];
-                    }
-                    return subList;
-               });
+          const item = createStickerItem(); // Sticker for display
+          const printItem = createStickerItem(PRINT_RATIO); // Sticker for print
 
-               return newImages;
-          });
+          // Update the images state
+          setImages((currentImages) =>
+               currentImages.map((subList, index) =>
+                    index === bgIdx ? [...subList, item] : subList
+               )
+          );
+
+          // Update the print stickers state
+          setStickerImgs((currentImages) =>
+               currentImages.map((subList, index) =>
+                    index === bgIdx ? [...subList, printItem] : subList
+               )
+          );
      };
 
      const resetAllButtons = useCallback(() => {
@@ -308,7 +299,7 @@ function Sticker() {
           if (clickPrint === true) {
                return;
           }
-          if (isSel){
+          if (isSel) {
                setIsSel(false);
           }
 
@@ -625,7 +616,7 @@ function Sticker() {
                          tempImg.src = photo.url;
 
                          tempImg.onload = () => {
-                              applyStyles(tempImg, { width: 2400, height: 1600, filter: filterEffect});
+                              applyStyles(tempImg, { width: 2400, height: 1600, filter: filterEffect });
                               // tempImg.style.filter= photo.filter
                               resolve(tempImg);
                          };
@@ -645,124 +636,69 @@ function Sticker() {
           };
 
           loadImages();
-     }, [selectedPhotos]);
+     }, [filterEffect, photos, selectedPhotos]);
+
+     const loadImages = (imageUrls, setList) => {
+          const element = document.querySelector('.image');
+          if (element) {
+               const targetWidth = frameSize.width;
+               const targetHeight = frameSize.height;
+
+               const loadedImages = imageUrls.map((imageUrl) => {
+                    return new Promise((resolve, reject) => {
+                         const img = new Image();
+                         img.crossOrigin = 'Anonymous';
+                         img.src = imageUrl;
+
+                         img.onload = () => {
+                              const aspectRatio = img.width / img.height;
+
+                              let width, height;
+                              if (aspectRatio > 1) {
+                                   width = targetWidth;
+                                   height = targetWidth / aspectRatio;
+                              } else {
+                                   height = targetHeight;
+                                   width = targetHeight * aspectRatio;
+                              }
+
+                              setWidth(width);
+                              setHeight(height);
+
+                              resolve({
+                                   img,
+                                   width,
+                                   height,
+                              });
+                         };
+                         img.onerror = (err) => reject(err);
+                    });
+               });
+
+               Promise.all(loadedImages)
+                    .then((images) => {
+                         setList(images);
+                    })
+                    .catch((error) => {
+                         console.error("Error loading images:", error);
+                    });
+          }
+     };
 
      useEffect(() => {
           if (frameSize.width === "" || frameSize.height === "") return;
 
-          const loadImages = () => {
-               // const tempImgs = selectedPhotos.map(index => {
-               //     const photo = photos[index];
-               //     const tempImg = new Image();
-               //     tempImg.crossOrigin = 'Anonymous';
-               //     tempImg.src = photo.url;
-               //     applyStyles(tempImg, { width: 800, height: 800, filter: photo.filter });
-               //     return tempImg;
-               // });
+          // Load backgrounds
+          if (myBackgrounds) {
+               loadImages(myBackgrounds, setBackgroundList);
+          }
 
-               // setTempImage(tempImgs);
+          // Load layouts
+          if (selectedLayout) {
+               loadImages(selectedLayout, setLayoutList);
+          }
+     }, [frameSize.width, frameSize.height, myBackgrounds, selectedLayout]);
 
-               const element = document.querySelector('.image');
-               if (element) {
-                    const targetWidth = frameSize.width;
-                    const targetHeight = frameSize.height;
-
-                    const loadedImages = myBackgrounds.map((imageUrl) => {
-                         return new Promise((resolve, reject) => {
-                              const img = new Image();
-                              img.crossOrigin = 'Anonymous';
-                              img.src = imageUrl;
-
-                              img.onload = () => {
-                                   const aspectRatio = img.width / img.height;
-
-                                   let width, height;
-                                   if (aspectRatio > 1) {
-                                        width = targetWidth;
-                                        height = targetWidth / aspectRatio;
-                                   } else {
-                                        height = targetHeight;
-                                        width = targetHeight * aspectRatio;
-                                   }
-
-                                   setWidth(width);
-                                   setHeight(height);
-
-                                   resolve({
-                                        img,
-                                        width,
-                                        height
-                                   });
-                              };
-                              img.onerror = (err) => reject(err);
-                         });
-                    });
-
-                    Promise.all(loadedImages)
-                         .then((images) => {
-                              setBackgroundList(images);
-                         })
-                         .catch((error) => {
-                              console.error("Error loading images:", error);
-                         });
-               }
-          };
-
-          loadImages();
-     }, [selectedPhotos, myBackgrounds]);
-
-     useEffect(() => {
-          if (frameSize.width === "" || frameSize.height === "") return;
-
-          const loadImages = () => {
-               const element = document.querySelector('.image');
-               if (element) {
-                    const targetWidth = frameSize.width;
-                    const targetHeight = frameSize.height;
-
-                    const loadedImages = selectedLayout.map((imageUrl) => {
-                         return new Promise((resolve, reject) => {
-                              const img = new Image();
-                              img.crossOrigin = 'Anonymous';
-                              img.src = imageUrl;
-
-                              img.onload = () => {
-                                   const aspectRatio = img.width / img.height;
-
-                                   let width, height;
-                                   if (aspectRatio > 1) {
-                                        width = targetWidth;
-                                        height = targetWidth / aspectRatio;
-                                   } else {
-                                        height = targetHeight;
-                                        width = targetHeight * aspectRatio;
-                                   }
-
-                                   setWidth(width);
-                                   setHeight(height);
-
-                                   resolve({
-                                        img,
-                                        width,
-                                        height
-                                   });
-                              };
-                              img.onerror = (err) => reject(err);
-                         });
-                    });
-
-                    Promise.all(loadedImages)
-                         .then((images) => {
-                              setLayoutList(images);
-                         })
-                         .catch((error) => {
-                              console.error("Error loading images:", error);
-                         });
-               }
-          };
-
-          loadImages();
-     }, [selectedLayout]);
      const getCrop = (image, newSize) => {
           const aspectRatio = newSize.width / newSize.height;
           const imageRatio = image.width / image.height;
@@ -789,96 +725,96 @@ function Sticker() {
      };
 
      const showKonvaImgLayout = useCallback((selectedFrame, width, height, imgTag, ratio) => {
-               if (!imgTag.length) return <></>;
+          if (!imgTag.length) return <></>;
 
-               let renderCount = 0;
+          let renderCount = 0;
 
-               const handleImageLoad = () => {
-                    renderCount += 1;
-                    if (renderCount === imgTag.length) {
-                         setIsRendered(true); // Notify completion
-                    }
-               };
+          const handleImageLoad = () => {
+               renderCount += 1;
+               if (renderCount === imgTag.length) {
+                    setIsRendered(true); // Notify completion
+               }
+          };
 
-               // Frame configurations
-               const frameConfigs = {
-                    "3-cutx2": {
-                         calcedHeight: height / 5.3,
-                         calcedWidth: (height / 5.3) * 1.02,
-                         xOffset: [17, 37 + (height / 5.3) * 1.02],
-                         yOffset: 18,
-                         chunkSize: 2,
-                         extraImage: false,
-                    },
-                    "5-cutx2": {
-                         calcedWidth: width / 2 - 22,
-                         calcedHeight: height / 2 - 30,
-                         xOffset: [17, 17 + width / 2 - 22 + 10],
-                         yOffset: 20,
-                         chunkSize: 2,
-                         extraImage: true,
-                    },
-                    "Stripx2": {
-                         calcedHeight: height / 6 + 29,
-                         calcedWidth: (height / 6 + 21) * 1.48,
-                         xOffset: [18, 35 + (height / 6 + 20) * 1.48],
-                         yOffset: 24.8,
-                         chunkSize: 2,
-                         extraImage: false,
-                         
-                    },
-                    "2cut-x2": {
-                         calcedWidth: width / 2.2,
-                         calcedHeight: (width / 1.96),
-                         xOffset: [16, 14 + width / 2.1],
-                         yOffset: 31,
-                         chunkSize: 2,
-                         extraImage: false,
-                    },
-                    "4-cutx2": {
-                         calcedHeight: height / 2.4,
-                         calcedWidth: (height / 2.4) * 1.33,
-                         xOffset: [52, 69 + (height / 2.4) * 1.33],
-                         yOffset: 24,
-                         chunkSize: 2,
-                         extraImage: false,
-                    },
-                    default: {
-                         calcedHeight: width / 2.3,
-                         calcedWidth: (width / 1.8) * 1,
-                         xOffset: [8, 14 + (width / 2.3) * 1.0],
-                         yOffset: 20,
-                         chunkSize: 2,
-                         extraImage: false,
-                    },
-               };
+          // Frame configurations
+          const frameConfigs = {
+               "3-cutx2": {
+                    calcedHeight: height / 5.3,
+                    calcedWidth: (height / 5.3) * 1.02,
+                    xOffset: [17, 37 + (height / 5.3) * 1.02],
+                    yOffset: 18,
+                    chunkSize: 2,
+                    extraImage: false,
+               },
+               "5-cutx2": {
+                    calcedWidth: width / 2 - 22,
+                    calcedHeight: height / 2 - 30,
+                    xOffset: [17, 17 + width / 2 - 22 + 10],
+                    yOffset: 20,
+                    chunkSize: 2,
+                    extraImage: true,
+               },
+               "Stripx2": {
+                    calcedHeight: height / 6 + 29,
+                    calcedWidth: (height / 6 + 21) * 1.48,
+                    xOffset: [18, 35 + (height / 6 + 20) * 1.48],
+                    yOffset: 24.8,
+                    chunkSize: 2,
+                    extraImage: false,
 
-               const {
-                    calcedWidth,
-                    calcedHeight,
-                    xOffset,
-                    yOffset,
-                    chunkSize,
-                    extraImage = false,
-                    scaleX = 1,
-               } = frameConfigs[selectedFrame] || frameConfigs.default;
+               },
+               "2cut-x2": {
+                    calcedWidth: width / 2.2,
+                    calcedHeight: (width / 1.96),
+                    xOffset: [16, 14 + width / 2.1],
+                    yOffset: 31,
+                    chunkSize: 2,
+                    extraImage: false,
+               },
+               "4-cutx2": {
+                    calcedHeight: height / 2.4,
+                    calcedWidth: (height / 2.4) * 1.33,
+                    xOffset: [52, 69 + (height / 2.4) * 1.33],
+                    yOffset: 24,
+                    chunkSize: 2,
+                    extraImage: false,
+               },
+               default: {
+                    calcedHeight: width / 2.3,
+                    calcedWidth: (width / 1.8) * 1,
+                    xOffset: [8, 14 + (width / 2.3) * 1.0],
+                    yOffset: 20,
+                    chunkSize: 2,
+                    extraImage: false,
+               },
+          };
 
-               // Render logic
-               const renderImages = () =>
-                    chunkArray(imgTag, chunkSize).map((row, rowIndex) =>
-                         row.map((tag, photoIndex) => {
-                              const x = xOffset[photoIndex];
-                              const y = yOffset + rowIndex * (calcedHeight);
-                              const crop = getCrop(
-                                   { width: tag.width, height: tag.height },
-                                   { width: calcedWidth, height: calcedHeight }
-                              );
-                              // Load image using the native Image object
-                              const imageObj = new window.Image();
-                              imageObj.src = tag.src;
-                              imageObj.onload = handleImageLoad;
-                              return (
-                                   selectedFrame === '2cut-x2'?
+          const {
+               calcedWidth,
+               calcedHeight,
+               xOffset,
+               yOffset,
+               chunkSize,
+               extraImage = false,
+               scaleX = 1,
+          } = frameConfigs[selectedFrame] || frameConfigs.default;
+
+          // Render logic
+          const renderImages = () =>
+               chunkArray(imgTag, chunkSize).map((row, rowIndex) =>
+                    row.map((tag, photoIndex) => {
+                         const x = xOffset[photoIndex];
+                         const y = yOffset + rowIndex * (calcedHeight);
+                         const crop = getCrop(
+                              { width: tag.width, height: tag.height },
+                              { width: calcedWidth, height: calcedHeight }
+                         );
+                         // Load image using the native Image object
+                         const imageObj = new window.Image();
+                         imageObj.src = tag.src;
+                         imageObj.onload = handleImageLoad;
+                         return (
+                              selectedFrame === '2cut-x2' ?
                                    <KonvaImage
                                         crop={{
                                              x: crop.x,
@@ -904,32 +840,32 @@ function Sticker() {
                                         key={`${rowIndex}-${photoIndex}`}
                                         scaleX={scaleX}
                                    />
-                              );
-                         })
-                    );
-               return (
-                    <>
-                         {renderImages()}
-                         {extraImage && (
-                              () => {
-                                   const imageObj = new window.Image();
-                                   imageObj.src = imgTag[chunkSize].src;
-                                   imageObj.onload = handleImageLoad;
-
-                                   return (
-                                        <KonvaImage
-                                             width={calcedWidth * 2 + 10}
-                                             height={calcedHeight}
-                                             x={xOffset[0]}
-                                             y={yOffset + 2 * (calcedHeight + 10)}
-                                             image={imageObj}
-                                        />
-                                   );
-                              }
-                         )}
-                    </>
+                         );
+                    })
                );
-          },
+          return (
+               <>
+                    {renderImages()}
+                    {extraImage && (
+                         () => {
+                              const imageObj = new window.Image();
+                              imageObj.src = imgTag[chunkSize].src;
+                              imageObj.onload = handleImageLoad;
+
+                              return (
+                                   <KonvaImage
+                                        width={calcedWidth * 2 + 10}
+                                        height={calcedHeight}
+                                        x={xOffset[0]}
+                                        y={yOffset + 2 * (calcedHeight + 10)}
+                                        image={imageObj}
+                                   />
+                              );
+                         }
+                    )}
+               </>
+          );
+     },
           []
      );
 

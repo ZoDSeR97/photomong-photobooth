@@ -116,9 +116,13 @@ function Photo() {
           return new Promise(resolve => setTimeout(resolve, ms));
      };
 
-     const chunkArray = (arr, size) => {
-          return arr.reduce((acc, _, i) => (i % size ? acc : [...acc, arr.slice(i, i + size)]), []);
-     };
+     const chunkArray = (array, chunkSize) => {
+          const chunks = [];
+          for (let i = 0; i < array.length; i += chunkSize) {
+               chunks.push(array.slice(i, i + chunkSize));
+          }
+          return chunks;
+     }
 
      const displayClassNameForPhoto = (rowIndex, photoIndex, selectedIndex) => {
           let className = 'choose-photo-item';
