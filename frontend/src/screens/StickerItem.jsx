@@ -6,10 +6,10 @@ import cancelImage from "../assets/Sticker/items/cancel.png";
 import scaleImage from "../assets/Sticker/items/scale.png";
 import Konva from "konva";
 
-export const StickerItem = ({
+export const StickerItem = React.memo(function StickerItem({
     isStickerDrag,
     setStickerDrag,
-    shapeProps, isSelected, onChange, onSelect, image, onDelete, onDragEnd, onResize, onTransform }) => {
+    shapeProps, isSelected, onChange, onSelect, image, onDelete, onDragEnd, onResize, onTransform }) {
     const imageRef = useRef(null);
     const isHovered = useHoverDirty(imageRef);
     const [stickerImage] = useImage(image.src);
@@ -213,4 +213,4 @@ export const StickerItem = ({
             {/* )} */}
         </Group>
     )
-}
+})

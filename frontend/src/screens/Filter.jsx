@@ -606,7 +606,7 @@ function Filter() {
 
           setClickedButton(true);
           sessionStorage.setItem('filter', getImageStyle());
-          storeImageCanvas();
+          //storeImageCanvas();
           navigate('/sticker')
      }
 

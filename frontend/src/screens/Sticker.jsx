@@ -341,7 +341,7 @@ function Sticker() {
      const uploadCloud = () => {
           try {
                const stageRef = printRefs[bgIdx];
-               const originalDataURL = stageRef.current.toDataURL(); // This file path is way too long need to reduce it somehow
+               const originalDataURL = stageRef.current.toDataURL();
                let rotated = null;
                rotateImageDataURL(originalDataURL, 90)
                     .then(rotatedDataURL => {
@@ -638,7 +638,7 @@ function Sticker() {
           loadImages();
      }, [filterEffect, photos, selectedPhotos]);
 
-     const loadImages = (imageUrls, setList) => {
+     const loadSetup = useCallback((imageUrls, setList) => {
           const element = document.querySelector('.image');
           if (element) {
                const targetWidth = frameSize.width;
@@ -683,21 +683,21 @@ function Sticker() {
                          console.error("Error loading images:", error);
                     });
           }
-     };
+     },[frameSize.height, frameSize.width]);
 
      useEffect(() => {
           if (frameSize.width === "" || frameSize.height === "") return;
 
           // Load backgrounds
           if (myBackgrounds) {
-               loadImages(myBackgrounds, setBackgroundList);
+               loadSetup(myBackgrounds, setBackgroundList);
           }
 
           // Load layouts
           if (selectedLayout) {
-               loadImages(selectedLayout, setLayoutList);
+               loadSetup(selectedLayout, setLayoutList);
           }
-     }, [frameSize.width, frameSize.height, myBackgrounds, selectedLayout]);
+     }, [frameSize.width, frameSize.height, myBackgrounds, selectedLayout, loadSetup]);
 
      const getCrop = (image, newSize) => {
           const aspectRatio = newSize.width / newSize.height;
@@ -883,7 +883,7 @@ function Sticker() {
           const smallRatio = 0.8;
           const largeRatio = 1.45;
           if (selectedFrame === "6-cutx2") {
-               setFrameSize({ width: 1920 * 1 / 6, height: 2900 * 1 / 6 });
+               setFrameSize({ width: 1920 * 1/6, height: 2900 * 1/6 });
                // setFrameSize({ width:6000, height: 4000 });
           }
           else if (selectedFrame === "Stripx2") {
@@ -896,9 +896,7 @@ function Sticker() {
                setFrameSize({ width: 576 * smallRatio, height: 384 * smallRatio });
           }
 
-     }, [
-          selectedFrame
-     ]);
+     }, [selectedFrame]);
 
      const getKonvaClassName = (selectedFrame) => {
           if (selectedFrame === "6-cutx2" || selectedFrame === "Stripx2") {
