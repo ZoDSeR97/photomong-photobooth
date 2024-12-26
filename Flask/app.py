@@ -334,6 +334,42 @@ def capture_image():
     result = camera_manager.capture_image(uuid)
     return jsonify(result)
 
+@app.route('/api/uploads', methods=['POST'])
+def upload_image():
+    try:
+        # Get the base64 image data from the form
+        photo_data = request.form.get('photo')
+        if not photo_data:
+            return jsonify({'error': 'No photo data provided'}), 400
+
+        # Decode the base64 image (remove the 'data:image/png;base64,' prefix first)
+        header, encoded = photo_data.split(',', 1)
+        if not header.startswith('data:image/png;base64'):
+            return jsonify({'error': 'Invalid image format'}), 400
+
+        decoded_image = base64.b64decode(encoded)
+
+        # Save the image to the server with a timestamped filename
+        # Prepare the file path
+        current_directory = os.path.dirname(os.path.abspath(__file__))
+        filename = f'image_{datetime.now().strftime("%Y%m%d_%H%M%S")}.png'
+        filepath = os.path.join(current_directory, filename)
+
+        with open(filepath, 'wb') as f:
+            f.write(decoded_image)
+
+        photo_url = f'{request.host_url}/api/uploads/{filename}'
+
+        return jsonify({'photo_url': photo_url}), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# Serve uploaded files for testing
+@app.route('/api/uploads/<filename>', methods=['GET'])
+def serve_image(filename):
+    return send_file(os.path.dirname(os.path.abspath(__file__)), filename)
+
 # Route to download a file
 @app.route('/api/get_photo', methods=['GET'])
 def download_file():

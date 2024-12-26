@@ -402,15 +402,22 @@ function Filter() {
      }
 
      const storeImageCanvas = async () => {
-          const element = document.getElementsByClassName('left-big-frame')[0];
+          const element = document.querySelector('.left-big-frame');
+          console.log(element)
           const oldBackgroundImage = element.style.backgroundImage;
-          element.style.backgroundImage = 'none';
+          //element.style.backgroundImage = 'none';
 
           html2canvas(element, {
                backgroundColor: null,
+               allowTaint: true,
+               useCORS: true
           }).then(canvas => {
                const photo_data = canvas.toDataURL('image/png');
-               const uploadImageUrl = `${import.meta.env.VITE_REACT_APP_BACKEND}/frames/api/upload-full`
+               const prefix = 'data:image/png;base64,';
+               if (!photo_data.startsWith(prefix)) {
+                    console.error("Base64 data is missing the correct prefix.");
+               }
+               const uploadImageUrl = `${import.meta.env.VITE_REACT_APP_API}/api/uploads`
 
                const formData = new FormData();
                formData.append('photo', photo_data);
@@ -606,7 +613,7 @@ function Filter() {
 
           setClickedButton(true);
           sessionStorage.setItem('filter', getImageStyle());
-          //storeImageCanvas();
+          storeImageCanvas();
           navigate('/sticker')
      }
 

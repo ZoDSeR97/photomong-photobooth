@@ -215,7 +215,7 @@ function Choose() {
           if (selectedPhotos.length === totalMeetsPhotos) {
                hoverContinueButton();
                setClickedButton(true);
-               const result = await copyImageApi();
+               //const result = await copyImageApi();
                navigate("/filter");
           }
      }

@@ -295,7 +295,7 @@ function Sticker() {
           setSelectedCategory(category);
      };
 
-     const printFrameWithSticker = async (event,) => {
+     const printFrameWithSticker = async (event) => {
           if (clickPrint === true) {
                return;
           }
@@ -303,14 +303,77 @@ function Sticker() {
                setIsSel(false);
           }
 
-          playPrintAudio()
+          playPrintAudio();
           setClickPrint(true);
-          callPrinter();
-          await uploadCloud();
 
-          // setTimeout(() => {
-          //     navigate("/print");
-          // }, 3000);
+          try {
+               const stageRef = printRefs[bgIdx];
+               if (!stageRef.current) {
+                    console.error("Stage reference is not available");
+                    return;
+               }
+
+               const originalDataURL = stageRef.current.toDataURL();
+               const blobBin = atob(originalDataURL.split(',')[1]);
+               const array = [];
+               for (let i = 0; i < blobBin.length; i++) {
+                    array.push(blobBin.charCodeAt(i));
+               }
+               const newFile = new Blob([new Uint8Array(array)], { type: 'image/png' });
+
+               const rotatedDataURL = await rotateImageDataURL(originalDataURL, 90);
+
+               // Prepare FormData for both requests
+               const uploadFormData = new FormData();
+               uploadFormData.append("photo", rotatedDataURL);
+               uploadFormData.append("order_code", sessionStorage.getItem('orderCodeNum'));
+
+               const printFormData = new FormData();
+               printFormData.append("photo", newFile);
+               printFormData.append("uuid", uuid);
+               printFormData.append("frame", selectedFrame);
+
+               // Run both requests in parallel
+               const [uploadResponse, printResponse] = await Promise.all([
+                    originAxiosInstance.post(
+                         `${import.meta.env.VITE_REACT_APP_BACKEND}/frames/api/upload_cloud`,
+                         uploadFormData,
+                         {
+                              headers: { 'Content-Type': 'multipart/form-data' }
+                         }
+                    ),
+                    originAxiosInstance.post(
+                         `${import.meta.env.VITE_REACT_APP_API}/api/print`,
+                         printFormData,
+                         {
+                              headers: { 'Content-Type': 'multipart/form-data' }
+                         }
+                    )
+               ]);
+
+               // Handle upload response
+               const uploadData = uploadResponse.data;
+               const qrVal = uploadData.photo_url;
+               if (qrVal) {
+                    sessionStorage.setItem('uploadedCloudPhotoUrl', qrVal);
+                    sessionStorage.setItem('qr', qrVal);
+                    console.log("QR value:", qrVal);
+               }
+
+               // Handle print response
+               if (printResponse.ok) {
+                    console.log(`Print job started successfully.`);
+               } else {
+                    console.error(`Failed to start print job.`);
+               }
+
+               // Navigate after successful operations
+               navigate("/print");
+          } catch (error) {
+               console.error("Error during upload and print:", error);
+          } finally {
+               setClickPrint(false);
+          }
      };
 
      function rotateImageDataURL(dataURL, degrees) {
@@ -321,102 +384,19 @@ function Sticker() {
                     const ctx = canvas.getContext('2d');
                     const { width, height } = image;
 
-                    // Canvas 크기를 이미지 크기와 동일하게 설정
                     canvas.width = width;
                     canvas.height = height;
 
-                    // 이미지를 회전시키고 Canvas에 그리기
-                    ctx.translate(height / 2, width / 2);
-                    ctx.rotate(degrees * Math.PI / 180);
+                    ctx.translate(width / 2, height / 2);
+                    ctx.rotate((degrees * Math.PI) / 180);
                     ctx.drawImage(image, -width / 2, -height / 2);
 
-                    // 회전된 이미지를 Data URL로 변환하여 반환
                     resolve(canvas.toDataURL());
                };
                image.onerror = reject;
                image.src = dataURL;
           });
      }
-
-     const uploadCloud = () => {
-          try {
-               const stageRef = printRefs[bgIdx];
-               const originalDataURL = stageRef.current.toDataURL();
-               let rotated = null;
-               rotateImageDataURL(originalDataURL, 90)
-                    .then(rotatedDataURL => {
-                         const formData = new FormData();
-                         formData.append("photo", originalDataURL);
-                         formData.append("order_code", sessionStorage.getItem('orderCodeNum'));
-
-                         originAxiosInstance.post(
-                              `${import.meta.env.VITE_REACT_APP_BACKEND}/frames/api/upload_cloud`,
-                              formData,
-                              {
-                                   headers: {
-                                        'Content-Type': 'multipart/form-data'
-                                   }
-                              })
-                              .then(response => {
-                                   const data = response.data;
-                                   const qrVal = data.photo_url;
-                                   if (qrVal) {
-                                        sessionStorage.setItem('uploadedCloudPhotoUrl', qrVal);
-                                        sessionStorage.setItem('qr', qrVal);
-                                        console.log("qr val>>>", qrVal)
-                                        navigate("/print");
-                                   }
-
-                              })
-                              .catch(error => {
-                                   console.log(error);
-                              });
-                    })
-                    .catch(error => {
-                         console.error('이미지 회전 중 오류 발생:', error);
-                    });
-
-          } catch (error) {
-               console.log(error);
-          }
-     };
-
-     const callPrinter = async () => {
-          const stageRef = printRefs[bgIdx];
-          if (!stageRef.current) {
-               return;
-          }
-
-          const originalDataURL = stageRef.current.toDataURL();
-          const blobBin = atob(originalDataURL.split(',')[1]);
-          const array = [];
-          for (let i = 0; i < blobBin.length; i++) {
-               array.push(blobBin.charCodeAt(i));
-          }
-          const newFile = new Blob([new Uint8Array(array)], { type: 'image/png' });
-
-          const formData = new FormData();
-          formData.append("photo", newFile);
-          formData.append("uuid", uuid);
-          formData.append("frame", selectedFrame);
-          // formData.append("photoNum", newPhotoNum);
-          console.log(formData.keys);
-          // try {
-          const response = await originAxiosInstance.post(
-               `${import.meta.env.VITE_REACT_APP_API}/api/print`,
-               formData,
-               {
-                    headers: {
-                         'Content-Type': 'multipart/form-data'
-                    }
-               }
-          );
-          if (response.ok) {
-               console.log(`Print job started successfully.`);
-          } else {
-               console.log(`Failed to start print job.`);
-          }
-     };
 
      const hoverGoBackButton = () => {
           if (language === 'en') {
@@ -683,7 +663,7 @@ function Sticker() {
                          console.error("Error loading images:", error);
                     });
           }
-     },[frameSize.height, frameSize.width]);
+     }, [frameSize.height, frameSize.width]);
 
      useEffect(() => {
           if (frameSize.width === "" || frameSize.height === "") return;
@@ -883,7 +863,7 @@ function Sticker() {
           const smallRatio = 0.8;
           const largeRatio = 1.45;
           if (selectedFrame === "6-cutx2") {
-               setFrameSize({ width: 1920 * 1/6, height: 2900 * 1/6 });
+               setFrameSize({ width: 1920 * 1 / 6, height: 2900 * 1 / 6 });
                // setFrameSize({ width:6000, height: 4000 });
           }
           else if (selectedFrame === "Stripx2") {
