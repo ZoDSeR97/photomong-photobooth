@@ -101,10 +101,10 @@ function PaymentNumber(props) {
     playAudio("click_sound.wav")
     if (import.meta.env.VITE_BOOTH_TYPE !== 'REG' && JSON.parse(sessionStorage.getItem('selectedFrame')).frame !== 'Stripx2') {
       sessionStorage.setItem("photoNum", photoNum+1)
-      const res = await sendDongNum(photoNum+1, checkCoupon === true ? 1 : 0) // work on this later
+      await sendDongNum(photoNum+1, checkCoupon === true ? 1 : 0) // work on this later
     } else {
       sessionStorage.setItem("photoNum", photoNum)
-      const res = await sendDongNum(photoNum, checkCoupon === true ? 1 : 0) // work on this later
+      await sendDongNum(photoNum, checkCoupon === true ? 1 : 0) // work on this later
     }
     navigate('/payment');
   }

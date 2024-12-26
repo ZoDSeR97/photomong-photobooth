@@ -10,7 +10,7 @@ import continue_btn from '../assets/Filter/continue_btn.png';
 import continue_btn_click from '../assets/Filter/continue_btn_click.png';
 import plus_icon from '../assets/Filter/plus.png';
 import minus_icon from '../assets/Filter/minus.png';
-import html2canvas from 'html2canvas';
+import { toBlob, toCanvas, toPng } from 'html-to-image';
 import axios from 'axios';
 
 // Go Back
@@ -105,6 +105,7 @@ import { playAudio } from '../api/config';
 function Filter() {
      const { t } = useTranslation();
      const navigate = useNavigate();
+     const framedImage = useRef(null);
      const [hoveredImage, setHoveredImage] = useState(null);
      const [selectedLayout, setSelectedLayout] = useState(null);
      const [selectedPhotos, setSelectedPhotos] = useState([]);
@@ -402,43 +403,27 @@ function Filter() {
      }
 
      const storeImageCanvas = async () => {
-          const element = document.querySelector('.left-big-frame');
-          console.log(element)
-          const oldBackgroundImage = element.style.backgroundImage;
-          //element.style.backgroundImage = 'none';
+          // Capture the component
+          const photo_data = await toBlob(framedImage.current)
+          
+          // Create FormData and append blob
+          const formData = new FormData();
+          formData.append('photo', photo_data);
 
-          html2canvas(element, {
-               backgroundColor: null,
-               allowTaint: true,
-               useCORS: true
-          }).then(canvas => {
-               const photo_data = canvas.toDataURL('image/png');
-               const prefix = 'data:image/png;base64,';
-               if (!photo_data.startsWith(prefix)) {
-                    console.error("Base64 data is missing the correct prefix.");
-               }
-               const uploadImageUrl = `${import.meta.env.VITE_REACT_APP_API}/api/uploads`
-
-               const formData = new FormData();
-               formData.append('photo', photo_data);
-
-               axios.post(uploadImageUrl, formData, {
-                    headers: {
-                         'Content-Type': 'multipart/form-data'
-                    }
-               })
-                    .then(response => {
-                         const data = response.data;
-                         if (data.photo_url) {
-                              element.style.backgroundImage = oldBackgroundImage;
-                              element.style.backgroundColor = '';
-                              sessionStorage.setItem('downloaded-image', data.photo_url);
-                         }
-                    })
-                    .catch(error => {
-                         console.error(`Failed to copy image: ${error}`);
-                    })
-          })
+          // Upload to server
+          const response = await fetch(`${import.meta.env.VITE_REACT_APP_API}/api/uploads`, {
+               method: 'POST',
+               body: formData,
+          });
+     
+          if (!response.ok) {
+               setClickedButton(false);
+               throw new Error(`Upload failed: ${response.statusText}`);
+          } else {
+               const result = await response.json();
+               sessionStorage.setItem('uploaded-image', result.photo_url);
+               navigate('/sticker')
+          }
      }
 
      const displayClassNameForLayout = () => {
@@ -606,7 +591,7 @@ function Filter() {
           }
      }
 
-     const goToSticker = () => {
+     const goToSticker = async() => {
           if (clickedButton) {
                return;
           }
@@ -614,7 +599,7 @@ function Filter() {
           setClickedButton(true);
           sessionStorage.setItem('filter', getImageStyle());
           storeImageCanvas();
-          navigate('/sticker')
+          //navigate('/sticker')
      }
 
      const hoverFilterEffect = (effect) => {
@@ -718,10 +703,10 @@ function Filter() {
                     playAudio("click_sound.wav")
                     navigate("/photo-choose")}} onMouseEnter={() => hoverGoBackButton()} onMouseLeave={() => hoverGoBackButton()}></div>
                <div className="left-big-frame">
-                    <div className={displayClassNameForBackground()} style={{ backgroundImage: `url(${myBackground})` }}>
+                    <div className={displayClassNameForBackground()} ref={framedImage} style={{backgroundImage: `url(${myBackground})`}}>
                          {showSelectedPhotos()}
+                         <div className={displayClassNameForLayout()} style={{ backgroundImage: `url(${selectedLayout})` }}></div>
                     </div>
-                    <div className={displayClassNameForLayout()} style={{ backgroundImage: `url(${selectedLayout})` }}></div>
                </div>
                <div className="middle-filter">
                     <div className="pink-section" style={{ height: `${percentage}px`, maxHeight: 1000 }}></div>

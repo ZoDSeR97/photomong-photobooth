@@ -23,10 +23,13 @@
      left: -400px;
      width: 700px;
      height: 750px;
-     background-image: url('../assets/Common/frame.png');
+     justify-content: center;
+     justify-items: center;
+     align-items: center;
+     /* background-image: url('../assets/Common/frame.png');
      background-size: contain;
      background-repeat: no-repeat;
-     background-position: center;
+     background-position: center; */
 }
 
 .go-back {

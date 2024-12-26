@@ -337,17 +337,8 @@ def capture_image():
 @app.route('/api/uploads', methods=['POST'])
 def upload_image():
     try:
-        # Get the base64 image data from the form
-        photo_data = request.form.get('photo')
-        if not photo_data:
+        if 'photo' not in request.files:
             return jsonify({'error': 'No photo data provided'}), 400
-
-        # Decode the base64 image (remove the 'data:image/png;base64,' prefix first)
-        header, encoded = photo_data.split(',', 1)
-        if not header.startswith('data:image/png;base64'):
-            return jsonify({'error': 'Invalid image format'}), 400
-
-        decoded_image = base64.b64decode(encoded)
 
         # Save the image to the server with a timestamped filename
         # Prepare the file path
@@ -355,10 +346,9 @@ def upload_image():
         filename = f'image_{datetime.now().strftime("%Y%m%d_%H%M%S")}.png'
         filepath = os.path.join(current_directory, filename)
 
-        with open(filepath, 'wb') as f:
-            f.write(decoded_image)
+        request.files['photo'].save(filepath)
 
-        photo_url = f'{request.host_url}/api/uploads/{filename}'
+        photo_url = f'{request.host_url}api/uploads/{filename}'
 
         return jsonify({'photo_url': photo_url}), 200
 
@@ -368,7 +358,7 @@ def upload_image():
 # Serve uploaded files for testing
 @app.route('/api/uploads/<filename>', methods=['GET'])
 def serve_image(filename):
-    return send_file(os.path.dirname(os.path.abspath(__file__)), filename)
+    return send_file(os.path.join(os.path.dirname(os.path.abspath(__file__)), filename.replace("\\","/")))
 
 # Route to download a file
 @app.route('/api/get_photo', methods=['GET'])

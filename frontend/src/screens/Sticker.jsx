@@ -1030,7 +1030,7 @@ function Sticker() {
                     </Stage>
                </div>
                <div className="left-sticker">
-                    <div className='frame-box' style={{ backgroundImage: `url(${frame_box})` }} />
+                    <div className='frame-box' />
                     <div className='v-carousel-container' ref={carouselRef}
 
                          style={
