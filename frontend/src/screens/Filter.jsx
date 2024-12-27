@@ -598,8 +598,8 @@ function Filter() {
 
           setClickedButton(true);
           sessionStorage.setItem('filter', getImageStyle());
-          storeImageCanvas();
-          //navigate('/sticker')
+          //storeImageCanvas();
+          navigate('/sticker')
      }
 
      const hoverFilterEffect = (effect) => {
@@ -693,9 +693,6 @@ function Filter() {
      useEffect(() => {
           playAudio("choose_filter.wav")
      }, [])
-
-     // Chunk the selected photos array into arrays of 2 photos each
-     const selectedPhotoRows = chunkArray(selectedPhotos, 2);
 
      return (
           <div className='filter-container' style={{ backgroundImage: `url(${background})`, cursor: 'none' }}>
