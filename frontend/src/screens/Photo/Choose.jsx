@@ -123,6 +123,8 @@ function Choose() {
                totalMeetsPhotos = 3;
           } else if (selectedFrame == '4-cutx2') {
                totalMeetsPhotos = 4;
+          } else if (selectedFrame == '4.1-cutx2') {
+               totalMeetsPhotos = 4;
           } else if (selectedFrame == '5-cutx2') {
                totalMeetsPhotos = 5;
           } else if (selectedFrame == '6-cutx2') {
@@ -205,6 +207,8 @@ function Choose() {
           } else if (selectedFrame == '3-cutx2') {
                totalMeetsPhotos = 3;
           } else if (selectedFrame == '4-cutx2') {
+               totalMeetsPhotos = 4;
+          } else if (selectedFrame == '4.1-cutx2') {
                totalMeetsPhotos = 4;
           } else if (selectedFrame == '5-cutx2') {
                totalMeetsPhotos = 5;
@@ -301,6 +305,16 @@ function Choose() {
                } else if (rowIndex === 1 && photoIndex === 1) {
                     return 'choose-photo-item-4cut-1-1';
                }
+          } else if (selectedFrame === '4.1-cutx2') {
+               if (rowIndex === 0 && photoIndex === 0) {
+                    return 'choose-photo-item-4-1cut-0-0';
+               } else if (rowIndex === 0 && photoIndex === 1) {
+                    return 'choose-photo-item-4-1cut-0-1';
+               } else if (rowIndex === 1 && photoIndex === 0) {
+                    return 'choose-photo-item-4-1cut-1-0';
+               } else if (rowIndex === 1 && photoIndex === 1) {
+                    return 'choose-photo-item-4-1cut-1-1';
+               }
           } else if (selectedFrame === '5-cutx2') {
                if (rowIndex === 0 && photoIndex === 0) {
                     return 'choose-photo-item-5cut-0-0';
@@ -340,7 +354,6 @@ function Choose() {
      }, [])
 
      const showSelectedPhotos = () => {
-
           if (selectedFrame == '3-cutx2' && selectedPhotos.length > 0) {
                const firstPhotoTpl = (
                     <div className="choose-photo-row">

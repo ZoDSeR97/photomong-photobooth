@@ -481,6 +481,9 @@ def print_photo():
         elif frame == '4-cutx2':
             print_file_name = 'cutx4.png'
             print_url = os.getenv("API_PRINTER_4")
+        elif frame == '4.1-cutx2':
+            print_file_name = 'cutx4v.png'
+            print_url = os.getenv("API_PRINTER_4")
         elif frame == '5-cutx2':
             print_file_name = 'cutx5.png'
             print_url = os.getenv("API_PRINTER_5")

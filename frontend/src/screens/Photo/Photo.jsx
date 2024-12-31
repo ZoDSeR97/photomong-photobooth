@@ -80,7 +80,7 @@ function Photo() {
                setTotalNeededPhoto(4);
           } else if (storedSelectedFrame.frame === '6-cutx2') {
                setTotalNeededPhoto(6);
-          } else if (storedSelectedFrame.frame === '4.2-cutx2') {
+          } else if (storedSelectedFrame.frame === '4.1-cutx2') {
                setTotalNeededPhoto(4);
           }
 
@@ -182,6 +182,16 @@ function Photo() {
                     className = 'choose-photo-item-4cut-1-0-right';
                } else if (rowIndex === 1 && photoIndex === 1) {
                     className = 'choose-photo-item-4cut-1-1-right';
+               }
+          } else if (selectedFrame === '4.1-cutx2') {
+               if (rowIndex === 0 && photoIndex === 0) {
+                    className = 'choose-photo-item-4-1cut-0-0-right';
+               } else if (rowIndex === 0 && photoIndex === 1) {
+                    className = 'choose-photo-item-4-1cut-0-1-right';
+               } else if (rowIndex === 1 && photoIndex === 0) {
+                    className = 'choose-photo-item-4-1cut-1-0-right';
+               } else if (rowIndex === 1 && photoIndex === 1) {
+                    className = 'choose-photo-item-4-1cut-1-1-right';
                }
           } else if (selectedFrame === '5-cutx2') {
                if (rowIndex === 0 && photoIndex === 0) {

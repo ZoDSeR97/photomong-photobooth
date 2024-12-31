@@ -116,7 +116,7 @@ function Filter() {
      const [percentage, setPercentage] = useState(350);
      const [options, setOptions] = useState([]);
      const [sliderChange, setSliderChange] = useState(false);
-     const [filterIndex, setFilterIndex] = useState(1);
+     const [filterIndex, setFilterIndex] = useState(-1);
      const [language, setLanguage] = useState('en');
 
      const [background, setBackground] = useState(background_en);
@@ -295,10 +295,17 @@ function Filter() {
 
      const handleFilter = (index) => {
           playAudio("click_sound.wav")
-          setSliderChange(false);
-          setPercentage(350);
-          setFilterIndex(index);
-          setFilterEffect(selectedFilterEffects[index].effect);
+          if (index !== filterIndex){
+               setSliderChange(false);
+               setPercentage(350);
+               setFilterIndex(index);
+               setFilterEffect(selectedFilterEffects[index].effect);
+          } else {
+               setSliderChange(false);
+               setPercentage(350);
+               setFilterIndex(-1);
+               setFilterEffect(null);
+          }
           setOptions([]);
      };
 
@@ -494,6 +501,16 @@ function Filter() {
                     return 'choose-photo-item-4cut-1-0';
                } else if (rowIndex === 1 && photoIndex === 1) {
                     return 'choose-photo-item-4cut-1-1';
+               }
+          } else if (selectedFrame === '4.1-cutx2') {
+               if (rowIndex === 0 && photoIndex === 0) {
+                    return 'choose-photo-item-4-1cut-0-0';
+               } else if (rowIndex === 0 && photoIndex === 1) {
+                    return 'choose-photo-item-4-1cut-0-1';
+               } else if (rowIndex === 1 && photoIndex === 0) {
+                    return 'choose-photo-item-4-1cut-1-0';
+               } else if (rowIndex === 1 && photoIndex === 1) {
+                    return 'choose-photo-item-4-1cut-1-1';
                }
           } else if (selectedFrame === '5-cutx2') {
                if (rowIndex === 0 && photoIndex === 0) {

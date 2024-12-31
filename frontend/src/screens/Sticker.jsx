@@ -117,6 +117,66 @@ function Sticker() {
           width: "",
           height: ""
      });
+     // Frame configurations
+     const frameConfigs = {
+          "3-cutx2": {
+               calcedHeight: height / 5.3,
+               calcedWidth: (height / 5.3) * 1.02,
+               xOffset: [17, 37 + (height / 5.3) * 1.02],
+               yOffset: 18,
+               chunkSize: 2,
+               extraImage: false,
+          },
+          "5-cutx2": {
+               calcedWidth: width / 2 - 22,
+               calcedHeight: height / 2 - 30,
+               xOffset: [17, 17 + width / 2 - 22 + 10],
+               yOffset: 20,
+               chunkSize: 2,
+               extraImage: true,
+          },
+          "Stripx2": {
+               calcedHeight: height / 6 + 29,
+               calcedWidth: (height / 6 + 21) * 1.48,
+               xOffset: [18, 35 + (height / 6 + 20) * 1.48],
+               yOffset: 24.8,
+               chunkSize: 2,
+               extraImage: false,
+
+          },
+          "2cut-x2": {
+               calcedWidth: width / 2.2,
+               calcedHeight: (width / 1.96),
+               xOffset: [16, 14 + width / 2.1],
+               yOffset: 31,
+               chunkSize: 2,
+               extraImage: false,
+          },
+          "4-cutx2": {
+               calcedHeight: height / 2.4,
+               calcedWidth: (height / 2.4) * 1.33,
+               xOffset: [52, 69 + (height / 2.4) * 1.33],
+               yOffset: 24,
+               chunkSize: 2,
+               extraImage: false,
+          },
+          "4.1-cutx2": {
+               calcedWidth: (height / 4.9) * 1.33,
+               calcedHeight: height / 2.4,
+               xOffset: [21, 9 + (height / 4.05) * 1.33],
+               yOffset: 38,
+               chunkSize: 2,
+               extraImage: false,
+          },
+          default: {
+               calcedHeight: width / 2.3,
+               calcedWidth: (width / 1.8) * 1,
+               xOffset: [8, 14 + (width / 2.3) * 1.0],
+               yOffset: 20,
+               chunkSize: 2,
+               extraImage: false,
+          },
+     };
 
      const chunkArray = (array, chunkSize) => {
           const chunks = [];
@@ -668,15 +728,10 @@ function Sticker() {
      useEffect(() => {
           if (frameSize.width === "" || frameSize.height === "") return;
 
-          // Load backgrounds
-          if (myBackgrounds) {
-               loadSetup(myBackgrounds, setBackgroundList);
-          }
-
-          // Load layouts
-          if (selectedLayout) {
-               loadSetup(selectedLayout, setLayoutList);
-          }
+          Promise.all([
+               loadSetup(myBackgrounds, setBackgroundList),
+               loadSetup(selectedLayout, setLayoutList)
+          ]);
      }, [frameSize.width, frameSize.height, myBackgrounds, selectedLayout, loadSetup]);
 
      const getCrop = (image, newSize) => {
@@ -756,6 +811,14 @@ function Sticker() {
                     calcedWidth: (height / 2.4) * 1.33,
                     xOffset: [52, 69 + (height / 2.4) * 1.33],
                     yOffset: 24,
+                    chunkSize: 2,
+                    extraImage: false,
+               },
+               "4.1-cutx2": {
+                    calcedWidth: (height / 4.9) * 1.33,
+                    calcedHeight: height / 2.4,
+                    xOffset: [21, 9 + (height / 4.05) * 1.33],
+                    yOffset: 38,
                     chunkSize: 2,
                     extraImage: false,
                },
@@ -862,7 +925,7 @@ function Sticker() {
      useEffect(() => {
           const smallRatio = 0.8;
           const largeRatio = 1.45;
-          if (selectedFrame === "6-cutx2") {
+          if (selectedFrame === "6-cutx2" || selectedFrame === "4.1-cutx2") {
                setFrameSize({ width: 1920 * 1 / 6, height: 2900 * 1 / 6 });
                // setFrameSize({ width:6000, height: 4000 });
           }
@@ -879,7 +942,7 @@ function Sticker() {
      }, [selectedFrame]);
 
      const getKonvaClassName = (selectedFrame) => {
-          if (selectedFrame === "6-cutx2" || selectedFrame === "Stripx2") {
+          if (selectedFrame === "6-cutx2" || selectedFrame === "Stripx2" || selectedFrame === "4.1-cutx2") {
                return "konva-vertical-image";
           } else {
                return "konva-horizontal-image";
@@ -918,7 +981,7 @@ function Sticker() {
           if (selFrame === "Stripx2") {
                return { height: "74%", bottom: "16%", right: "12%" }
           }
-          else if (selFrame === "6-cutx2") {
+          else if (selFrame === "6-cutx2" || selFrame === "4.1-cutx2") {
                return {
                     transform: "scale(1.1)",
                     height: "70%", bottom: "18%", right: "8%"
