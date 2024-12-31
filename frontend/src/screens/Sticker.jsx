@@ -381,11 +381,9 @@ function Sticker() {
                }
                const newFile = new Blob([new Uint8Array(array)], { type: 'image/png' });
 
-               const rotatedDataURL = await rotateImageDataURL(originalDataURL, 90);
-
                // Prepare FormData for both requests
                const uploadFormData = new FormData();
-               uploadFormData.append("photo", rotatedDataURL);
+               uploadFormData.append("photo", originalDataURL);
                uploadFormData.append("order_code", sessionStorage.getItem('orderCodeNum'));
 
                const printFormData = new FormData();
@@ -435,28 +433,6 @@ function Sticker() {
                setClickPrint(false);
           }
      };
-
-     function rotateImageDataURL(dataURL, degrees) {
-          return new Promise((resolve, reject) => {
-               const image = new Image();
-               image.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    const { width, height } = image;
-
-                    canvas.width = width;
-                    canvas.height = height;
-
-                    ctx.translate(width / 2, height / 2);
-                    ctx.rotate((degrees * Math.PI) / 180);
-                    ctx.drawImage(image, -width / 2, -height / 2);
-
-                    resolve(canvas.toDataURL());
-               };
-               image.onerror = reject;
-               image.src = dataURL;
-          });
-     }
 
      const hoverGoBackButton = () => {
           if (language === 'en') {
