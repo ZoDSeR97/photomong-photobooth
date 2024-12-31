@@ -117,66 +117,6 @@ function Sticker() {
           width: "",
           height: ""
      });
-     // Frame configurations
-     const frameConfigs = {
-          "3-cutx2": {
-               calcedHeight: height / 5.3,
-               calcedWidth: (height / 5.3) * 1.02,
-               xOffset: [17, 37 + (height / 5.3) * 1.02],
-               yOffset: 18,
-               chunkSize: 2,
-               extraImage: false,
-          },
-          "5-cutx2": {
-               calcedWidth: width / 2 - 22,
-               calcedHeight: height / 2 - 30,
-               xOffset: [17, 17 + width / 2 - 22 + 10],
-               yOffset: 20,
-               chunkSize: 2,
-               extraImage: true,
-          },
-          "Stripx2": {
-               calcedHeight: height / 6 + 29,
-               calcedWidth: (height / 6 + 21) * 1.48,
-               xOffset: [18, 35 + (height / 6 + 20) * 1.48],
-               yOffset: 24.8,
-               chunkSize: 2,
-               extraImage: false,
-
-          },
-          "2cut-x2": {
-               calcedWidth: width / 2.2,
-               calcedHeight: (width / 1.96),
-               xOffset: [16, 14 + width / 2.1],
-               yOffset: 31,
-               chunkSize: 2,
-               extraImage: false,
-          },
-          "4-cutx2": {
-               calcedHeight: height / 2.4,
-               calcedWidth: (height / 2.4) * 1.33,
-               xOffset: [52, 69 + (height / 2.4) * 1.33],
-               yOffset: 24,
-               chunkSize: 2,
-               extraImage: false,
-          },
-          "4.1-cutx2": {
-               calcedWidth: (height / 4.9) * 1.33,
-               calcedHeight: height / 2.4,
-               xOffset: [21, 9 + (height / 4.05) * 1.33],
-               yOffset: 38,
-               chunkSize: 2,
-               extraImage: false,
-          },
-          default: {
-               calcedHeight: width / 2.3,
-               calcedWidth: (width / 1.8) * 1,
-               xOffset: [8, 14 + (width / 2.3) * 1.0],
-               yOffset: 20,
-               chunkSize: 2,
-               extraImage: false,
-          },
-     };
 
      const chunkArray = (array, chunkSize) => {
           const chunks = [];
