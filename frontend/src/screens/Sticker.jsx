@@ -296,11 +296,9 @@ function Sticker() {
      };
 
      const printFrameWithSticker = async (event) => {
-          if (clickPrint === true) {
-               return;
-          }
-          if (isSel) {
+          if (clickPrint || !isLayerRendered || !isRendered || isSel) {
                setIsSel(false);
+               return;
           }
 
           playPrintAudio();
@@ -354,8 +352,6 @@ function Sticker() {
                const qrVal = uploadData.photo_url;
                if (qrVal) {
                     sessionStorage.setItem('uploadedCloudPhotoUrl', qrVal);
-                    sessionStorage.setItem('qr', qrVal);
-                    console.log("QR value:", qrVal);
                }
 
                // Handle print response

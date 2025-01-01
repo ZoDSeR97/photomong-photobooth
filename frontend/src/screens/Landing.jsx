@@ -34,19 +34,25 @@ function Print() {
           }
      }, []);
 
-
-
      const clearSessionStorageAndLeaveOut = () => {
           sessionStorage.clear();
           playAudio("click_sound.wav")
           navigate('/');
      }
 
-
-
      return (
           <div className='print-container' style={{ backgroundImage: `url(${background})` }} onClick={clearSessionStorageAndLeaveOut}>
-               <iframe width="760" height="515" src="https://www.youtube.com/embed/fhMZQmgYV-o?si=dltO--EukMN6wga6" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+               <iframe 
+                    width="760" 
+                    height="515" 
+                    src="ttps://www.youtube.com/embed/fhMZQmgYV-o?si=dltO--EukMN6wga6&rel=0&modestbranding=1" 
+                    title="YouTube video player" 
+                    frameBorder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                    referrerPolicy="strict-origin-when-cross-origin"
+                    sandbox="allow-scripts allow-same-origin allow-presentation"
+                    allowfullscreen>
+               </iframe>
           </div>
      );
 }
