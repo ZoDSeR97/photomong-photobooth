@@ -32,6 +32,7 @@ inserted_money = 0
 amount_to_pay = 0
 cash_lock = threading.Lock()  # For thread safety on shared resources
 PREVIEW_INTERVAL = 0.0167  # 17ms between frames
+uuid = ""
 
 class CameraManager:
     def __init__(self):
@@ -211,8 +212,11 @@ class CameraManager:
             if self.gif_writer is not None:
                 self.gif_writer.append_data(frame)
 
-    def start_video_recording(self, uuid):
+    def start_video_recording(self, _uuid):
         """Start video recording as a GIF."""
+        global uuid
+        if(uuid != _uuid)
+            uuid = _uuid
         self._video_writer_active = True
         current_directory = os.path.dirname(os.path.abspath(__file__))
         date_str = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
@@ -333,6 +337,13 @@ def capture_image():
     uuid = data.get('uuid', 'default_uuid')
     result = camera_manager.capture_image(uuid)
     return jsonify(result)
+
+@app.route('/api/get-template', methods=['POST'])
+def get_template():
+    try:
+        if 'layout' not in request.files:
+            return jsonify({'error': 'No layout data provided'}), 400
+        
 
 @app.route('/api/uploads', methods=['POST'])
 def upload_image():

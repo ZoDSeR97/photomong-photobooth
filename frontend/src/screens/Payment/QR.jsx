@@ -108,6 +108,7 @@ function QRPayment({ method }) { // 'method' can be 'momo', 'vnpay', or 'zalopay
                 } else {
                     const response = await fetch(`${import.meta.env.VITE_REACT_APP_BACKEND}/${method}/api/webhook?order=${orderCodeNum}`);
                     const paymentData = await response.json();
+                    sessionStorage.setItem('orderCodeNum', paymentData.order_code);
                     if (paymentData.status === "Success") {
                         clearInterval(intervalId);
                         navigate("/payment-result");
