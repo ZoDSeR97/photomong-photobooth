@@ -1,165 +1,189 @@
 from django.shortcuts import render
-import requests
-from django.shortcuts import render, redirect
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import permissions
-from time import time
 from datetime import datetime
-import json, hmac, hashlib, urllib.request, urllib, urllib.parse, random
+import json
+import hmac
+import hashlib
+import uuid
+import requests
 from revenue.models import Transaction, Order
 from device.models import Device
 from payment.models import Payment
 from django.conf import settings
 
 
-# Create your views here.
 class MomoAPI(APIView):
-
     def get(self, request, *args, **kwargs):
-        Momo = Payment.objects.filter(code='momo').first()
-        config = {
-            "app_id": Momo.appID,
-            "key1": Momo.key1,
-            "key2": Momo.key2,
-            "endpoint": Momo.endpoint_sandbox if settings.BACKEND_ENV == 'local' else Momo.endpoint_prod,
-        }
-
-        transID = random.randrange(1000000)
+        # Get MoMo configuration from database
+        momo = Payment.objects.filter(code='momo').first()
         
-        order = {
-            "app_id": config["app_id"],
-            "app_trans_id": "{:%y%m%d}_{}".format(
-                datetime.today(), transID
-            ), 
-            "app_user": "user123",
-            "app_time": int(round(time() * 1000)),  # miliseconds
-            "embed_data": json.dumps({}),
-            "item": json.dumps([{}]),
-            "amount": request.GET.get("amount"),
-            "description": "PhotoMong - Payment for the order #" + str(transID),
-            "bank_code": "Momoapp",
+        # Set up configuration based on environment
+        config = {
+            "partner_code": settings.MOMO_PARTNER_CODE,
+            "access_key": settings.MOMO_ACCESS_KEY,
+            "secret_key": settings.MOMO_SECRET_KEY,
+            "endpoint": settings.MOMO_INVO_URL,
         }
 
-        # app_id|app_trans_id|app_user|amount|apptime|embed_data|item
-        data = "{}|{}|{}|{}|{}|{}|{}".format(
-            order["app_id"],
-            order["app_trans_id"],
-            order["app_user"],
-            order["amount"],
-            order["app_time"],
-            order["embed_data"],
-            order["item"],
-        )
+        # Generate unique order info
+        order_id = str(uuid.uuid4())
+        request_id = str(uuid.uuid4())
+        redirect_url = request.build_absolute_uri('/momo/api/callback')
+        ipn_url = request.build_absolute_uri(f'/momo/api/webhook?order={order_id}')
+        amount = int(request.GET.get("amount", 0))
+        
+        # Prepare order data
+        raw_data = {
+            "partnerCode": config["partner_code"],
+            "partnerName": "PhotoMong Store",
+            "storeId": config["partner_code"],
+            "requestId": request_id,
+            "amount": amount,
+            "orderId": order_id,
+            "orderInfo": f"PhotoMong - Payment for order #{order_id}",
+            "redirectUrl": redirect_url,
+            "ipnUrl": ipn_url,
+            "lang": "en",
+            "requestType": "captureWallet",
+            "autoCapture": True,
+            "extraData": "",
+        }
 
-        order["mac"] = hmac.new(
-            config["key1"].encode(), data.encode(), hashlib.sha256
+        # Create signature
+        raw_signature = f"accessKey={config['access_key']}&amount={raw_data['amount']}&extraData={raw_data['extraData']}&ipnUrl={raw_data['ipnUrl']}&orderId={raw_data['orderId']}&orderInfo={raw_data['orderInfo']}&partnerCode={raw_data['partnerCode']}&redirectUrl={raw_data['redirectUrl']}&requestId={raw_data['requestId']}&requestType={raw_data['requestType']}"
+        signature = hmac.new(
+            config["secret_key"].encode(),
+            raw_signature.encode(),
+            hashlib.sha256
         ).hexdigest()
+        
+        raw_data["signature"] = signature
 
-        response = urllib.request.urlopen(
-            url=config["endpoint"], data=urllib.parse.urlencode(order).encode()
-        )
-
-        # Find device
+        # Find device if device code is provided
         device_code = request.GET.get("device")
-        if device_code:
-            device = Device.objects.filter(code=device_code).first()
-        else:
-            device = None
+        device = Device.objects.filter(code=device_code).first() if device_code else None
 
-        orderObject = Order.objects.create(
-            order_code=order["app_trans_id"],
+        # Create order in database
+        order = Order.objects.create(
+            order_code=order_id,
             device_id=device,
-            product_price=order["amount"],
+            product_price=amount,
             base_price=0,
             tax=0,
-            total_price=order["amount"],
+            total_price=amount,
             status="Pending",
         )
 
-        result = json.loads(response.read())
-        
-        result_response = {
-            "order_code": order["app_trans_id"],
-            "return_message": result.get("return_message"),
-            "qr_code": result.get("qr_code"),
-            "order_url": result.get("order_url"),
-            "return_code": result.get("return_code")
-        }
-        
-        return Response(result_response, status=status.HTTP_200_OK)        
+        # Make request to MoMo
+        try:
+            response = requests.post(
+                f"{config['endpoint']}",
+                json=raw_data,
+                headers={'Content-Type': 'application/json'}
+            )
+            result = response.json()
 
-
-class MomoUpdateAPI(APIView):
-    def post(self, request, order_code, *args, **kwargs):                
-        status = request.data.get("status")
-        if order_code:
-            order = Order.objects.filter(order_code=order_code).first()
-            if order:
-                order.status = status
-                order.save()
-        return Response(status=status.HTTP_200_OK)
+            result_response = {
+                "order_code": order_id,
+                "return_message": result.get("message"),
+                "qr_code": result.get("qrCodeUrl"),
+                "return_code": result.get("resultCode"),
+                "request_id": request_id,
+            }
+            
+            return Response(result_response, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            return Response({
+                "error": str(e)
+            }, status=status.HTTP_400_BAD_REQUEST)
 
 
 class MomoWebhookAPI(APIView):
+    def get(self, request, *args, **kwargs):
+        data = request.query_params.get("order", None)
 
-    def get(self, request, *args, **kwargs):        
-        # Get order code
-        order_code = request.GET.get("order")
-        if order_code:
-            order = Order.objects.filter(order_code=order_code).first()                     
+        if not data:
+            return Response({"message": "Order not found"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Get order
+        order = Order.objects.filter(order_code=data).first()
+        if not order:
+            return Response({"message": "Order not found"}, status=status.HTTP_404_NOT_FOUND)
         
-        config = {
-            "signature": "601a7280711dd72bfae8c365801f5e257311a1ebd8779cf3bc4ac57c4002a978",
-            "key1": "PcY4iZIKFCIdgZvA6ueMcMHHUbRLYjPL",
-            "key2": "kLtgPl8HHhfvMuDHPwKfgfsY4Ydm9eIz",
-            "endpoint": "https://test-payment.momo.vn/pay/store/",
-        }
+        if order.status == "Success":
+            return Response({
+                "order_code": order.order_code,
+                "status": "Success",
+            }, status=status.HTTP_200_OK)
 
-        params = {
-            "storeSlug": "MOMOIQA420180417-storeid01",
-            "amount": order.total_price,
-            "app_trans_id": order.order_code,  # Input your app_trans_id"
-        }
+        return Response({
+                "order_code": order.order_code,
+                "status": "Pending",
+            }, status=status.HTTP_200_OK)
 
-        data = "{}?a={}&b={}&s={}".format(
-            params["storeSlug"], params["amount"], params["app_trans_id"], config["signature"]
-        )  # app_id|app_trans_id|key1
-        params["mac"] = hmac.new(
-            config["key1"].encode(), data.encode(), hashlib.sha256
+
+    def post(self, request, *args, **kwargs):
+        momo = Payment.objects.filter(code='momo').first()
+        data = request.data
+        
+        # Verify signature
+        raw_signature = f"accessKey={settings.MOMO_ACCESS_KEY}&amount={data['amount']}&extraData={data['extraData']}&message={data['message']}&orderId={data['orderId']}&orderInfo={data['orderInfo']}&orderType={data['orderType']}&partnerCode={data['partnerCode']}&payType={data['payType']}&requestId={data['requestId']}&responseTime={data['responseTime']}&resultCode={data['resultCode']}&transId={data['transId']}"
+        
+        signature = hmac.new(
+            settings.MOMO_SECRET_KEY.encode(),
+            raw_signature.encode(),
+            hashlib.sha256
         ).hexdigest()
-
-        response = urllib.request.urlopen(
-            url=config["endpoint"], data=urllib.parse.urlencode(params).encode()
-        )
-        result = json.loads(response.read())
         
-        
-        if result.get("return_code") == 1:
+        if signature != data.get("signature"):
+            return Response({"message": "Invalid signature"}, status=status.HTTP_400_BAD_REQUEST)
+            
+        # Get order
+        order = Order.objects.filter(order_code=data["orderId"]).first()
+        if not order:
+            return Response({"message": "Order not found"}, status=status.HTTP_404_NOT_FOUND)
+            
+        # Update order status based on resultCode
+        if data["resultCode"] == 0:  # Success
             order.status = "Success"
-        elif result.get("return_code") == 2:
-            order.status = "Fail"
-        elif result.get("return_code") == 3:
-            order.status = "Processing"
-        order.save()                
-        
-        # Create Transaction if Success
-        if (order.status == 'Success'):
+            # Create transaction record
             Transaction.objects.create(
                 order_id=order,
-                payment_id=Payment.objects.filter(code='Momo').first(),
-                amount=order.total_price,
+                payment_id=momo,
+                amount=data["amount"],
                 transaction_status="Success",
             )
+        elif data["resultCode"] == 1006:  # Transaction timeout
+            order.status = "Expired"
+        elif data["resultCode"] == 1003:  # Payment pending
+            order.status = "Pending"
+        else:
+            order.status = "Failed"
+            
+        order.save()
         
-        result_response = {
-            "order_code": order.order_code,
-            "return_message": result.get("return_message"),            
-            "return_code": result.get("return_code"),
-            "status_real": order.status,
-            "status": order.status
-        }
+        return Response({}, status=status.HTTP_204_NO_CONTENT)
 
 
-        return Response(result_response, status=status.HTTP_200_OK)
+class MomoUpdateAPI(APIView):
+    def post(self, request, order_code, *args, **kwargs):
+        status_update = request.data.get("status")
+        if not order_code:
+            return Response({"message": "Order code is required"}, status=status.HTTP_400_BAD_REQUEST)
+            
+        order = Order.objects.filter(order_code=order_code).first()
+        if not order:
+            return Response({"message": "Order not found"}, status=status.HTTP_404_NOT_FOUND)
+            
+        order.status = status_update
+        order.save()
+        
+        return Response({
+            "message": "Status updated successfully",
+            "order_code": order_code,
+            "status": status_update
+        }, status=status.HTTP_200_OK)

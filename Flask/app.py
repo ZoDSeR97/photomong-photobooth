@@ -243,7 +243,7 @@ class CameraManager:
                 self.gif_writer = None
                 logging.info("GIF recording stopped.")
 
-    def capture_image(self, uuid, retries=5):
+    def capture_image(self, _uuid, retries=5):
         """Capture an image and save it as PNG."""
         self.stop_live_view()
         if self.error_count >= self.MAX_ERRORS and time.time() - self.last_error_time < self.ERROR_TIMEOUT:
@@ -261,7 +261,7 @@ class CameraManager:
                     # Prepare the file path
                     current_directory = os.path.dirname(os.path.abspath(__file__))
                     date_str = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
-                    filename = os.path.join(current_directory, f'{uuid}/{date_str}.png')
+                    filename = os.path.join(current_directory, f'{_uuid}/{date_str}.png')
 
                     # Ensure directory exists
                     os.makedirs(os.path.dirname(filename), exist_ok=True)
@@ -321,15 +321,20 @@ def video_feed():
 @app.route('/api/start_live_view', methods=['GET'])
 def start_live_view():
     camera_manager.start_live_view()
-    # request.args.get('uuid')
-    # camera_manager.start_video_recording(uuid)
-    return jsonify(status="Live view and video recording started")
+    return jsonify(status="Live view started")
 
 @app.route('/api/stop_live_view', methods=['GET'])
 def stop_live_view():
     camera_manager.stop_video_recording()
     camera_manager.stop_live_view()
     return jsonify(status="Live view and video recording stopped")
+
+@app.route('/api/start_recording', methods=['POST'])
+def recording():
+    data = request.get_json()
+    uuid = data.get('uuid', 'default_uuid')
+    camera_manager.start_video_recording(uuid)
+    return jsonify(status="Video recording started")
 
 @app.route('/api/capture', methods=['POST'])
 def capture_image():
@@ -338,12 +343,87 @@ def capture_image():
     result = camera_manager.capture_image(uuid)
     return jsonify(result)
 
-@app.route('/api/get-template', methods=['POST'])
+def create_photobooth_gif(template_path, gif_paths, gif_positions, output_path, default_size=(758, 564), frame_duration=100):
+    # Load the background template
+    template = Image.open(template_path).convert("RGBA")
+
+    # Load all GIFs and their frames
+    gifs = []
+    max_frames = 0
+    for gif_path in gif_paths:
+        gif = Image.open(gif_path)
+        frames = []
+
+        try:
+            while True:
+                frames.append(gif.copy())
+                gif.seek(gif.tell() + 1)
+        except EOFError:
+            pass
+
+        gifs.append(frames)
+        max_frames = max(max_frames, len(frames))
+
+    # Create output frames
+    output_frames = []
+
+    for frame_idx in range(max_frames):
+        # Start with a copy of the template
+        #new_frame = template.copy()
+        new_frame = Image.new("RGBA", template.size, (255,255,255,0))
+
+        # Paste each GIF frame at its respective position
+        for i, frames in enumerate(gifs):
+            # Get the current frame (loop if necessary)
+            current_frame = frames[frame_idx % len(frames)]
+
+            # Resize the current frame
+            current_frame = current_frame.resize(default_size, Image.Resampling.LANCZOS)
+
+            # Create a mask for transparent pasting
+            mask = current_frame.split()[3] if current_frame.mode == "RGBA" else None
+
+            # Paste the frame onto the template
+            new_frame.paste(current_frame, gif_positions[i], mask)
+        new_frame = Image.alpha_composite(new_frame, template)
+        output_frames.append(new_frame)
+
+    # Save the resulting animated GIF
+    output_frames[0].save(
+        output_path,
+        save_all=True,
+        append_images=output_frames[1:],
+        duration=frame_duration,
+        loop=0,
+    )
+
+@app.route('/api/get_template', methods=['POST'])
 def get_template():
     try:
-        if 'layout' not in request.files:
-            return jsonify({'error': 'No layout data provided'}), 400
-        
+        # Get the URL from the JSON body
+        data = request.get_json()
+        image_url = data.get('url')
+
+        if not image_url:
+            return jsonify({'error': 'Image URL is required'}), 400
+
+        # Download the image from the URL
+        response = requests.get(image_url, stream=True)
+        if response.status_code != 200:
+            return jsonify({'error': 'Failed to fetch the image'}), 400
+
+        # Open the image using PIL
+        image = Image.open(BytesIO(response.content))
+
+        # Convert and save as PNG
+        output_path = 'template.png'
+        image.convert('RGBA').save(output_path, 'PNG')
+
+        # Return the PNG file to the user
+        return send_file(output_path, mimetype='image/png')
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/uploads', methods=['POST'])
 def upload_image():

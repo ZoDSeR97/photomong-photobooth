@@ -58,6 +58,13 @@ QPAY_USERNAME=os.getenv('QPAY_USERNAME')
 QPAY_PASSWORD=os.getenv('QPAY_PASSWORD')
 QPAY_CODE=os.getenv("QPAY_INVOICE_CODE")
 
+# MoMo
+MOMO_AUTH_URL=os.getenv('MOMO_AUTH_URL')
+MOMO_INVO_URL=os.getenv('MOMO_INVO_URL')
+MOMO_PARTNER_CODE=os.getenv('MOMO_PARTNER_CODE')
+MOMO_ACCESS_KEY=os.getenv('MOMO_ACCESS_KEY')
+MOMO_SECRET_KEY=os.getenv("MOMO_SECRET_KEY")
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -217,8 +224,11 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
-    "http://127.0.0.1:5000",
+    "http://localhost:5000",
+    "http://localhost:3000",
     "http://127.0.0.1:5173",
+    "http://127.0.0.1:5000",
+    "http://127.0.0.1:3000",
 ]
 
 CORS_ALLOW_METHODS = [

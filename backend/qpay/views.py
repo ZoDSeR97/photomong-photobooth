@@ -58,7 +58,7 @@ class QPayAPI(APIView):
             "sender_branch_code": "BRANCH1",
             "invoice_description": f"Order #{transID} Payment",
             "amount": request.GET.get("amount"),
-            "callback_url":f"{settings.DOMAIN_URL}/qpay/api/webhook?payment_id={str(transID)}"
+            "callback_url":request.build_absolute_uri(f"/qpay/api/webhook?payment_id={str(transID)}")
         }
 
         # Send the authentication request to QPay
