@@ -215,7 +215,7 @@ class CameraManager:
     def start_video_recording(self, _uuid):
         """Start video recording as a GIF."""
         global uuid
-        if(uuid != _uuid)
+        if(uuid != _uuid):
             uuid = _uuid
         self._video_writer_active = True
         current_directory = os.path.dirname(os.path.abspath(__file__))
