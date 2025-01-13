@@ -1,5 +1,6 @@
 from contextlib import contextmanager
 from datetime import datetime
+from io import BytesIO
 from flask import Flask, jsonify, Response, request, send_file
 from flask_cors import CORS, cross_origin
 from PIL import Image
@@ -35,7 +36,7 @@ PREVIEW_INTERVAL = 0.0167  # 17ms between frames
 uuid = ""
 
 gif_positions = {
-    'stripx2': [
+    'Stripx2': [
         (100, 151), 
         (1062, 151),
         (100, 782),
@@ -45,7 +46,7 @@ gif_positions = {
         (100, 2040),
         (1062, 2040),
     ],
-    'cutx6': [
+    '6-cutx2': [
         (140, 121), 
         (986, 121),
         (140, 952),
@@ -53,30 +54,30 @@ gif_positions = {
         (140, 1790),
         (986, 1790),
     ],
-    'cutx4': [
+    '4-cutx2': [
         (380, 167), 
         (1485, 168),
         (380, 1002),
         (1485, 1001),
     ],
-    'cutx4v': [
+    '4.1-cutx2': [
         (125, 363), 
         (1014, 363),
         (125, 1490),
         (1014, 1490),
     ],
-    'cutx2': [
+    '2cut-x2': [
         (125, 184), 
         (1470, 184),
     ],
 } 
 
 gif_sizes={
-    "stripx2": (758, 564),
-    'cutx6': (780, 770),
-    'cutx4': (1000, 750),
-    'cutx4v': (780, 1050), 
-    'cutx2': (1268, 1460),
+    "Stripx2": (758, 564),
+    '6-cutx2': (780, 770),
+    '4-cutx2': (1000, 750),
+    '4.1-cutx2': (780, 1050), 
+    '2cut-x2': (1268, 1460),
 }
 
 class CameraManager:
@@ -388,9 +389,22 @@ def capture_image():
     result = camera_manager.capture_image(uuid)
     return jsonify(result)
 
-def create_photobooth_gif(template_path, gif_paths, gif_positions, output_path, default_size=(758, 564), frame_duration=100):
+@app.route('/api/create-gif', methods=['POST'])
+def create_photobooth_gif():
+
+    frame = request.form['frame']
+    if (not frame):
+        return jsonify({'error': 'frame is required'}), 400
+    gif_paths = request.form['gifs']
+    if (not gif_paths):
+        return jsonify({'error': 'gif is required'}), 400
+
     # Load the background template
-    template = Image.open(template_path).convert("RGBA")
+    template = Image.open("./template.png").convert("RGBA")
+    _gif_positions = gif_positions[frame]
+    default_size = gif_sizes[frame]
+    output_path="./output.gif"
+    frame_duration=100
 
     # Load all GIFs and their frames
     gifs = []
@@ -429,7 +443,7 @@ def create_photobooth_gif(template_path, gif_paths, gif_positions, output_path, 
             mask = current_frame.split()[3] if current_frame.mode == "RGBA" else None
 
             # Paste the frame onto the template
-            new_frame.paste(current_frame, gif_positions[i], mask)
+            new_frame.paste(current_frame, _gif_positions[i], mask)
         new_frame = Image.alpha_composite(new_frame, template)
         output_frames.append(new_frame)
 
@@ -461,7 +475,7 @@ def get_template():
         image = Image.open(BytesIO(response.content))
 
         # Convert and save as PNG
-        output_path = 'template.png'
+        output_path = "./template.png"
         image.convert('RGBA').save(output_path, 'PNG')
 
         return jsonify(status="downloaded the template")
@@ -519,7 +533,8 @@ def download_file():
         videos = [file for file in file_list if file.lower().endswith(('.gif'))]
         video_urls = [
             {
-                'id': idx, 
+                'id': idx,
+                'name': os.path.join(f"./{uuid}", image.replace("\\","/")),
                 'url': f"http://{request.host}/api/get_photo/uploads"+os.path.join(f"/{uuid}", image.replace("\\","/"))
             } for idx, image in enumerate(sorted(videos, key=lambda x: datetime.strptime(x.removesuffix('.gif'), '%Y-%m-%d-%H-%M-%S')))
         ]

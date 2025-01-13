@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, frame } from "framer-motion";
 import { Heart, ImageIcon, Moon, Sparkles, Sun } from 'lucide-react'
 import { cn, playAudio } from "@/lib/utils";
 import { Button } from "@/components/ui/button"
@@ -11,6 +11,12 @@ import { toBlob } from 'html-to-image';
 
 interface Photo {
     id: number
+    url: string
+}
+
+interface Gif {
+    id: number
+    name: string
     url: string
 }
 
@@ -95,6 +101,8 @@ export default function Choose() {
     const uuid = sessionStorage.getItem("uuid");
     const [photo, setPhoto] = useState<Blob | null>(null);
     const photos: Photo[] = JSON.parse(sessionStorage.getItem('photos'));
+    const gifs: Gif[] =  JSON.parse(sessionStorage.getItem('gifs'));
+    const [selectedGifs, setSelectedGifs] = useState<string[]>([]);
     const [transition, setTransition] = useState(false);
 
     useEffect(() => {
@@ -162,8 +170,10 @@ export default function Choose() {
         if (selectedPhotos.indexOf(id) === -1 && selectedPhotos.length < maxSelections) {
             if (selectedFrame === 'Stripx2') {
                 setSelectedPhotos([...selectedPhotos, id, id]);
+                setSelectedGifs([...selectedGifs, gifs[id].name, gifs[id].name]);
             } else {
                 setSelectedPhotos([...selectedPhotos, id]);
+                setSelectedGifs([...selectedGifs, gifs[id].name]);
             }
         } else {
             setSelectedPhotos(selectedPhotos.filter(index => index !== id));
@@ -176,6 +186,16 @@ export default function Choose() {
         if (!nodeRef.current || transition) return;
         setTransition(true);
         try {
+            await fetch(`${import.meta.env.VITE_REACT_APP_API}/api/create-gif`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    "frame": selectedFrame,
+                    "gifs":selectedGifs
+                })
+            })
             // Convert the DOM node to a Blob
             await toBlob(nodeRef.current).then(blob => {
                 // Convert the Blob to a Base64 string for session storage

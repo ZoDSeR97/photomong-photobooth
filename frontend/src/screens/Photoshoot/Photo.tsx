@@ -58,7 +58,7 @@ export default function Photoshoot() {
     const data = await fetch(`${import.meta.env.VITE_REACT_APP_API}/api/get_photo?uuid=${uuid}`).then(res => res.json())
     if (data && data.images && data.images.length > 0) {
       const latestImage = data.images[data.images.length - 1];
-      const latestGif = data.gifs[data.videos.length-1]
+      const latestGif = data.videos[data.videos.length-1]
       if (selectedRetake !== null) {
         setGifs(prev => {
           const newGifs = [...prev]
@@ -100,7 +100,7 @@ export default function Photoshoot() {
     if (uuid && countdown > 0) {
       if (countdown == 5){
         playAudio("/src/assets/audio/count.wav");
-        /* startRecording(); */
+        startRecording();
       }
       const timer = setTimeout(() => setCountdown(prev => prev - 1), 1000)
       return () => clearTimeout(timer)
@@ -130,6 +130,7 @@ export default function Photoshoot() {
       sessionStorage.setItem("uuid", uuid);
 
       sessionStorage.setItem('photos', JSON.stringify(photos));
+      sessionStorage.setItem('gifs', JSON.stringify(gifs));
 
       await fetch(`${import.meta.env.VITE_REACT_APP_API}/api/stop_live_view`)
       navigate("/photo-choose");
@@ -223,7 +224,7 @@ export default function Photoshoot() {
       <Button 
           onClick={() => setPhotos([])}
           disabled={photos.length < 8 || isCapturing || selectedRetake !== null}
-          className='absolute top-1/2 left-40 bg-pink-500 hover:bg-pink-600 rounded-full text-white'
+          className='absolute top-1/2 left-28 bg-pink-500 hover:bg-pink-600 rounded-full text-white'
         >
           <Trash2 className="h-full w-full" />
           {t('menu.reset')}
@@ -231,7 +232,7 @@ export default function Photoshoot() {
         <Button 
           onClick={goToSelection}
           disabled={photos.length < 8 || isCapturing || selectedRetake !== null}
-          className='absolute top-1/2 right-40 bg-pink-500 hover:bg-pink-600 rounded-full text-white'
+          className='absolute top-1/2 right-28 bg-pink-500 hover:bg-pink-600 rounded-full text-white'
         >
           <Check className="h-full w-full" />
           {t('menu.continue')}
