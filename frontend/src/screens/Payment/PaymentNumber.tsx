@@ -24,7 +24,7 @@ export default function PaymentNumber() {
         if (import.meta.env.VITE_BOOTH_TYPE !== "REG") {
             basePrice = 100000
         }
-
+        
         if (language === "mn" && import.meta.env.VITE_LOCATION == "MN") {
             basePrice = 10000
             additionalPrice = 5000

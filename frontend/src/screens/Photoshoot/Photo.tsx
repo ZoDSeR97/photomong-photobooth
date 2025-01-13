@@ -23,6 +23,7 @@ export default function Photoshoot() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [photos, setPhotos] = useState<Photo[]>([]);
+  const [gifs, setGifs] = useState<Photo[]>([]);
   const [countdown, setCountdown] = useState(5);
   const [isCapturing, setIsCapturing] = useState(false);
   const [selectedRetake, setSelectedRetake] = useState<number | null>(null);
@@ -57,13 +58,13 @@ export default function Photoshoot() {
     const data = await fetch(`${import.meta.env.VITE_REACT_APP_API}/api/get_photo?uuid=${uuid}`).then(res => res.json())
     if (data && data.images && data.images.length > 0) {
       const latestImage = data.images[data.images.length - 1];
-      if (data.videos != undefined) {
-        if (data.videos.length != 0) {
-          const videoUrl = data.videos[0].url
-          sessionStorage.setItem("videoUrl", videoUrl)
-        }
-      }
+      const latestGif = data.gifs[data.videos.length-1]
       if (selectedRetake !== null) {
+        setGifs(prev => {
+          const newGifs = [...prev]
+          newGifs[selectedRetake] = latestGif
+          return newGifs
+        })
         // Replace photo at selected index
         setPhotos(prev => {
           const newPhotos = [...prev]
@@ -72,9 +73,11 @@ export default function Photoshoot() {
         })
         setSelectedRetake(null)
       } else {
-        if (photos.length < 8)
+        if (photos.length < 8){
           // Add new photo
           setPhotos(prev => [...prev, latestImage])
+          setGifs(prev => [...prev, latestGif])
+        }
       }
       setIsCapturing(false)
     } else {
