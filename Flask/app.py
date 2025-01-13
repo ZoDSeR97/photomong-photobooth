@@ -34,6 +34,51 @@ cash_lock = threading.Lock()  # For thread safety on shared resources
 PREVIEW_INTERVAL = 0.0167  # 17ms between frames
 uuid = ""
 
+gif_positions = {
+    'stripx2': [
+        (100, 151), 
+        (1062, 151),
+        (100, 782),
+        (1062, 782),
+        (100, 1410),
+        (1062, 1410),
+        (100, 2040),
+        (1062, 2040),
+    ],
+    'cutx6': [
+        (140, 121), 
+        (986, 121),
+        (140, 952),
+        (986, 952),
+        (140, 1790),
+        (986, 1790),
+    ],
+    'cutx4': [
+        (380, 167), 
+        (1485, 168),
+        (380, 1002),
+        (1485, 1001),
+    ],
+    'cutx4v': [
+        (125, 363), 
+        (1014, 363),
+        (125, 1490),
+        (1014, 1490),
+    ],
+    'cutx2': [
+        (125, 184), 
+        (1470, 184),
+    ],
+} 
+
+gif_sizes={
+    "stripx2": (758, 564),
+    'cutx6': (780, 770),
+    'cutx4': (1000, 750),
+    'cutx4v': (780, 1050), 
+    'cutx2': (1268, 1460),
+}
+
 class CameraManager:
     def __init__(self):
         self.lock = threading.Lock()
@@ -419,8 +464,7 @@ def get_template():
         output_path = 'template.png'
         image.convert('RGBA').save(output_path, 'PNG')
 
-        # Return the PNG file to the user
-        return send_file(output_path, mimetype='image/png')
+        return jsonify(status="downloaded the template")
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -480,7 +524,7 @@ def download_file():
             } for idx, image in enumerate(sorted(videos, key=lambda x: datetime.strptime(x.removesuffix('.gif'), '%Y-%m-%d-%H-%M-%S')))
         ]
 
-        return jsonify({'status': 'success', 'images': image_urls, 'video':video_urls})
+        return jsonify({'status': 'success', 'images': image_urls, 'videos':video_urls})
     except Exception as e:
         print(e)
         return jsonify({'status': 'error', 'message': 'File not found'}), 404
