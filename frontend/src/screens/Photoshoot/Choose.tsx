@@ -267,7 +267,7 @@ export default function Choose() {
                                                     <img
                                                         src={photo.url}
                                                         alt={`Photo ${photo.id}`}
-                                                        className="h-full w-full object-cover transform-gpu -scale-x-100 transition-transform group-hover:scale-105"
+                                                        className="h-full w-full object-cover transform-gpu -scale-x-100 transition-transform"
                                                     />
                                                     {isSelected && (
                                                         <motion.div
@@ -301,13 +301,13 @@ export default function Choose() {
                                         {selectedPhotos.length > 0 &&
                                             <div
                                                 className={`grid ${selectedFrame === "Stripx2"
-                                                    ? "grid-rows-4 grid-cols-2 mt-[65px] gap-[1rem]"
+                                                    ? "grid-rows-4 grid-cols-2 mt-[64px] gap-[1rem]"
                                                     : selectedFrame === "6-cutx2"
-                                                        ? "grid-rows-3 grid-cols-2 gap-6 mt-[42px]"
+                                                        ? "grid-rows-3 grid-cols-2 gap-4 mt-[36px]"
                                                         : selectedFrame === "4-cutx2"
                                                             ? "grid-rows-2 grid-cols-2 gap-3 mt-[36px]"
                                                             : selectedFrame === "4.1-cutx2"
-                                                                ? "grid-rows-2 grid-cols-2 gap-7 mt-[121px]" 
+                                                                ? "grid-rows-2 grid-cols-2 gap-[1.7rem] mt-[120px]" 
                                                                 : selectedFrame === "2cut-x2"
                                                                     ? "grid-rows-1 grid-cols-2  gap-5 mt-[42px]"
                                                                     : "grid-cols-1"
@@ -319,13 +319,13 @@ export default function Choose() {
                                                         className={`relative aspect-auto ${selectedFrame === "Stripx2"
                                                             ? `w-[312px] h-[185px]  ${index % 2 === 0 ? "left-2" : "right-4"}`
                                                             : selectedFrame === "6-cutx2"
-                                                                ? `w-[260px] h-[252px] ${index % 2 === 0 ? "left-11" : "right-1"}`
+                                                                ? `w-[262px] h-[260px] ${index % 2 === 0 ? "left-12" : "right-1"}`
                                                                 : selectedFrame === "4-cutx2"
-                                                                    ? `w-[226px] h-[174px] ${index % 2 === 0 ? "left-20" : "left-1"}`
+                                                                    ? `w-[226px] h-[174px] ${index % 2 === 0 ? "left-[84px]" : "left-1"}`
                                                                     : selectedFrame === "4.1-cutx2"
-                                                                        ? `w-[262px] h-[347px] ${index % 2 === 0 ? "left-10" : "left-0"}`
+                                                                        ? `w-[264px] h-[348px] ${index % 2 === 0 ? "left-10" : "left-0"}`
                                                                         : selectedFrame === "2cut-x2"
-                                                                            ? `w-[311px] h-[318px] ${index % 2 === 0 ? "left-3" : "right-5"}`
+                                                                            ? `w-[312px] h-[320px] ${index % 2 === 0 ? "left-3" : "right-5"}`
                                                                             : `max-w-[312px] max-h-[182px] ${index % 2 === 0 ? "left-2" : "right-4"}`
                                                             } overflow-hidden rounded-lg`}
                                                     >

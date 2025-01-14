@@ -43,8 +43,8 @@ export default function Sticker() {
             }
         };
         updateCanvasScale();
-        window.addEventListener('load', updateCanvasScale);
-        return () => window.removeEventListener('load', updateCanvasScale);
+        window.addEventListener('click', updateCanvasScale);
+        return () => window.removeEventListener('click', updateCanvasScale);
     }, []);
 
     useEffect(() => {
@@ -226,7 +226,9 @@ export default function Sticker() {
             <div ref={containerRef} className="relative border-2 border-gray-200 rounded-lg">
                 <canvas
                     ref={canvasRef}
-                    className={selectedFrame === 'Stripx2' || selectedFrame === '6-cutx2' || selectedFrame === '4.1-cutx2'?`w-[642px] h-[938px]`:`w-[642px] h-[938px]`}
+                    className={selectedFrame === 'Stripx2' || selectedFrame === '6-cutx2' || selectedFrame === '4.1-cutx2'
+                        ?`w-[642px] h-[938px]`
+                        :`w-[642px] h-[430px]`}
                     width = {2478}
                     height = {3690}
                 />
