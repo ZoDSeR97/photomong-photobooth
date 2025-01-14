@@ -22,7 +22,7 @@ export default function PaymentNumber() {
     const calculatePrice = () => {
         let basePrice = 70000, additionalPrice = 20000
         if (import.meta.env.VITE_BOOTH_TYPE !== "REG") {
-            basePrice = 100000
+            basePrice = 80000
         }
         
         if (language === "mn" && import.meta.env.VITE_LOCATION == "MN") {

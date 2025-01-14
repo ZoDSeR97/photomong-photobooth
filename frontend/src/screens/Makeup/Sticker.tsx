@@ -32,13 +32,22 @@ export default function Sticker() {
     const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null);
     const [canvasScale, setCanvasScale] = useState(1);
     const [uuid, setUuid] = useState(sessionStorage.getItem("uuid") || null);
-    const [selectedFrame, setSelectedFrame] = useState(null);
+    const [selectedFrame, setSelectedFrame] = useState(JSON.parse(sessionStorage.getItem('selectedFrame')).frame);
     const [photo, setPhoto] = useState(sessionStorage.getItem('photo'));
 
     useEffect(() => {
-        // Retrieve selected frame from session storage
-        setSelectedFrame(JSON.parse(sessionStorage.getItem('selectedFrame')).frame);
+        const updateCanvasScale = () => {
+            if (canvasRef.current) {
+                const scale = canvasRef.current.offsetWidth / canvasRef.current.width;
+                setCanvasScale(scale);
+            }
+        };
+        updateCanvasScale();
+        window.addEventListener('load', updateCanvasScale);
+        return () => window.removeEventListener('load', updateCanvasScale);
+    }, []);
 
+    useEffect(() => {
         const canvas = canvasRef.current
         const container = containerRef.current
         if (!canvas || !container) return
@@ -53,9 +62,14 @@ export default function Sticker() {
             const img = new Image()
             img.src = photo
             img.onload = () => {
-                canvas.width = img.width
-                canvas.height = img.height
-                context.drawImage(img, 0, 0)
+                if (selectedFrame === "Stripx2" || selectedFrame === "6-cutx2" || selectedFrame === "4.1-cutx2"){
+                    canvas.width = 2478
+                    canvas.height = 3690
+                } else {
+                    canvas.width = 3690
+                    canvas.height = 2478
+                }
+                context.drawImage(img, 0, 0, canvas.width, canvas.height)
 
                 // Calculate scale factor between actual canvas size and displayed size
                 const scale = canvas.offsetWidth / img.width
@@ -63,9 +77,10 @@ export default function Sticker() {
             }
         } else {
             setPhoto(sessionStorage.getItem('photo'))
+            setSelectedFrame(JSON.parse(sessionStorage.getItem('selectedFrame')).frame)
         }
         playAudio('/src/assets/audio/add_emoji.wav')
-    }, [photo])
+    }, [photo, selectedFrame])
 
     useEffect(() => {
         if (!ctx || !canvasRef.current) return
@@ -80,7 +95,7 @@ export default function Sticker() {
             const img = new Image()
             img.src = photo
             img.onload = () => {
-                ctx.drawImage(img, 0, 0)
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
 
                 // Draw all icons
                 icons.forEach(icon => {
@@ -109,8 +124,8 @@ export default function Sticker() {
             position: { x: canvas.width / 2, y: canvas.height / 2 },
             rotation: 0,
             scale: 1,
-            width: 100,
-            height: 100,
+            width: 400,
+            height: 400,
         }
         setIcons([...icons, newIcon])
         setSelectedIcon(newIcon.id)
@@ -211,9 +226,9 @@ export default function Sticker() {
             <div ref={containerRef} className="relative border-2 border-gray-200 rounded-lg">
                 <canvas
                     ref={canvasRef}
-                    className="max-w-full h-auto"
-                    width={800}
-                    height={800}
+                    className={selectedFrame === 'Stripx2' || selectedFrame === '6-cutx2' || selectedFrame === '4.1-cutx2'?`w-[642px] h-[938px]`:`w-[642px] h-[938px]`}
+                    width = {2478}
+                    height = {3690}
                 />
                 <div className="absolute inset-0">
                     {icons.map(icon => {
@@ -243,8 +258,8 @@ export default function Sticker() {
                                     dragMomentum={false}
                                     onDragEnd={(_, info) => {
                                         const canvas = canvasRef.current!
-                                        const newX = (icon.position.x + info.offset.x) * canvasScale
-                                        const newY = (icon.position.y + info.offset.y) * canvasScale
+                                        const newX = icon.position.x + info.offset.x/ canvasScale
+                                        const newY = icon.position.y + info.offset.y/ canvasScale
 
                                         // Constrain within canvas boundaries
                                         const halfWidth = (icon.width * icon.scale) / 2

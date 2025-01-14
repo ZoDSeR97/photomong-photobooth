@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence, frame } from "framer-motion";
-import { Heart, ImageIcon, Moon, Sparkles, Sun } from 'lucide-react'
+import { Heart, ImageIcon, Moon, Sparkles, Sun, Star } from 'lucide-react'
 import { cn, playAudio } from "@/lib/utils";
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -39,7 +39,7 @@ const filters: Filter[] = [
         name: "Personality",
         icon: <Sparkles className="h-6 w-6" />,
         effect: [
-            { property: 'blur', value: "0.8", unit: "px" },
+            { property: 'blur', value: "0.1", unit: "px" },
             { property: "saturate", value: "1.2", unit: "" },
             { property: "contrast", value: "1.1", unit: "" },
             { property: "brightness", value: "1.1", unit: "" },
@@ -82,6 +82,18 @@ const filters: Filter[] = [
         effect: [
             { property: "grayscale", value: "1", unit: "" },
             { property: "brightness", value: "1.1", unit: "" },
+        ]
+    },
+    {
+        id: "skin",
+        name: "Skin Smooth & Glow",
+        icon: <Star className="h-6 w-6" />,
+        effect: [
+            { property: "blur", value: "0.1", unit: "px" },
+            { property: "brightness", value: "1.2", unit: "" },
+            { property: "saturate", value: "1.1", unit: "" },
+            { property: "contrast", value: "1.1", unit: "" },
+            { property: "hue-rotate", value: "10", unit: "deg" },
         ]
     }
 ]
@@ -197,7 +209,7 @@ export default function Choose() {
                 })
             })
             // Convert the DOM node to a Blob
-            await toBlob(nodeRef.current).then(blob => {
+            await toBlob(nodeRef.current,{cacheBust:false}).then(blob => {
                 // Convert the Blob to a Base64 string for session storage
                 const reader = new FileReader();
                 reader.readAsDataURL(blob);
@@ -261,7 +273,7 @@ export default function Choose() {
                                                         <motion.div
                                                             initial={{ opacity: 0, scale: 0.5 }}
                                                             animate={{ opacity: 1, scale: 1 }}
-                                                            className="absolute right-2 top-2 rounded-full bg-pink-500 p-1"
+                                                            className="absolute right-2 top-2 rounded-full bg-pink-500 p-1 transform-gpu -scale-x-100"
                                                         >
                                                             <Heart className="h-4 w-4 text-white" fill="white" />
                                                         </motion.div>
@@ -289,7 +301,7 @@ export default function Choose() {
                                         {selectedPhotos.length > 0 &&
                                             <div
                                                 className={`grid ${selectedFrame === "Stripx2"
-                                                    ? "grid-rows-4 grid-cols-2 mt-[65px] gap-[1.23rem]"
+                                                    ? "grid-rows-4 grid-cols-2 mt-[65px] gap-[1rem]"
                                                     : selectedFrame === "6-cutx2"
                                                         ? "grid-rows-3 grid-cols-2 gap-6 mt-[42px]"
                                                         : selectedFrame === "4-cutx2"
@@ -305,7 +317,7 @@ export default function Choose() {
                                                     <div
                                                         key={index}
                                                         className={`relative aspect-auto ${selectedFrame === "Stripx2"
-                                                            ? `max-w-[312px] max-h-[182px]  ${index % 2 === 0 ? "left-2" : "right-4"}`
+                                                            ? `w-[312px] h-[185px]  ${index % 2 === 0 ? "left-2" : "right-4"}`
                                                             : selectedFrame === "6-cutx2"
                                                                 ? `w-[260px] h-[252px] ${index % 2 === 0 ? "left-11" : "right-1"}`
                                                                 : selectedFrame === "4-cutx2"
