@@ -118,6 +118,8 @@ export default function Sticker() {
         const canvas = canvasRef.current
         if (!canvas) return
 
+        playAudio("/src/assets/audio/click.wav")
+        
         const newIcon: IconElement = {
             id: Math.random().toString(36).slice(2, 9),
             src: iconSrc,
@@ -132,6 +134,7 @@ export default function Sticker() {
     }
 
     const handleIconClick = (id: string) => {
+        playAudio("/src/assets/audio/click.wav")
         setSelectedIcon(selectedIcon === id ? null : id)
     }
 
@@ -142,12 +145,14 @@ export default function Sticker() {
     }
 
     const handleIconRotate = (id: string, rotation: number) => {
+        playAudio("/src/assets/audio/click.wav")
         setIcons(icons.map(icon =>
             icon.id === id ? { ...icon, rotation } : icon
         ))
     }
 
     const handleIconDelete = (id: string) => {
+        playAudio("/src/assets/audio/click.wav")
         setIcons(icons.filter(icon => icon.id !== id))
         setSelectedIcon(null)
     }
@@ -157,6 +162,7 @@ export default function Sticker() {
             setSelectedIcon(null)
             return
         }
+        playAudio("/src/assets/audio/click.wav")
         try {
             if (!canvasRef.current) {
                 console.error("Stage reference is not available");

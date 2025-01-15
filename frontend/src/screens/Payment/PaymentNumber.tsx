@@ -101,7 +101,10 @@ export default function PaymentNumber() {
                             <Button
                                 variant="outline"
                                 size="icon"
-                                onClick={() => setPhotoCount(c => Math.max(1, c - 1))}
+                                onClick={() => {
+                                    playAudio("/src/assets/audio/click.wav")
+                                    setPhotoCount(c => Math.max(1, c - 1))
+                                }}
                                 className="h-20 w-20 rounded-full border-pink-300 text-pink-500 hover:bg-pink-100 hover:text-pink-600"
                             >
                                 <Minus className="h-6 w-6" />
@@ -114,7 +117,10 @@ export default function PaymentNumber() {
                             <Button
                                 variant="outline"
                                 size="icon"
-                                onClick={() => setPhotoCount(c => Math.min(10, c + 1))}
+                                onClick={() => {
+                                    playAudio("/src/assets/audio/click.wav")
+                                    setPhotoCount(c => Math.min(10, c + 1))
+                                }}
                                 className="h-20 w-20 rounded-full border-pink-300 text-pink-500 hover:bg-pink-100 hover:text-pink-600"
                             >
                                 <Plus className="h-6 w-6" />

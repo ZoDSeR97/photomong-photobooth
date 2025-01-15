@@ -211,7 +211,10 @@ export default function Photoshoot() {
                           <Button 
                             size="icon" 
                             variant="secondary" 
-                            onClick={() => handleRetake(index)}
+                            onClick={() => {
+                              playAudio("/src/assets/audio/click.wav")
+                              handleRetake(index)
+                            }}
                             disabled={photos.length < 8 || isCapturing || selectedRetake !== null}
                           >
                             <Repeat className="h-4 w-4 " />
@@ -234,7 +237,10 @@ export default function Photoshoot() {
       </div>
       {/* Action Buttons */}
       <Button 
-          onClick={() => setPhotos([])}
+          onClick={() => {
+            playAudio("/src/assets/audio/click.wav")
+            setPhotos([])
+          }}
           disabled={photos.length < 8 || isCapturing || selectedRetake !== null}
           className='absolute top-1/2 left-20 bg-pink-500 hover:bg-pink-600 rounded-full text-white'
         >
