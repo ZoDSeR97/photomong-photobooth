@@ -95,17 +95,28 @@ export default function Photoshoot() {
     )
   }
 
+  const stopRecording = async() => {
+    await fetch(`${import.meta.env.VITE_REACT_APP_API}/api/stop_recording`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uuid: uuid })
+      }
+    )
+  }
+
   // Countdown and photo capture logic
   useEffect(() => {
     if (uuid && countdown > 0) {
-      if (countdown == 5){
+      if (countdown === 5){
         playAudio("/src/assets/audio/count.wav");
         startRecording();
       }
       const timer = setTimeout(() => setCountdown(prev => prev - 1), 1000)
       return () => clearTimeout(timer)
     } else if (countdown === 0) {
-      capturePhoto()
+      stopRecording();
+      capturePhoto();
     }
   }, [countdown, uuid])
 
@@ -163,7 +174,7 @@ export default function Photoshoot() {
         {/* Cute Character */}
         <div className="absolute bottom-8 left-8">
           <motion.div animate={{ y: [0, -10, 0], }} transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", }}>
-            <img src="/src/assets/icon/mascot.svg" alt="Mascot" className="h-[150px] w-[150px]" />
+            <img loading='lazy' src="/src/assets/icon/mascot.svg" alt="Mascot" className="h-[150px] w-[150px]" />
           </motion.div>
         </div>
 
@@ -191,6 +202,7 @@ export default function Photoshoot() {
                     {photos[index] ? (
                       <>
                         <img 
+                          loading='lazy'
                           src={photos[index].url} 
                           alt={`Photo ${index + 1}`} 
                           className="h-full w-full object-cover transform-gpu -scale-x-100"

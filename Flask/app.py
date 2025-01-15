@@ -33,7 +33,6 @@ inserted_money = 0
 amount_to_pay = 0
 cash_lock = threading.Lock()  # For thread safety on shared resources
 PREVIEW_INTERVAL = 0.0167  # 17ms between frames
-uuid = ""
 
 gif_positions = {
     'Stripx2': [
@@ -84,11 +83,11 @@ class CameraManager:
     def __init__(self):
         self.lock = threading.Lock()
         self.video_lock = threading.Lock()
+        self._video_writer_active = False
         self.camera = None
         self.context = None
         self.gif_writer = None  # Added for GIF writing
         self.is_busy = False
-        self._video_writer_active = False
         self.last_error_time = None
         self.error_count = 0
         self.MAX_ERRORS = 3
@@ -229,9 +228,9 @@ class CameraManager:
                     self.frame_queue.get_nowait()
                     self.frame_queue.put(frame, block=False)
 
-                if self._video_writer_active:
+                if self._video_writer_active and self.gif_writer is not None:
                     frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)  # Convert BGR to RGB
-                    self._write_video_frame(frame_rgb)
+                    self.gif_writer.append_data(frame_rgb)
 
                 time.sleep(PREVIEW_INTERVAL)
             except gp.GPhoto2Error as e:
@@ -260,25 +259,19 @@ class CameraManager:
 
     def start_video_recording(self, _uuid):
         """Start video recording as a GIF."""
-        global uuid
-        if(uuid != _uuid):
-            uuid = _uuid
         self._video_writer_active = True
         current_directory = os.path.dirname(os.path.abspath(__file__))
         date_str = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
-        filename = os.path.join(current_directory, f'{uuid}/{date_str}.gif')
+        filename = os.path.join(current_directory, f'{_uuid}/{date_str}.gif')
+
+        # Ensure directory exists
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
 
         # Create a GIF writer
-        frame = self.frame_queue.get_nowait() if not self.frame_queue.empty() else None
-        if frame is not None:
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            height, width, _ = frame.shape
-            with self.video_lock:
-                # Adjust duration as needed (e.g., 1/60 for 60 FPS)
-                self.gif_writer = imageio.get_writer(filename, mode='I', duration=1/60)
-                logging.info(f"Recording GIF to {filename}")
-        else:
-            logging.info("No frames available for GIF recording.")
+        with self.video_lock:
+            # Adjust duration as needed (e.g., 1/60 for 60 FPS)
+            self.gif_writer = imageio.get_writer(filename, mode='I', duration=1/30)
+            logging.info(f"Recording GIF to {filename}")
 
     def stop_video_recording(self):
         """Stop GIF recording."""
@@ -291,6 +284,7 @@ class CameraManager:
 
     def capture_image(self, _uuid, retries=5):
         """Capture an image and save it as PNG."""
+        #self.stop_video_recording()
         self.stop_live_view()
         if self.error_count >= self.MAX_ERRORS and time.time() - self.last_error_time < self.ERROR_TIMEOUT:
             return {'status': 'error', 'message': 'Camera in recovery timeout'}
@@ -382,6 +376,11 @@ def recording():
     camera_manager.start_video_recording(uuid)
     return jsonify(status="Video recording started")
 
+@app.route('/api/stop_recording', methods=['POST'])
+def stop_recording():
+    camera_manager.stop_video_recording()
+    return jsonify(status="Video recording stopped")
+
 @app.route('/api/capture', methods=['POST'])
 def capture_image():
     data = request.get_json()
@@ -389,72 +388,81 @@ def capture_image():
     result = camera_manager.capture_image(uuid)
     return jsonify(result)
 
+def create_animated_gif(template_path, gif_paths, gif_positions, output_path, default_size, frame_duration=100):
+    """
+    Create an animated GIF by combining multiple GIFs on a template, optimized for performance and memory usage.
+    """
+    # Load the template once
+    template = Image.open(template_path).convert("RGBA")
+
+    # Open all GIFs and calculate their frame counts
+    gifs = [Image.open(gif_path) for gif_path in gif_paths]
+    gif_frame_counts = [gif.n_frames for gif in gifs]
+    max_frames = min(120, max(gif_frame_counts))  # Cap at 120 frames for 4s at 30fps
+
+    # Generator function to yield frames dynamically
+    def frame_generator():
+        for frame_idx in range(max_frames):
+            # Create a transparent base frame for this index
+            new_frame = Image.new("RGBA", template.size, (255, 255, 255, 0))
+
+            # Process each GIF at the corresponding frame
+            for gif, gif_position in zip(gifs, gif_positions):
+                try:
+                    # Seek to the relevant frame in the GIF
+                    gif.seek(frame_idx % gif.n_frames)
+                    current_frame = gif.resize(default_size, Image.Resampling.LANCZOS)
+
+                    # Paste the GIF frame onto the new frame
+                    new_frame.paste(current_frame, gif_position)
+                except EOFError:
+                    continue  # If the GIF is out of frames, skip
+
+            # Composite with the template
+            yield Image.alpha_composite(new_frame, template)
+
+    # Create and save the final animated GIF
+    first_frame = next(frame_generator())
+    first_frame.save(
+        output_path,
+        save_all=True,
+        append_images=list(frame_generator()),
+        duration=frame_duration,
+        loop=0,
+        optimize=True,
+    )
+
+    # Close all GIFs
+    for gif in gifs:
+        gif.close()
+
 @app.route('/api/create-gif', methods=['POST'])
 def create_photobooth_gif():
 
-    frame = request.form['frame']
+    data = request.json
+
+    frame = data.get('frame')
     if (not frame):
         return jsonify({'error': 'frame is required'}), 400
-    gif_paths = request.form['gifs']
+    gif_paths = data.get('gifs')
+    print(gif_paths)
     if (not gif_paths):
         return jsonify({'error': 'gif is required'}), 400
 
-    # Load the background template
-    template = Image.open("./template.png").convert("RGBA")
-    _gif_positions = gif_positions[frame]
-    default_size = gif_sizes[frame]
-    output_path="./output.gif"
-    frame_duration=100
+    # Generate the photobooth GIF
+    threading.Thread(
+        target=create_animated_gif(
+            template_path="./template.png",
+            gif_paths=gif_paths,
+            gif_positions=gif_positions[frame],
+            output_path="./output.gif",
+            default_size=gif_sizes[frame],
+            frame_duration=100,
+        )
+    , daemon=True).start()
+    
 
-    # Load all GIFs and their frames
-    gifs = []
-    max_frames = 0
-    for gif_path in gif_paths:
-        gif = Image.open(gif_path)
-        frames = []
-
-        try:
-            while True:
-                frames.append(gif.copy())
-                gif.seek(gif.tell() + 1)
-        except EOFError:
-            pass
-
-        gifs.append(frames)
-        max_frames = max(max_frames, len(frames))
-
-    # Create output frames
-    output_frames = []
-
-    for frame_idx in range(max_frames):
-        # Start with a copy of the template
-        #new_frame = template.copy()
-        new_frame = Image.new("RGBA", template.size, (255,255,255,0))
-
-        # Paste each GIF frame at its respective position
-        for i, frames in enumerate(gifs):
-            # Get the current frame (loop if necessary)
-            current_frame = frames[frame_idx % len(frames)]
-
-            # Resize the current frame
-            current_frame = current_frame.resize(default_size, Image.Resampling.LANCZOS)
-
-            # Create a mask for transparent pasting
-            mask = current_frame.split()[3] if current_frame.mode == "RGBA" else None
-
-            # Paste the frame onto the template
-            new_frame.paste(current_frame, _gif_positions[i], mask)
-        new_frame = Image.alpha_composite(new_frame, template)
-        output_frames.append(new_frame)
-
-    # Save the resulting animated GIF
-    output_frames[0].save(
-        output_path,
-        save_all=True,
-        append_images=output_frames[1:],
-        duration=frame_duration,
-        loop=0,
-    )
+    return jsonify(status="Created Gif")
 
 @app.route('/api/get_template', methods=['POST'])
 def get_template():

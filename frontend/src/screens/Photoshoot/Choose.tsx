@@ -113,7 +113,7 @@ export default function Choose() {
     const uuid = sessionStorage.getItem("uuid");
     const [photo, setPhoto] = useState<Blob | null>(null);
     const photos: Photo[] = JSON.parse(sessionStorage.getItem('photos'));
-    const gifs: Gif[] =  JSON.parse(sessionStorage.getItem('gifs'));
+    const gifs: Gif[] = JSON.parse(sessionStorage.getItem('gifs'));
     const [selectedGifs, setSelectedGifs] = useState<string[]>([]);
     const [transition, setTransition] = useState(false);
 
@@ -148,14 +148,6 @@ export default function Choose() {
         }
         playAudio("/src/assets/audio/choose_photos.wav")
     }, [selectedFrame]);
-
-    useEffect(() => {
-        if (selectedPhotos.length === maxSelections && nodeRef.current) {
-            // Convert the DOM node to a Blob
-            const blob = toBlob(nodeRef.current);
-            setPhoto(blob);
-        }
-    }, [maxSelections, selectedPhotos.length])
 
     useEffect(() => {
         if (selectedFilter) {
@@ -198,41 +190,28 @@ export default function Choose() {
         if (!nodeRef.current || transition) return;
         setTransition(true);
         try {
-            await fetch(`${import.meta.env.VITE_REACT_APP_API}/api/create-gif`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    "frame": selectedFrame,
-                    "gifs":selectedGifs
+            await Promise.all([
+                await fetch(`${import.meta.env.VITE_REACT_APP_API}/api/create-gif`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        "frame": selectedFrame,
+                        "gifs": selectedGifs
+                    })
+                }),
+                // Convert the DOM node to a Blob
+                await toBlob(nodeRef.current, { cacheBust: false }).then(blob => {
+                    // Convert the Blob to a Base64 string for session storage
+                    const reader = new FileReader();
+                    reader.readAsDataURL(blob);
+                    reader.onloadend = () => {
+                        const base64data = reader.result;
+                        sessionStorage.setItem('photo', base64data);
+                    };
                 })
-            })
-            // Convert the DOM node to a Blob
-            await toBlob(nodeRef.current,{cacheBust:false}).then(blob => {
-                // Convert the Blob to a Base64 string for session storage
-                const reader = new FileReader();
-                reader.readAsDataURL(blob);
-                reader.onloadend = () => {
-                    const base64data = reader.result;
-                    sessionStorage.setItem('photo', base64data);
-                    navigate("/sticker");
-                };
-            });
-            
-            // Create a FormData object to upload
-            //const formData = new FormData();
-            //formData.append('photo', blob);
-
-            // Send the Blob to the Flask server (fire-and-forget)
-            /* fetch(`${import.meta.env.VITE_REACT_APP_API}/api/uploads`, {
-                method: 'POST',
-                body: formData,
-            }).catch(error => {
-                console.error('Error uploading image:', error);
-            });
-        
-            console.log('Request sent without waiting for response'); */
+            ]).then(() => navigate("/sticker"));
         } catch (error) {
             setTransition(false);
             console.error('Error capturing image:', error);
@@ -265,6 +244,7 @@ export default function Choose() {
                                                     )}
                                                 >
                                                     <img
+                                                        loading='lazy'
                                                         src={photo.url}
                                                         alt={`Photo ${photo.id}`}
                                                         className="h-full w-full object-cover transform-gpu -scale-x-100 transition-transform"
@@ -287,7 +267,7 @@ export default function Choose() {
                         </Card>
 
                         {/* Preview Section */}
-                        <Card className={`relative overflow-hidden w-[644px] ${selectedFrame === "2cut-x2" || selectedFrame === "4-cutx2"? "h-[432px]":"h-[940px]"}`}>
+                        <Card className={`relative overflow-hidden w-[644px] ${selectedFrame === "2cut-x2" || selectedFrame === "4-cutx2" ? "h-[432px]" : "h-[940px]"}`}>
                             <CardContent className="p-6">
                                 <div className="overflow-hidden rounded-lg bg-pink-50">
                                     <div
@@ -307,7 +287,7 @@ export default function Choose() {
                                                         : selectedFrame === "4-cutx2"
                                                             ? "grid-rows-2 grid-cols-2 gap-3 mt-[36px]"
                                                             : selectedFrame === "4.1-cutx2"
-                                                                ? "grid-rows-2 grid-cols-2 gap-[1.7rem] mt-[120px]" 
+                                                                ? "grid-rows-2 grid-cols-2 gap-[1.7rem] mt-[120px]"
                                                                 : selectedFrame === "2cut-x2"
                                                                     ? "grid-rows-1 grid-cols-2  gap-5 mt-[42px]"
                                                                     : "grid-cols-1"
@@ -330,6 +310,7 @@ export default function Choose() {
                                                             } overflow-hidden rounded-lg`}
                                                     >
                                                         <img
+                                                            loading='lazy'
                                                             src={photos[i].url}
                                                             alt="Selected photo"
                                                             className="h-full w-full object-cover transform-gpu -scale-x-100"
