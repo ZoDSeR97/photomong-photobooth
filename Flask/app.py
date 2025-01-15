@@ -36,14 +36,14 @@ PREVIEW_INTERVAL = 0.0167  # 17ms between frames
 
 gif_positions = {
     'Stripx2': [
-        (100, 151), 
-        (1062, 151),
-        (100, 782),
-        (1062, 782),
-        (100, 1410),
-        (1062, 1410),
-        (100, 2040),
-        (1062, 2040),
+        (100, 190), 
+        (1030, 190),
+        (100, 790),
+        (1030, 790),
+        (100, 1400),
+        (1030, 1400),
+        (100, 2000),
+        (1030, 2000),
     ],
     '6-cutx2': [
         (140, 121), 
@@ -72,11 +72,11 @@ gif_positions = {
 } 
 
 gif_sizes={
-    "Stripx2": (758, 564),
+    "Stripx2": (782, 560),
     '6-cutx2': (780, 770),
     '4-cutx2': (1000, 750),
     '4.1-cutx2': (780, 1050), 
-    '2cut-x2': (1268, 1460),
+    '2cut-x2': (1270, 1442),
 }
 
 class CameraManager:
@@ -361,32 +361,32 @@ def video_feed():
 @app.route('/api/start_live_view', methods=['GET'])
 def start_live_view():
     camera_manager.start_live_view()
-    return jsonify(status="Live view started")
+    return jsonify(status="Live view started"), 200
 
 @app.route('/api/stop_live_view', methods=['GET'])
 def stop_live_view():
     camera_manager.stop_video_recording()
     camera_manager.stop_live_view()
-    return jsonify(status="Live view and video recording stopped")
+    return jsonify(status="Live view and video recording stopped"), 200
 
 @app.route('/api/start_recording', methods=['POST'])
 def recording():
     data = request.get_json()
     uuid = data.get('uuid', 'default_uuid')
     camera_manager.start_video_recording(uuid)
-    return jsonify(status="Video recording started")
+    return jsonify(status="Video recording started"), 200
 
 @app.route('/api/stop_recording', methods=['POST'])
 def stop_recording():
     camera_manager.stop_video_recording()
-    return jsonify(status="Video recording stopped")
+    return jsonify(status="Video recording stopped"), 200
 
 @app.route('/api/capture', methods=['POST'])
 def capture_image():
     data = request.get_json()
     uuid = data.get('uuid', 'default_uuid')
     result = camera_manager.capture_image(uuid)
-    return jsonify(result)
+    return jsonify(result), 200
 
 def create_animated_gif(template_path, gif_paths, gif_positions, output_path, default_size, frame_duration=100):
     """
@@ -447,7 +447,9 @@ def create_photobooth_gif():
     gif_paths = data.get('gifs')
     print(gif_paths)
     if (not gif_paths):
-        return jsonify({'error': 'gif is required'}), 400
+        return jsonify({'error': 'gifs are required'}), 400
+    
+    os.remove("./output.gif")
 
     # Generate the photobooth GIF
     threading.Thread(
@@ -458,11 +460,12 @@ def create_photobooth_gif():
             output_path="./output.gif",
             default_size=gif_sizes[frame],
             frame_duration=100,
-        )
-    , daemon=True).start()
+        ), 
+        daemon=True
+    ).start()
     
 
-    return jsonify(status="Created Gif")
+    return jsonify(status="Created Gif"), 200
 
 @app.route('/api/get_template', methods=['POST'])
 def get_template():
@@ -486,36 +489,18 @@ def get_template():
         output_path = "./template.png"
         image.convert('RGBA').save(output_path, 'PNG')
 
-        return jsonify(status="downloaded the template")
-
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-@app.route('/api/uploads', methods=['POST'])
-def upload_image():
-    try:
-        if 'photo' not in request.files:
-            return jsonify({'error': 'No photo data provided'}), 400
-
-        # Save the image to the server with a timestamped filename
-        # Prepare the file path
-        current_directory = os.path.dirname(os.path.abspath(__file__))
-        filename = f'image_{datetime.now().strftime("%Y%m%d_%H%M%S")}.png'
-        filepath = os.path.join(current_directory, filename)
-
-        request.files['photo'].save(filepath)
-
-        photo_url = f'{request.host_url}api/uploads/{filename}'
-
-        return jsonify({'photo_url': photo_url}), 200
+        return jsonify(status="downloaded the template"), 200
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 # Serve uploaded files for testing
-@app.route('/api/uploads/<filename>', methods=['GET'])
-def serve_image(filename):
-    return send_file(os.path.join(os.path.dirname(os.path.abspath(__file__)), filename.replace("\\","/")))
+@app.route('/api/get_gif', methods=['GET'])
+def serve_gif():
+    if os.path.exists("./output.gif") and os.path.getsize("./output.gif") > 0:
+        return send_file("./output.gif", mimetype="image/png")
+    else:
+        return jsonify({'status': 'error', 'message': 'File not found'}), 404
 
 # Route to download a file
 @app.route('/api/get_photo', methods=['GET'])
@@ -547,7 +532,7 @@ def download_file():
             } for idx, image in enumerate(sorted(videos, key=lambda x: datetime.strptime(x.removesuffix('.gif'), '%Y-%m-%d-%H-%M-%S')))
         ]
 
-        return jsonify({'status': 'success', 'images': image_urls, 'videos':video_urls})
+        return jsonify({'status': 'success', 'images': image_urls, 'videos':video_urls}), 200
     except Exception as e:
         print(e)
         return jsonify({'status': 'error', 'message': 'File not found'}), 404
@@ -604,7 +589,7 @@ def switch_printer(printer_model, frame_type):
         if os.path.exists(file_path):
             os.remove(file_path)  # Cleanup after use
     
-    return jsonify({'status': 'success', 'message': 'Print job started successfully.'})
+    return jsonify({'status': 'success', 'message': 'Print job started successfully.'}), 200
 
 @app.route("/api/print", methods=['POST'])
 def print_photo():
@@ -690,7 +675,7 @@ def get_print_amount():
     check_coupon = request.args.get('checkCoupon', type=int)
 
     if print_amount is not None:
-        return jsonify({'printAmountReceived': print_amount})
+        return jsonify({'printAmountReceived': print_amount}), 200
     else:
         return jsonify({'error': 'No print amount provided'}), 400
 

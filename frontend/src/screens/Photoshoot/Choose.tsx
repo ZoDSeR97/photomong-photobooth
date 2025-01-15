@@ -7,8 +7,6 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Slider } from "@/components/ui/slider";
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { toBlob } from 'html-to-image';
-import { PhotoCanvas } from './PhotoCanvas';
 
 interface Photo {
     id: number
@@ -158,68 +156,69 @@ export default function Choose() {
         // Define grid configurations for each frame type
         if (selectedFrame === "Stripx2") {
             return [
-                { x: -1140, y: 240, width: 1030, height: 730 },
-                { x: -2340, y: 240, width: 1030, height: 730 },
-                { x: -1140, y: 1020, width: 1030, height: 730 },
-                { x: -2340, y: 1020, width: 1030, height: 730 },
-                { x: -1140, y: 1810, width: 1030, height: 730 },
-                { x: -2340, y: 1810, width: 1030, height: 730 },
-                { x: -1140, y: 2590, width: 1030, height: 730 },
-                { x: -2340, y: 2590, width: 1030, height: 730 },
+                { x: 1330, y: 240, width: 1030, height: 730 },
+                { x: 130, y: 240, width: 1030, height: 730 },
+                { x: 1330, y: 1020, width: 1030, height: 730 },
+                { x: 130, y: 1020, width: 1030, height: 730 },
+                { x: 1330, y: 1810, width: 1030, height: 730 },
+                { x: 130, y: 1810, width: 1030, height: 730 },
+                { x: 1330, y: 2590, width: 1030, height: 730 },
+                { x: 130, y: 2590, width: 1030, height: 730 },
             ];
         }
         else if (selectedFrame === "6-cutx2") {
             return [
-                { x: 100, y: 100, width: 1700, height: 1100 },
-                { x: 1890, y: 100, width: 1700, height: 1100 },
-                { x: 100, y: 1278, width: 1700, height: 1100 },
-                { x: 1890, y: 1278, width: 1700, height: 1100 },
-                { x: 100, y: 1278, width: 1700, height: 1100 },
-                { x: 1890, y: 1278, width: 1700, height: 1100 },
+                { x: 1290, y: 150, width: 1020, height: 1000 },
+                { x: 190, y: 150, width: 1020, height: 1000 },
+                { x: 1290, y: 1230, width: 1020, height: 1000 },
+                { x: 190, y: 1230, width: 1020, height: 1000 },
+                { x: 1290, y: 2300, width: 1020, height: 1000 },
+                { x: 190, y: 2300, width: 1020, height: 1000 },
             ];
         }
         else if (selectedFrame === "4-cutx2") {
             return [
-                { x: 100, y: 100, width: 1700, height: 1100 },
-                { x: 1890, y: 100, width: 1700, height: 1100 },
-                { x: 100, y: 1278, width: 1700, height: 1100 },
-                { x: 1890, y: 1278, width: 1700, height: 1100 },
+                { x: 1910, y: 210, width: 1290, height: 980 },
+                { x: 490, y: 210, width: 1290, height: 980 },
+                { x: 1910, y: 1290, width: 1290, height: 980 },
+                { x: 490, y: 1290, width: 1290, height: 980 },
             ];
         }
         else if (selectedFrame === "4.1-cutx2") {
             return [
-                { x: 100, y: 100, width: 1700, height: 1100 },
-                { x: 1890, y: 100, width: 1700, height: 1100 },
-                { x: 100, y: 1278, width: 1700, height: 1100 },
-                { x: 1890, y: 1278, width: 1700, height: 1100 },
+                { x: 1310, y: 470, width: 1040, height: 1350 },
+                { x: 160, y: 470, width: 1040, height: 1350 },
+                { x: 1310, y: 1920, width: 1040, height: 1350 },
+                { x: 160, y: 1920, width: 1040, height: 1350 },
             ];
         }
         else {
             return [
-                { x: 100, y: 100, width: 1700, height: 1100 },
-                { x: 1890, y: 100, width: 1700, height: 1100 },
+                { x: 1800, y: 230, width: 1770, height: 1870 },
+                { x: 60, y: 230, width: 1770, height: 1870 },
             ];
         }
     }, [selectedFrame]);
 
     const drawPhotos = useCallback((ctx: CanvasRenderingContext2D) => {
         const gridConfig = getGridConfig();
-        selectedPhotos.forEach((photoId, index) => {
-            const photo = photos.find(p => p.id === photoId);
-            if (photo) {
-                const img = new Image();
-                img.crossOrigin = "Anonymous";
-                img.onload = () => {
-                    const { x, y, width, height } = gridConfig[index];
-                    ctx.save();
-                    ctx.filter = filterStyle;
-                    ctx.transform(-1, 0, 0, 1, 0, 0)
-                    ctx.drawImage(img, x, y, width, height);
-                    ctx.restore();
-                };
-                img.src = photo.url;
-            }
-        });
+        if (selectedPhotos)
+            selectedPhotos.forEach((photoId, index) => {
+                const photo = photos.find(p => p.id === photoId);
+                if (photo) {
+                    const img = new Image();
+                    img.crossOrigin = "Anonymous";
+                    img.onload = () => {
+                        const { x, y, width, height } = gridConfig[index];
+                        ctx.save();
+                        ctx.filter = filterStyle;
+                        ctx.transform(-1, 0, 0, 1, canvasRef.current.width, 0)
+                        ctx.drawImage(img, x, y, width, height);
+                        ctx.restore();
+                    };
+                    img.src = photo.url;
+                }
+            });
     }, [filterStyle, getGridConfig, photos, selectedPhotos]);
 
     const renderCanvas = useCallback((ctx: CanvasRenderingContext2D) => {
@@ -240,21 +239,21 @@ export default function Choose() {
             bgImg.onload = () => {
                 // Draw Background
                 ctx.drawImage(bgImg, 0, 0, canvasWidth, canvasHeight);
-                // Draw Photos overlay
-                drawPhotos(ctx);
-                // Draw layout overlay
-                if (selectedLayout) {
-                    const layoutImg = new Image();
-                    layoutImg.crossOrigin = "Anonymous";
-                    layoutImg.onload = () => {
-                        ctx.drawImage(layoutImg, 0, 0, canvasWidth, canvasHeight);
-                    };
-                    layoutImg.src = selectedLayout;
-                }
             };
             bgImg.src = myBackground;
-        } else {
-            drawPhotos(ctx);
+        }
+        // Draw Photos overlay
+        drawPhotos(ctx);
+        // Draw layout overlay
+        if (selectedLayout) {
+            const layoutImg = new Image();
+            layoutImg.crossOrigin = "Anonymous";
+            layoutImg.onload = () => {
+                ctx.save();
+                ctx.drawImage(layoutImg, 0, 0, ctx.canvas.width, ctx.canvas.height);
+                ctx.restore();
+            };
+            layoutImg.src = selectedLayout;
         }
     }, [drawPhotos, myBackground, selectedFrame, selectedLayout]);
 
@@ -266,7 +265,7 @@ export default function Choose() {
                 renderCanvas(ctx);
             }
         }
-    }, [selectedPhotos, selectedFrame, filterStyle, renderCanvas]);
+    }, [selectedPhotos, selectedFrame, filterStyle, renderCanvas, selectedLayout]);
 
     const adjustValue = (value: string, intensity: number): string => {
         const numValue = parseFloat(value)
@@ -276,8 +275,6 @@ export default function Choose() {
 
     const handlePhotoClick = (id: number) => {
         playAudio("/src/assets/audio/click.wav")
-        console.log("pressed")
-        console.log(selectedPhotos)
         if (selectedPhotos.indexOf(id) === -1 && selectedPhotos.length < maxSelections) {
             if (selectedFrame === 'Stripx2') {
                 setSelectedPhotos([...selectedPhotos, id, id]);
@@ -297,10 +294,7 @@ export default function Choose() {
         if (!canvasRef.current || transition) return;
         setTransition(true);
         try {
-            const originalDataURL = canvasRef.current.toDataURL("image/jpeg");
-            sessionStorage.setItem('photo', originalDataURL);
-            navigate("/sticker");
-            /* await Promise.all([
+            await Promise.all([
                 await fetch(`${import.meta.env.VITE_REACT_APP_API}/api/create-gif`, {
                     method: "POST",
                     headers: {
@@ -311,10 +305,10 @@ export default function Choose() {
                         "gifs": selectedGifs
                     })
                 }),
-                await canvasRef.current.toDataURL().then(img => {
+                await canvasRef.current.toDataURL("image/jpeg").then(img => {
                     sessionStorage.setItem('photo', img);
                 })
-            ]).then(() => navigate("/sticker")); */
+            ]).then(() => navigate("/sticker"));
         } catch (error) {
             setTransition(false);
             console.error('Error capturing image:', error);
