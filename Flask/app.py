@@ -278,8 +278,9 @@ class CameraManager:
         self._video_writer_active = False
         with self.video_lock:
             if self.gif_writer is not None:
-                self.gif_writer.close()
-                self.gif_writer = None
+                writer = self.gif_writer
+                self.gif_writer = None  # Detach writer immediately
+                threading.Thread(target=writer.close, daemon=True).start()
                 logging.info("GIF recording stopped.")
 
     def capture_image(self, _uuid, retries=5):
@@ -390,15 +391,29 @@ def capture_image():
 
 def create_animated_gif(template_path, gif_paths, gif_positions, output_path, default_size, frame_duration=100):
     """
-    Create an animated GIF by combining multiple GIFs on a template, optimized for performance and memory usage.
+    Create an animated GIF by combining multiple GIFs on a template, optimized for performance and handling duplicates.
     """
     # Load the template once
-    template = Image.open(template_path).convert("RGBA")
+    template = Image.open(template_path)
 
-    # Open all GIFs and calculate their frame counts
-    gifs = [Image.open(gif_path) for gif_path in gif_paths]
+    # Cache unique GIFs to avoid reopening duplicates
+    gif_cache = {}
+    for index, gif_path in enumerate(gif_paths):
+        if index % 2 == 1:  # Odd index
+            gif_cache[gif_path] = gif_cache.get(gif_path) or Image.open(gif_path)
+        else:  # Even index
+            gif_cache[gif_path] = Image.open(gif_path)
+
+    gifs = [gif_cache[gif_path] for gif_path in gif_paths]
     gif_frame_counts = [gif.n_frames for gif in gifs]
     max_frames = min(120, max(gif_frame_counts))  # Cap at 120 frames for 4s at 30fps
+
+    # Preload frames for all GIFs to minimize processing during generation
+    gif_frames = {
+        gif_path: [gif_cache[gif_path].resize(default_size, Image.Resampling.LANCZOS)
+                   for frame in range(gif_cache[gif_path].n_frames)]
+        for gif_path in set(gif_paths)
+    }
 
     # Generator function to yield frames dynamically
     def frame_generator():
@@ -407,16 +422,10 @@ def create_animated_gif(template_path, gif_paths, gif_positions, output_path, de
             new_frame = Image.new("RGBA", template.size, (255, 255, 255, 0))
 
             # Process each GIF at the corresponding frame
-            for gif, gif_position in zip(gifs, gif_positions):
-                try:
-                    # Seek to the relevant frame in the GIF
-                    gif.seek(frame_idx % gif.n_frames)
-                    current_frame = gif.resize(default_size, Image.Resampling.LANCZOS)
-
-                    # Paste the GIF frame onto the new frame
-                    new_frame.paste(current_frame, gif_position)
-                except EOFError:
-                    continue  # If the GIF is out of frames, skip
+            for gif_path, gif_position in zip(gif_paths, gif_positions):
+                current_frames = gif_frames[gif_path]
+                current_frame = current_frames[frame_idx % len(current_frames)]
+                new_frame.paste(current_frame, gif_position, mask=current_frame)
 
             # Composite with the template
             yield Image.alpha_composite(new_frame, template)
@@ -432,8 +441,8 @@ def create_animated_gif(template_path, gif_paths, gif_positions, output_path, de
         optimize=True,
     )
 
-    # Close all GIFs
-    for gif in gifs:
+    # Close all cached GIFs
+    for gif in gif_cache.values():
         gif.close()
 
 @app.route('/api/create-gif', methods=['POST'])
@@ -498,7 +507,7 @@ def get_template():
 @app.route('/api/get_gif', methods=['GET'])
 def serve_gif():
     if os.path.exists("./output.gif") and os.path.getsize("./output.gif") > 0:
-        return send_file("./output.gif", mimetype="image/png")
+        return send_file("./output.gif", mimetype="image/gif")
     else:
         return jsonify({'status': 'error', 'message': 'File not found'}), 404
 

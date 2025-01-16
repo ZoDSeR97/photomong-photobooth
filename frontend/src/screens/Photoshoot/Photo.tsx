@@ -48,13 +48,22 @@ export default function Photoshoot() {
   const capturePhoto = async () => {
     await sleep(100);
     setIsCapturing(true);
-    await fetch(`${import.meta.env.VITE_REACT_APP_API}/api/capture`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ uuid: uuid })
-      }
-    )
+    await Promise.all([
+      await fetch(`${import.meta.env.VITE_REACT_APP_API}/api/stop_recording`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ uuid: uuid })
+        }
+      ),
+      await fetch(`${import.meta.env.VITE_REACT_APP_API}/api/capture`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ uuid: uuid })
+        }
+      )
+    ]);
     const data = await fetch(`${import.meta.env.VITE_REACT_APP_API}/api/get_photo?uuid=${uuid}`).then(res => res.json())
     if (data && data.images && data.images.length > 0) {
       const latestImage = data.images[data.images.length - 1];
@@ -95,16 +104,6 @@ export default function Photoshoot() {
     )
   }
 
-  const stopRecording = async() => {
-    await fetch(`${import.meta.env.VITE_REACT_APP_API}/api/stop_recording`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ uuid: uuid })
-      }
-    )
-  }
-
   // Countdown and photo capture logic
   useEffect(() => {
     if (uuid && countdown > 0) {
@@ -115,7 +114,6 @@ export default function Photoshoot() {
       const timer = setTimeout(() => setCountdown(prev => prev - 1), 1000)
       return () => clearTimeout(timer)
     } else if (countdown === 0) {
-      stopRecording();
       capturePhoto();
     }
   }, [countdown, uuid])

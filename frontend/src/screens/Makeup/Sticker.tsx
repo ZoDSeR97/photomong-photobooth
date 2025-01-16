@@ -168,6 +168,12 @@ export default function Sticker() {
                 console.error("Stage reference is not available");
                 return;
             }
+            const gifResponse = await fetch(`${import.meta.env.VITE_REACT_APP_API}/api/get_gif`)
+
+            if (!gifResponse.ok)
+                throw new Error("Failed to fetch the GIF")
+
+            const gif = await gifResponse.blob()
 
             const originalDataURL = canvasRef.current.toDataURL();
             const blobBin = atob(originalDataURL.split(',')[1]);
@@ -180,6 +186,7 @@ export default function Sticker() {
             // Prepare FormData for both requests
             const uploadFormData = new FormData();
             uploadFormData.append("photo", originalDataURL);
+            uploadFormData.append("gif", gif);
             uploadFormData.append("order_code", sessionStorage.getItem('orderCodeNum'));
 
             const printFormData = new FormData();

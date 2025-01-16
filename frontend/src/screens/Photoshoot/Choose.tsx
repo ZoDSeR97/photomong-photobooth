@@ -294,21 +294,19 @@ export default function Choose() {
         if (!canvasRef.current || transition) return;
         setTransition(true);
         try {
-            await Promise.all([
-                await fetch(`${import.meta.env.VITE_REACT_APP_API}/api/create-gif`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        "frame": selectedFrame,
-                        "gifs": selectedGifs
-                    })
-                }),
-                await canvasRef.current.toDataURL("image/jpeg").then(img => {
-                    sessionStorage.setItem('photo', img);
+            const img = canvasRef.current.toDataURL("image/jpeg")
+            sessionStorage.setItem('photo', img);
+            await fetch(`${import.meta.env.VITE_REACT_APP_API}/api/create-gif`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    "frame": selectedFrame,
+                    "gifs": selectedGifs
                 })
-            ]).then(() => navigate("/sticker"));
+            })
+            navigate("/sticker");
         } catch (error) {
             setTransition(false);
             console.error('Error capturing image:', error);
