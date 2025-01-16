@@ -175,7 +175,7 @@ export default function Sticker() {
             if (!gifResponse.ok)
                 throw new Error("Failed to fetch the GIF")
 
-            const gif = await gifResponse.blob()
+            const gifBlob = await gifResponse.blob()
 
             const originalDataURL = canvasRef.current.toDataURL();
             const blobBin = atob(originalDataURL.split(',')[1]);
@@ -188,7 +188,7 @@ export default function Sticker() {
             // Prepare FormData for both requests
             const uploadFormData = new FormData();
             uploadFormData.append("photo", originalDataURL);
-            uploadFormData.append("gif", gif);
+            uploadFormData.append("gif", gifBlob);
             uploadFormData.append("order_code", sessionStorage.getItem('orderCodeNum'));
 
             const printFormData = new FormData();

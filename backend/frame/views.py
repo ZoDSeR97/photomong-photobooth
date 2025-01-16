@@ -174,13 +174,10 @@ class UploadPhotoCloud(APIView):
     @staticmethod
     def post(request):
         file = request.data.get('photo')
-        
-        upload_data = cloudinary.uploader.upload(file)
-
         gif = request.data.get('gif')
 
-        if (gif):
-            upload_gif = cloudinary.uploader.upload(gif)
+        upload_data = cloudinary.uploader.upload(file)
+        upload_gif = cloudinary.uploader.upload(gif)
         
         # Update order's photo_url_done
         order_code = request.data.get('order_code')

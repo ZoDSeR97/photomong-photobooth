@@ -389,59 +389,53 @@ def capture_image():
     result = camera_manager.capture_image(uuid)
     return jsonify(result), 200
 
-def create_animated_gif(template_path, gif_paths, gif_positions, output_path, default_size, frame_duration=100):
+def create_animated_gif(template_path, gif_paths, gif_positions, output_path, default_size, frame_duration=100, max_frames=120, output_size=(480, 715)):
     """
-    Create an animated GIF by combining multiple GIFs on a template, optimized for performance and handling duplicates.
+    Create an optimized animated GIF by combining multiple GIFs on a template.
     """
-    # Load the template once
+    # Load the template
     template = Image.open(template_path)
+    width, height = template.size
+    if (width != 1920 or height != 2860):
+        output_size = (715, 480)
 
-    # Cache unique GIFs to avoid reopening duplicates
-    gif_cache = {}
-    for index, gif_path in enumerate(gif_paths):
-        if index % 2 == 1:  # Odd index
-            gif_cache[gif_path] = gif_cache.get(gif_path) or Image.open(gif_path)
-        else:  # Even index
-            gif_cache[gif_path] = Image.open(gif_path)
-
+    # Open all GIFs
+    gif_cache = {gif_path: Image.open(gif_path) for gif_path in gif_paths}
     gifs = [gif_cache[gif_path] for gif_path in gif_paths]
-    gif_frame_counts = [gif.n_frames for gif in gifs]
-    max_frames = min(120, max(gif_frame_counts))  # Cap at 120 frames for 4s at 30fps
 
-    # Preload frames for all GIFs to minimize processing during generation
-    gif_frames = {
-        gif_path: [gif_cache[gif_path].resize(default_size, Image.Resampling.LANCZOS)
-                   for frame in range(gif_cache[gif_path].n_frames)]
-        for gif_path in set(gif_paths)
-    }
-
-    # Generator function to yield frames dynamically
     def frame_generator():
         for frame_idx in range(max_frames):
-            # Create a transparent base frame for this index
             new_frame = Image.new("RGBA", template.size, (255, 255, 255, 0))
+            for gif, gif_position in zip(gifs, gif_positions):
+                try:
+                    gif.seek(frame_idx % gif.n_frames)
+                    current_frame = gif.resize(default_size, Image.Resampling.NEAREST)
+                    new_frame.paste(current_frame, gif_position)
+                except EOFError:
+                    continue
+            final_frame = Image.alpha_composite(new_frame, template)
+            yield final_frame
 
-            # Process each GIF at the corresponding frame
-            for gif_path, gif_position in zip(gif_paths, gif_positions):
-                current_frames = gif_frames[gif_path]
-                current_frame = current_frames[frame_idx % len(current_frames)]
-                new_frame.paste(current_frame, gif_position, mask=current_frame)
+    # Generate and resize the first frame
+    first_frame = next(frame_generator()).resize(output_size, Image.Resampling.NEAREST).quantize(colors=256)
 
-            # Composite with the template
-            yield Image.alpha_composite(new_frame, template)
+    # Generate and resize remaining frames
+    resized_frames = [
+        frame.resize(output_size, Image.Resampling.NEAREST).quantize(colors=256)
+        for frame in frame_generator()
+    ]
 
-    # Create and save the final animated GIF
-    first_frame = next(frame_generator())
+    # Save the animated GIF
     first_frame.save(
         output_path,
         save_all=True,
-        append_images=list(frame_generator()),
+        append_images=resized_frames,
         duration=frame_duration,
         loop=0,
         optimize=True,
     )
 
-    # Close all cached GIFs
+    # Close all GIFs
     for gif in gif_cache.values():
         gif.close()
 
@@ -457,8 +451,8 @@ def create_photobooth_gif():
     print(gif_paths)
     if (not gif_paths):
         return jsonify({'error': 'gifs are required'}), 400
-    
-    os.remove("./output.gif")
+    if os.path.exists("./output.gif"):
+        os.remove("./output.gif")
 
     # Generate the photobooth GIF
     threading.Thread(

@@ -202,24 +202,29 @@ export default function Choose() {
 
     const drawPhotos = useCallback((ctx: CanvasRenderingContext2D) => {
         const gridConfig = getGridConfig();
-        if (selectedPhotos)
-            selectedPhotos.forEach((photoId, index) => {
-                const photo = photos.find(p => p.id === photoId);
-                if (photo) {
-                    const img = new Image();
-                    img.crossOrigin = "Anonymous";
-                    img.onload = () => {
-                        const { x, y, width, height } = gridConfig[index];
-                        ctx.save();
-                        ctx.filter = filterStyle;
-                        ctx.transform(-1, 0, 0, 1, canvasRef.current.width, 0)
-                        ctx.drawImage(img, x, y, width, height);
-                        ctx.restore();
-                    };
-                    img.src = photo.url;
-                }
-            });
-    }, [filterStyle, getGridConfig, photos, selectedPhotos]);
+        selectedPhotos.forEach((photoId, index) => {
+            const photo = photos.find(p => p.id === photoId);
+            if (photo) {
+                const img = new Image();
+                img.crossOrigin = "Anonymous";
+                img.onload = () => {
+                    const { x, y, width, height } = gridConfig[index];
+                    ctx.save();
+                    ctx.filter = filterStyle;
+                    ctx.transform(-1, 0, 0, 1, canvasRef.current.width, 0)
+                    ctx.drawImage(img, x, y, width, height);
+                    ctx.restore();
+                };
+                img.src = photo.url;
+            }
+        });
+        const layoutImg = new Image();
+        layoutImg.crossOrigin = "Anonymous";
+        layoutImg.onload = () => {
+            ctx.drawImage(layoutImg, 0, 0, ctx.canvas.width, ctx.canvas.height);
+        };
+        layoutImg.src = selectedLayout;
+    }, [filterStyle, getGridConfig, photos, selectedLayout, selectedPhotos]);
 
     const renderCanvas = useCallback((ctx: CanvasRenderingContext2D) => {
         const isHorizontal = selectedFrame === "2cut-x2" || selectedFrame === "4-cutx2";
@@ -237,28 +242,19 @@ export default function Choose() {
             const bgImg = new Image();
             bgImg.crossOrigin = "Anonymous";
             bgImg.onload = () => {
-                // Draw Background
-                ctx.drawImage(bgImg, 0, 0, canvasWidth, canvasHeight);
-            };
-            bgImg.src = myBackground;
-        }
-        // Draw Photos overlay
-        drawPhotos(ctx);
-        // Draw layout overlay
-        if (selectedLayout) {
-            const layoutImg = new Image();
-            layoutImg.crossOrigin = "Anonymous";
-            layoutImg.onload = () => {
                 ctx.save();
-                ctx.drawImage(layoutImg, 0, 0, ctx.canvas.width, ctx.canvas.height);
+                ctx.drawImage(bgImg, 0, 0, canvasWidth, canvasHeight);
+                drawPhotos(ctx);
                 ctx.restore();
             };
-            layoutImg.src = selectedLayout;
+            bgImg.src = myBackground;
+        } else {
+            drawPhotos(ctx);
         }
-    }, [drawPhotos, myBackground, selectedFrame, selectedLayout]);
+    }, [drawPhotos, myBackground, selectedFrame]);
 
     useEffect(() => {
-        if (canvasRef.current && selectedPhotos.length > 0) {
+        if (canvasRef.current) {
             const canvas = canvasRef.current;
             const ctx = canvas.getContext('2d');
             if (ctx) {
@@ -372,8 +368,8 @@ export default function Choose() {
                                             height: '100%',
                                             objectFit: 'contain',
                                         }}
-                                        width = {2478}
-                                        height = {3690}
+                                        width={2478}
+                                        height={3690}
                                     />
                                 </div>
                             </CardContent>
