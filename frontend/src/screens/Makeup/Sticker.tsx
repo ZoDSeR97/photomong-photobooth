@@ -33,6 +33,7 @@ export default function Sticker() {
     const [canvasScale, setCanvasScale] = useState(1);
     const [uuid, setUuid] = useState(sessionStorage.getItem("uuid") || null);
     const [selectedFrame, setSelectedFrame] = useState(JSON.parse(sessionStorage.getItem('selectedFrame')).frame);
+    const [printing, setPrinting] = useState<boolean>(false);
     const [photo, setPhoto] = useState(sessionStorage.getItem('photo'));
 
     useEffect(() => {
@@ -158,10 +159,11 @@ export default function Sticker() {
     }
 
     const printFrameWithSticker = async (event) => {
-        if (selectedIcon){
+        if (selectedIcon || printing){
             setSelectedIcon(null)
             return
         }
+        setPrinting(true);
         playAudio("/src/assets/audio/click.wav")
         try {
             if (!canvasRef.current) {
@@ -231,6 +233,7 @@ export default function Sticker() {
             navigate("/print");
         } catch (error) {
             console.error("Error during upload and print:", error);
+            setPrinting(false);
         }
     };
 
@@ -317,6 +320,7 @@ export default function Sticker() {
             </div>
             <Button
                 size="lg"
+                disabled={printing}
                 onClick={printFrameWithSticker}
                 className="absolute left-3/4 top-1/2 mt-4 bg-pink-500 px-8 hover:bg-pink-600 rounded-full text-white"
             >
