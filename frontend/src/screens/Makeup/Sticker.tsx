@@ -218,9 +218,11 @@ export default function Sticker() {
 
             // Handle upload response
             const qrVal = uploadResponse.photo_url;
-            if (qrVal) {
+            const qrGif = uploadResponse.gif_url;
+            if (qrVal)
                 sessionStorage.setItem('uploadedCloudPhotoUrl', qrVal);
-            }
+            if (qrGif) 
+                sessionStorage.setItem('gifPhoto', qrGif);
 
             // Handle print response
             if (printResponse.ok) {
